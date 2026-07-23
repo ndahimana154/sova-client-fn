@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f18f01;
+  --color-primary-dark: #c96f00;
+  --color-primary-light: #fff4df;
+  --color-ink: #171a1f;
+  --color-muted: #6f737a;
+  --color-soft: #f5f6f7;
+  --color-line: #e8e9eb;
+  --shadow-soft: 0 12px 32px rgb(23 26 31 / 8%);
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  body { margin: 0; min-width: 320px; background: white; }
+  button, input { font: inherit; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; }
+  a { text-decoration: none; color: inherit; }
+  :focus-visible { outline: 3px solid rgb(241 143 1 / 25%); outline-offset: 2px; }
+}
+
+@layer components {
+  .page-container { @apply mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-8; }
+  .section-space { @apply py-10 sm:py-14; }
+  .icon-control { @apply grid size-10 shrink-0 place-items-center rounded-full text-ink transition hover:bg-soft; }
+  .header-location { @apply hidden items-center gap-2 rounded-full px-3 py-2 text-left text-ink transition hover:bg-soft xl:flex; }
+  .header-location small { @apply block text-[9px] leading-none text-muted; }
+  .header-location strong { @apply mt-1 block text-[11px] leading-none; }
+  .brand-mark { @apply relative block size-8 overflow-hidden rounded-lg bg-primary; }
+  .brand-mark i:first-child { @apply absolute -right-2 top-1/2 size-6 -translate-y-1/2 rounded-full bg-white; }
+  .brand-mark i:last-child { @apply absolute right-0 top-1/2 size-2.5 -translate-y-1/2 rounded-l-full bg-primary; }
+  .hero-panel { @apply relative overflow-hidden rounded-[28px] border border-primary/10 bg-primary-light; }
+  .primary-button { @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-primary-dark; }
+  .secondary-button { @apply inline-flex items-center justify-center rounded-full border border-ink/15 bg-white/75 px-5 py-3 text-xs font-bold text-ink transition hover:border-primary hover:text-primary-dark; }
+  .category-card { @apply flex min-w-0 flex-col items-center rounded-2xl p-2 transition hover:bg-soft; }
+  .product-card { @apply min-w-0; }
+  .quick-add { @apply absolute inset-x-3 bottom-3 flex translate-y-14 items-center justify-center gap-2 rounded-full bg-ink px-4 py-3 text-xs font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-primary-dark; }
+}
+
+@media (max-width: 640px) {
+  .hero-panel img { object-position: 65% center; opacity: .5; }
+  .quick-add { transform: none; opacity: 1; padding-block: .6rem; }
+}
