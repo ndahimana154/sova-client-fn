@@ -37,10 +37,33 @@
   .secondary-button { @apply inline-flex items-center justify-center rounded-full border border-ink/15 bg-white/75 px-5 py-3 text-xs font-bold text-ink transition hover:border-primary hover:text-primary-dark; }
   .category-card { @apply flex min-w-0 flex-col items-center rounded-2xl p-2 transition hover:bg-soft; }
   .product-card { @apply min-w-0; }
-  .quick-add { @apply absolute inset-x-3 bottom-3 flex translate-y-14 items-center justify-center gap-2 rounded-full bg-ink px-4 py-3 text-xs font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-primary-dark; }
+  .quick-add { @apply items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-xs font-bold text-white transition duration-300 hover:bg-primary-dark; }
+  .quick-add-touch { @apply mt-3 flex w-full; }
+  .quick-add-desktop { @apply hidden; }
 }
 
 @media (max-width: 640px) {
   .hero-panel img { object-position: 65% center; opacity: .5; }
-  .quick-add { transform: none; opacity: 1; padding-block: .6rem; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quick-add-touch {
+    display: none;
+  }
+
+  .quick-add-desktop {
+    display: flex;
+    position: absolute;
+    right: .75rem;
+    bottom: .75rem;
+    left: .75rem;
+    transform: translateY(3.5rem);
+    opacity: 0;
+  }
+
+  .product-card:hover .quick-add-desktop,
+  .product-card:focus-within .quick-add-desktop {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

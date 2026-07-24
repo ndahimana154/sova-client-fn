@@ -1,5 +1,5 @@
-import { brands } from '../data/catalog'
-import { SectionHeader } from './SectionHeader'
+import { SectionHeader } from '../../components/ui/SectionHeader'
+import { brands } from '../../data/catalog'
 
 export function BrandStrip() {
   return (

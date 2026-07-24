@@ -1,5 +1,5 @@
-import { categories } from '../data/catalog'
-import { SectionHeader } from './SectionHeader'
+import { SectionHeader } from '../../components/ui/SectionHeader'
+import { categories } from '../../data/catalog'
 
 export function CategoryRail() {
   return (

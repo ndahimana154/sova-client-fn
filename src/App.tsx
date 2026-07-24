@@ -1,19 +1,17 @@
 import { useState } from 'react'
-import { BrandStrip } from './components/BrandStrip'
-import { CartDrawer, type CartItem } from './components/CartDrawer'
-import { CategoryRail } from './components/CategoryRail'
-import { Footer } from './components/Footer'
-import { Hero } from './components/Hero'
-import { Newsletter } from './components/Newsletter'
-import { ProductSection } from './components/ProductSection'
-import { PromoGrid } from './components/PromoGrid'
-import { StoreHeader } from './components/StoreHeader'
-import { homeProducts, products, type Product } from './data/catalog'
+import { Footer } from './components/layout/Footer'
+import { StoreHeader } from './components/layout/StoreHeader'
+import { CartDrawer } from './features/cart/CartDrawer'
+import type { CartItem } from './features/cart/types'
+import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
+import type { Product } from './data/catalog'
+import { HomePage } from './pages/home/HomePage'
 
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
-  const [favoriteCount, setFavoriteCount] = useState(0)
+  const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [message, setMessage] = useState('')
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
@@ -34,9 +32,12 @@ export default function App() {
     showMessage(`${product.name} added to your cart`)
   }
 
-  function addFavorite() {
-    setFavoriteCount((count) => count + 1)
-    showMessage('Saved to your favorites')
+  function toggleFavorite(product: Product) {
+    const isFavorite = favoriteItems.some((item) => item.name === product.name)
+    setFavoriteItems((items) => isFavorite
+      ? items.filter((item) => item.name !== product.name)
+      : [...items, product])
+    showMessage(isFavorite ? 'Removed from your favorites' : `${product.name} saved to your favorites`)
   }
 
   function changeQuantity(productName: string, quantity: number) {
@@ -55,31 +56,15 @@ export default function App() {
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
         cartCount={cartCount}
-        favoriteCount={favoriteCount}
+        favoriteCount={favoriteItems.length}
         onCartOpen={() => setCartOpen(true)}
+        onFavoritesOpen={() => setFavoritesOpen(true)}
       />
-      <main>
-        <Hero />
-        <CategoryRail />
-        <ProductSection
-          eyebrow="Handpicked this week"
-          id="deals"
-          onAdd={addToCart}
-          onFavorite={addFavorite}
-          products={products}
-          title="Today’s best deals"
-        />
-        <PromoGrid />
-        <BrandStrip />
-        <ProductSection
-          eyebrow="Make room for good design"
-          onAdd={addToCart}
-          onFavorite={addFavorite}
-          products={homeProducts}
-          title="Home, thoughtfully chosen"
-        />
-        <Newsletter />
-      </main>
+      <HomePage
+        favoriteProductNames={favoriteItems.map((item) => item.name)}
+        onAddToCart={addToCart}
+        onToggleFavorite={toggleFavorite}
+      />
       <Footer />
       {cartOpen && (
         <CartDrawer
@@ -87,6 +72,14 @@ export default function App() {
           onClose={() => setCartOpen(false)}
           onQuantityChange={changeQuantity}
           onRemove={removeFromCart}
+        />
+      )}
+      {favoritesOpen && (
+        <FavoritesDrawer
+          items={favoriteItems}
+          onAddToCart={addToCart}
+          onClose={() => setFavoritesOpen(false)}
+          onRemove={toggleFavorite}
         />
       )}
       {message && (

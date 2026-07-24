@@ -1,22 +1,29 @@
 import { Heart, ShoppingBag, Star } from 'lucide-react'
-import type { Product } from '../data/catalog'
+import type { Product } from '../../data/catalog'
+import { formatPrice } from '../../lib/formatPrice'
 
 interface ProductCardProps {
+  isFavorite: boolean
   onAdd: (product: Product) => void
-  onFavorite: () => void
+  onFavorite: (product: Product) => void
   product: Product
 }
 
-export function ProductCard({ onAdd, onFavorite, product }: ProductCardProps) {
+export function ProductCard({ isFavorite, onAdd, onFavorite, product }: ProductCardProps) {
   return (
     <article className="product-card group">
       <div className="relative aspect-[1/1.02] overflow-hidden rounded-2xl bg-soft">
         <img alt={product.name} className="size-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" src={product.image} />
         {product.badge && <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-[10px] font-bold text-white">{product.badge}</span>}
-        <button aria-label={`Save ${product.name}`} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-white/90 text-ink shadow-sm backdrop-blur hover:text-primary" onClick={onFavorite}>
-          <Heart size={17} />
+        <button
+          aria-label={isFavorite ? `Remove ${product.name} from favorites` : `Save ${product.name} to favorites`}
+          aria-pressed={isFavorite}
+          className={`absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:text-primary ${isFavorite ? 'text-primary' : 'text-ink'}`}
+          onClick={() => onFavorite(product)}
+        >
+          <Heart className={isFavorite ? 'fill-current' : ''} size={17} />
         </button>
-        <button className="quick-add" onClick={() => onAdd(product)}><ShoppingBag size={15} /> Add to cart</button>
+        <button className="quick-add quick-add-desktop" onClick={() => onAdd(product)} type="button"><ShoppingBag size={15} /> Add to cart</button>
       </div>
       <div className="pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
@@ -28,11 +35,8 @@ export function ProductCard({ onAdd, onFavorite, product }: ProductCardProps) {
           <strong className="text-base text-ink">{formatPrice(product.price)}</strong>
           {product.oldPrice && <span className="text-xs text-muted line-through">{formatPrice(product.oldPrice)}</span>}
         </div>
+        <button className="quick-add quick-add-touch" onClick={() => onAdd(product)} type="button"><ShoppingBag size={15} /> Add to cart</button>
       </div>
     </article>
   )
-}
-
-function formatPrice(price: number) {
-  return `Rwf ${price.toLocaleString()}`
 }
