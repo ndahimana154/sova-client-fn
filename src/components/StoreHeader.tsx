@@ -5,11 +5,12 @@ import { Brand } from './Brand'
 interface StoreHeaderProps {
   cartCount: number
   favoriteCount: number
+  onCartOpen: () => void
 }
 
 const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
 
-export function StoreHeader({ cartCount, favoriteCount }: StoreHeaderProps) {
+export function StoreHeader({ cartCount, favoriteCount, onCartOpen }: StoreHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -30,7 +31,7 @@ export function StoreHeader({ cartCount, favoriteCount }: StoreHeaderProps) {
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" />
-          <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" />
+          <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
           <button className="icon-control" aria-label="Sign in"><UserRound size={19} /></button>
         </div>
       </div>
@@ -51,9 +52,9 @@ export function StoreHeader({ cartCount, favoriteCount }: StoreHeaderProps) {
   )
 }
 
-function CountButton({ count, icon, label }: { count: number; icon: React.ReactNode; label: string }) {
+function CountButton({ count, icon, label, onClick }: { count: number; icon: React.ReactNode; label: string; onClick?: () => void }) {
   return (
-    <button className="icon-control relative" aria-label={label}>
+    <button className="icon-control relative" aria-label={label} onClick={onClick}>
       {icon}{count > 0 && <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-primary text-[9px] font-bold text-white">{count}</span>}
     </button>
   )

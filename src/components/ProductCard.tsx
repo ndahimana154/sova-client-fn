@@ -2,7 +2,7 @@ import { Heart, ShoppingBag, Star } from 'lucide-react'
 import type { Product } from '../data/catalog'
 
 interface ProductCardProps {
-  onAdd: () => void
+  onAdd: (product: Product) => void
   onFavorite: () => void
   product: Product
 }
@@ -16,7 +16,7 @@ export function ProductCard({ onAdd, onFavorite, product }: ProductCardProps) {
         <button aria-label={`Save ${product.name}`} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-white/90 text-ink shadow-sm backdrop-blur hover:text-primary" onClick={onFavorite}>
           <Heart size={17} />
         </button>
-        <button className="quick-add" onClick={onAdd}><ShoppingBag size={15} /> Add to cart</button>
+        <button className="quick-add" onClick={() => onAdd(product)}><ShoppingBag size={15} /> Add to cart</button>
       </div>
       <div className="pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
