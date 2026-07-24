@@ -5,7 +5,7 @@ import { SectionHeader } from './SectionHeader'
 interface ProductSectionProps {
   eyebrow?: string
   id?: string
-  onAdd: () => void
+  onAdd: (product: Product) => void
   onFavorite: () => void
   products: Product[]
   title: string
