@@ -1,5 +1,5 @@
 import { Facebook, Instagram, Twitter } from 'lucide-react'
-import { Brand } from './Brand'
+import { Brand } from '../ui/Brand'
 
 const columns = [
   { title: 'Shop', links: ['New arrivals', 'Best sellers', 'Today’s deals', 'Gift cards'] },

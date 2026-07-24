@@ -1,0 +1,58 @@
+import { Heart, ShoppingBag, Trash2 } from 'lucide-react'
+import { Drawer } from '../../components/ui/Drawer'
+import type { Product } from '../../data/catalog'
+import { formatPrice } from '../../lib/formatPrice'
+
+interface FavoritesDrawerProps {
+  items: Product[]
+  onAddToCart: (product: Product) => void
+  onClose: () => void
+  onRemove: (product: Product) => void
+}
+
+export function FavoritesDrawer({ items, onAddToCart, onClose, onRemove }: FavoritesDrawerProps) {
+  return (
+    <Drawer
+      ariaLabel="Favorite products"
+      onClose={onClose}
+      subtitle={`${items.length} ${items.length === 1 ? 'saved product' : 'saved products'}`}
+      title="Your favorites"
+    >
+      {items.length === 0 ? (
+        <div className="grid flex-1 place-items-center p-8 text-center">
+          <div>
+            <span className="mx-auto grid size-16 place-items-center rounded-full bg-primary-light text-primary-dark"><Heart size={26} /></span>
+            <h3 className="mt-5 font-bold text-ink">No favorites yet</h3>
+            <p className="mt-2 text-sm text-muted">Tap the heart on a product to save it for later.</p>
+            <button className="primary-button mt-6" onClick={onClose}>Explore products</button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 space-y-4 overflow-y-auto p-5">
+          {items.map((product) => (
+            <article className="flex gap-4" key={product.name}>
+              <img alt="" className="size-24 shrink-0 rounded-2xl bg-soft object-cover" src={product.image} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">{product.category}</p>
+                <h3 className="mt-1 text-sm font-bold leading-5 text-ink">{product.name}</h3>
+                <strong className="mt-1 block text-sm text-ink">{formatPrice(product.price)}</strong>
+                <div className="mt-3 flex items-center gap-2">
+                  <button className="primary-button !px-4 !py-2" onClick={() => onAddToCart(product)}>
+                    <ShoppingBag size={14} /> Add to cart
+                  </button>
+                  <button
+                    aria-label={`Remove ${product.name} from favorites`}
+                    className="grid size-8 place-items-center rounded-full text-muted hover:bg-soft hover:text-red-600"
+                    onClick={() => onRemove(product)}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </Drawer>
+  )
+}

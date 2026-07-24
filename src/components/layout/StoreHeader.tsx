@@ -1,16 +1,17 @@
 import { ChevronDown, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useState } from 'react'
-import { Brand } from './Brand'
+import { Brand } from '../ui/Brand'
 
 interface StoreHeaderProps {
   cartCount: number
   favoriteCount: number
   onCartOpen: () => void
+  onFavoritesOpen: () => void
 }
 
 const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
 
-export function StoreHeader({ cartCount, favoriteCount, onCartOpen }: StoreHeaderProps) {
+export function StoreHeader({ cartCount, favoriteCount, onCartOpen, onFavoritesOpen }: StoreHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -30,7 +31,7 @@ export function StoreHeader({ cartCount, favoriteCount, onCartOpen }: StoreHeade
           <button className="header-location">
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
-          <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" />
+          <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
           <button className="icon-control" aria-label="Sign in"><UserRound size={19} /></button>
         </div>
