@@ -23,7 +23,7 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, product }: ProductC
         >
           <Heart className={isFavorite ? 'fill-current' : ''} size={17} />
         </button>
-        <button className="quick-add" onClick={() => onAdd(product)}><ShoppingBag size={15} /> Add to cart</button>
+        <button className="quick-add quick-add-desktop" onClick={() => onAdd(product)} type="button"><ShoppingBag size={15} /> Add to cart</button>
       </div>
       <div className="pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
@@ -35,6 +35,7 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, product }: ProductC
           <strong className="text-base text-ink">{formatPrice(product.price)}</strong>
           {product.oldPrice && <span className="text-xs text-muted line-through">{formatPrice(product.oldPrice)}</span>}
         </div>
+        <button className="quick-add quick-add-touch" onClick={() => onAdd(product)} type="button"><ShoppingBag size={15} /> Add to cart</button>
       </div>
     </article>
   )
