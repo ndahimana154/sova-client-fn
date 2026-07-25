@@ -3,15 +3,17 @@ import { useState } from 'react'
 import { Brand } from '../ui/Brand'
 
 interface StoreHeaderProps {
+  accountActive: boolean
   cartCount: number
   favoriteCount: number
+  onAccountOpen: () => void
   onCartOpen: () => void
   onFavoritesOpen: () => void
 }
 
 const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
 
-export function StoreHeader({ cartCount, favoriteCount, onCartOpen, onFavoritesOpen }: StoreHeaderProps) {
+export function StoreHeader({ accountActive, cartCount, favoriteCount, onAccountOpen, onCartOpen, onFavoritesOpen }: StoreHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -33,7 +35,14 @@ export function StoreHeader({ cartCount, favoriteCount, onCartOpen, onFavoritesO
           </button>
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
-          <button className="icon-control" aria-label="Sign in"><UserRound size={19} /></button>
+          <button
+            aria-current={accountActive ? 'page' : undefined}
+            aria-label="Account settings"
+            className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
+            onClick={onAccountOpen}
+          >
+            <UserRound size={19} />
+          </button>
         </div>
       </div>
       <div className="page-container pb-3 md:hidden">

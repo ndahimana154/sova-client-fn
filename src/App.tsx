@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Footer } from './components/layout/Footer'
 import { StoreHeader } from './components/layout/StoreHeader'
 import { CartDrawer } from './features/cart/CartDrawer'
 import type { CartItem } from './features/cart/types'
 import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
 import type { Product } from './data/catalog'
+import { AccountPage } from './pages/account/AccountPage'
 import { HomePage } from './pages/home/HomePage'
 
 export default function App() {
+  const [page, setPage] = useState<'home' | 'account'>(() => window.location.hash === '#account' ? 'account' : 'home')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
@@ -15,6 +17,16 @@ export default function App() {
   const [message, setMessage] = useState('')
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
+
+  useEffect(() => {
+    function handleHashChange() {
+      setPage(window.location.hash === '#account' ? 'account' : 'home')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
 
   function showMessage(text: string) {
     setMessage(text)
@@ -55,16 +67,24 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
+        accountActive={page === 'account'}
         cartCount={cartCount}
         favoriteCount={favoriteItems.length}
+        onAccountOpen={() => {
+          window.location.hash = 'account'
+        }}
         onCartOpen={() => setCartOpen(true)}
         onFavoritesOpen={() => setFavoritesOpen(true)}
       />
-      <HomePage
-        favoriteProductNames={favoriteItems.map((item) => item.name)}
-        onAddToCart={addToCart}
-        onToggleFavorite={toggleFavorite}
-      />
+      {page === 'account' ? (
+        <AccountPage onSaved={() => showMessage('Your settings have been saved')} />
+      ) : (
+        <HomePage
+          favoriteProductNames={favoriteItems.map((item) => item.name)}
+          onAddToCart={addToCart}
+          onToggleFavorite={toggleFavorite}
+        />
+      )}
       <Footer />
       {cartOpen && (
         <CartDrawer
