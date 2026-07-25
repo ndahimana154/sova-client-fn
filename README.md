@@ -14,6 +14,7 @@ catalog data.
 - Product ratings, discounts, and Rwandan franc price formatting
 - In-memory shopping cart with quantity controls and subtotal calculation
 - In-memory favorites list
+- Account settings page with locally persisted profile and notification choices
 - Accessible slide-out cart and favorites drawers
 - Responsive product interactions for mouse and touch devices
 - Staging deployment workflow through GitHub Actions
@@ -114,8 +115,9 @@ name should remain unique.
 ## Current scope
 
 This repository contains the storefront UI only. Cart and favorites data is
-held in React state and resets when the page reloads. Search, authentication,
-checkout, newsletter submission, navigation destinations, and backend catalog
+held in React state and resets when the page reloads. Account settings are
+stored in the browser's local storage. Search, authentication, checkout,
+newsletter submission, most navigation destinations, and backend catalog
 integration are represented in the interface but are not connected to
 production services yet.
 
