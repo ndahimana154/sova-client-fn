@@ -22,6 +22,7 @@ function pageFromHash(): Page {
 
 export default function App() {
   const [page, setPage] = useState<Page>(pageFromHash)
+  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sova-authenticated') === 'true')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
@@ -78,6 +79,7 @@ export default function App() {
 
   function authenticate(name?: string, email?: string) {
     localStorage.setItem('sova-authenticated', 'true')
+    setAuthenticated(true)
     if (name || email) {
       try {
         const current = JSON.parse(localStorage.getItem('sova-account-settings') || '{}')
@@ -89,6 +91,14 @@ export default function App() {
     setPage('account')
     window.location.hash = 'account'
     showMessage('Welcome to SOVA')
+  }
+
+  function logout() {
+    localStorage.removeItem('sova-authenticated')
+    setAuthenticated(false)
+    setPage('home')
+    window.location.hash = ''
+    showMessage('You have been logged out')
   }
 
   if (page === 'login' || page === 'signup') {
@@ -108,16 +118,23 @@ export default function App() {
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
         accountActive={page === 'account'}
+        authenticated={authenticated}
         cartCount={cartCount}
         favoriteCount={favoriteItems.length}
         onAccountOpen={() => {
-          window.location.hash = localStorage.getItem('sova-authenticated') === 'true' ? 'account' : 'login'
+          window.location.hash = 'account'
         }}
         onCartOpen={() => setCartOpen(true)}
         onFavoritesOpen={() => setFavoritesOpen(true)}
+        onLoginOpen={() => {
+          window.location.hash = 'login'
+        }}
+        onSignupOpen={() => {
+          window.location.hash = 'signup'
+        }}
       />
       {page === 'account' ? (
-        <AccountPage onSaved={() => showMessage('Your settings have been saved')} />
+        <AccountPage onLogout={logout} onSaved={() => showMessage('Your settings have been saved')} />
       ) : (
         <HomePage
           favoriteProductNames={favoriteItems.map((item) => item.name)}

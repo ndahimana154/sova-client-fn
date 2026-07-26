@@ -29,6 +29,8 @@
   .header-location { @apply hidden items-center gap-2 rounded-full px-3 py-2 text-left text-ink transition hover:bg-soft xl:flex; }
   .header-location small { @apply block text-[9px] leading-none text-muted; }
   .header-location strong { @apply mt-1 block text-[11px] leading-none; }
+  .header-login-link { @apply whitespace-nowrap rounded-full px-2 py-2 text-[11px] font-bold text-ink transition hover:bg-soft sm:px-3 sm:text-xs; }
+  .header-signup-link { @apply whitespace-nowrap rounded-full bg-primary px-3 py-2 text-[11px] font-bold text-white transition hover:bg-primary-dark sm:px-4 sm:text-xs; }
   .brand-mark { @apply relative block size-8 overflow-hidden rounded-lg bg-primary; }
   .brand-mark i:first-child { @apply absolute -right-2 top-1/2 size-6 -translate-y-1/2 rounded-full bg-white; }
   .brand-mark i:last-child { @apply absolute right-0 top-1/2 size-2.5 -translate-y-1/2 rounded-l-full bg-primary; }
