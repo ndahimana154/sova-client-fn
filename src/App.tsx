@@ -192,6 +192,7 @@ export default function App() {
         <HomePage
           favoriteProductNames={favoriteItems.map((item) => item.name)}
           onAddToCart={addToCart}
+          onBrandOpen={openBrand}
           onProductOpen={openProduct}
           onToggleFavorite={toggleFavorite}
         />

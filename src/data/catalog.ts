@@ -41,4 +41,8 @@ export const homeProducts: Product[] = [
   { name: 'Handmade storage basket', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=700&q=85', price: 24000, rating: 4.7, reviews: 51 },
 ]
 
-export const brands = ['Samsung', 'Nike', 'Apple', 'Nestlé', 'L’Oréal', 'Adidas']
+export const brands = [...new Set(
+  [...products, ...homeProducts]
+    .map((product) => product.brand)
+    .filter((brand): brand is string => Boolean(brand)),
+)]
