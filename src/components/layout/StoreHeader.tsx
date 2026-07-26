@@ -3,15 +3,30 @@ import { useState } from 'react'
 import { Brand } from '../ui/Brand'
 
 interface StoreHeaderProps {
+  accountActive: boolean
+  authenticated: boolean
   cartCount: number
   favoriteCount: number
+  onAccountOpen: () => void
   onCartOpen: () => void
   onFavoritesOpen: () => void
+  onLoginOpen: () => void
+  onSignupOpen: () => void
 }
 
 const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
 
-export function StoreHeader({ cartCount, favoriteCount, onCartOpen, onFavoritesOpen }: StoreHeaderProps) {
+export function StoreHeader({
+  accountActive,
+  authenticated,
+  cartCount,
+  favoriteCount,
+  onAccountOpen,
+  onCartOpen,
+  onFavoritesOpen,
+  onLoginOpen,
+  onSignupOpen,
+}: StoreHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -33,7 +48,21 @@ export function StoreHeader({ cartCount, favoriteCount, onCartOpen, onFavoritesO
           </button>
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
-          <button className="icon-control" aria-label="Sign in"><UserRound size={19} /></button>
+          {authenticated ? (
+            <button
+              aria-current={accountActive ? 'page' : undefined}
+              aria-label="Account settings"
+              className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
+              onClick={onAccountOpen}
+            >
+              <UserRound size={19} />
+            </button>
+          ) : (
+            <div className="ml-1 flex items-center gap-1 sm:gap-2">
+              <button className="header-login-link" onClick={onLoginOpen}>Log in</button>
+              <button className="header-signup-link" onClick={onSignupOpen}>Sign up</button>
+            </div>
+          )}
         </div>
       </div>
       <div className="page-container pb-3 md:hidden">

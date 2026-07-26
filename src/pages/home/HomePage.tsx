@@ -10,10 +10,12 @@ import { PromoGrid } from './PromoGrid'
 interface HomePageProps {
   favoriteProductNames: string[]
   onAddToCart: (product: Product) => void
+  onBrandOpen: (brand: string) => void
+  onProductOpen: (product: Product) => void
   onToggleFavorite: (product: Product) => void
 }
 
-export function HomePage({ favoriteProductNames, onAddToCart, onToggleFavorite }: HomePageProps) {
+export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onProductOpen, onToggleFavorite }: HomePageProps) {
   return (
     <main>
       <Hero />
@@ -24,16 +26,18 @@ export function HomePage({ favoriteProductNames, onAddToCart, onToggleFavorite }
         id="deals"
         onAdd={onAddToCart}
         onFavorite={onToggleFavorite}
+        onOpen={onProductOpen}
         products={products}
         title="Today’s best deals"
       />
       <PromoGrid />
-      <BrandStrip />
+      <BrandStrip onBrandOpen={onBrandOpen} />
       <ProductSection
         eyebrow="Make room for good design"
         favoriteProductNames={favoriteProductNames}
         onAdd={onAddToCart}
         onFavorite={onToggleFavorite}
+        onOpen={onProductOpen}
         products={homeProducts}
         title="Home, thoughtfully chosen"
       />

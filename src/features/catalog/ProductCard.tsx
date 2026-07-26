@@ -6,14 +6,22 @@ interface ProductCardProps {
   isFavorite: boolean
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
+  onOpen: (product: Product) => void
   product: Product
 }
 
-export function ProductCard({ isFavorite, onAdd, onFavorite, product }: ProductCardProps) {
+export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: ProductCardProps) {
   return (
     <article className="product-card group">
       <div className="relative aspect-[1/1.02] overflow-hidden rounded-2xl bg-soft">
-        <img alt={product.name} className="size-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" src={product.image} />
+        <button
+          aria-label={`View ${product.name}`}
+          className="block size-full cursor-pointer"
+          onClick={() => onOpen(product)}
+          type="button"
+        >
+          <img alt={product.name} className="size-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" src={product.image} />
+        </button>
         {product.badge && <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-[10px] font-bold text-white">{product.badge}</span>}
         <button
           aria-label={isFavorite ? `Remove ${product.name} from favorites` : `Save ${product.name} to favorites`}
@@ -27,7 +35,9 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, product }: ProductC
       </div>
       <div className="pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
-        <h3 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-ink">{product.name}</h3>
+        <h3 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-ink">
+          <button className="text-left transition hover:text-primary-dark" onClick={() => onOpen(product)} type="button">{product.name}</button>
+        </h3>
         <div className="mt-2 flex items-center gap-1 text-[11px] text-muted">
           <Star className="fill-primary text-primary" size={13} /><strong className="text-ink">{product.rating}</strong><span>({product.reviews})</span>
         </div>
