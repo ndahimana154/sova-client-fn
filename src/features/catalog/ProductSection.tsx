@@ -8,11 +8,12 @@ interface ProductSectionProps {
   id?: string
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
+  onOpen: (product: Product) => void
   products: Product[]
   title: string
 }
 
-export function ProductSection({ eyebrow, favoriteProductNames, id, onAdd, onFavorite, products, title }: ProductSectionProps) {
+export function ProductSection({ eyebrow, favoriteProductNames, id, onAdd, onFavorite, onOpen, products, title }: ProductSectionProps) {
   return (
     <section className="page-container section-space" id={id}>
       <SectionHeader eyebrow={eyebrow} title={title} />
@@ -23,6 +24,7 @@ export function ProductSection({ eyebrow, favoriteProductNames, id, onAdd, onFav
             key={product.name}
             onAdd={onAdd}
             onFavorite={onFavorite}
+            onOpen={onOpen}
             product={product}
           />
         ))}

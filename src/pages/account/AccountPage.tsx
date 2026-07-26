@@ -1,4 +1,4 @@
-import { Bell, ChevronLeft, Mail, MapPin, ShieldCheck, UserRound } from 'lucide-react'
+import { Bell, ChevronLeft, LogOut, Mail, MapPin, ShieldCheck, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 
 interface AccountSettings {
@@ -10,6 +10,7 @@ interface AccountSettings {
 }
 
 interface AccountPageProps {
+  onLogout: () => void
   onSaved: () => void
 }
 
@@ -30,7 +31,7 @@ function loadSettings(): AccountSettings {
   }
 }
 
-export function AccountPage({ onSaved }: AccountPageProps) {
+export function AccountPage({ onLogout, onSaved }: AccountPageProps) {
   const [settings, setSettings] = useState<AccountSettings>(loadSettings)
 
   function updateSetting<Key extends keyof AccountSettings>(key: Key, value: AccountSettings[Key]) {
@@ -71,6 +72,13 @@ export function AccountPage({ onSaved }: AccountPageProps) {
               <span className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold text-muted">
                 <ShieldCheck size={17} /> Privacy & security
               </span>
+              <button
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                onClick={onLogout}
+                type="button"
+              >
+                <LogOut size={17} /> Log out
+              </button>
             </nav>
           </aside>
 
