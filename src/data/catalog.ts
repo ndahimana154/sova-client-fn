@@ -6,6 +6,7 @@ export interface Category {
 
 export interface Product {
   badge?: string
+  brand?: string
   category: string
   image: string
   name: string
@@ -25,19 +26,19 @@ export const categories: Category[] = [
 ]
 
 export const products: Product[] = [
-  { name: 'Studio wireless headphones', category: 'Electronics', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=85', price: 129000, oldPrice: 159000, rating: 4.8, reviews: 284, badge: '-19%' },
-  { name: 'Essential everyday sneakers', category: 'Fashion', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85', price: 74000, rating: 4.7, reviews: 193 },
-  { name: 'Minimal ceramic table set', category: 'Home', image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=700&q=85', price: 42000, oldPrice: 52000, rating: 4.9, reviews: 86, badge: 'Deal' },
-  { name: 'Hydrating daily skincare set', category: 'Beauty', image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85', price: 58000, rating: 4.6, reviews: 147 },
-  { name: 'Smart fitness watch', category: 'Electronics', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=85', price: 98000, oldPrice: 119000, rating: 4.8, reviews: 321, badge: '-18%' },
+  { name: 'Studio wireless headphones', brand: 'Auralab', category: 'Electronics', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=85', price: 129000, oldPrice: 159000, rating: 4.8, reviews: 284, badge: '-19%' },
+  { name: 'Essential everyday sneakers', brand: 'Ikaze', category: 'Fashion', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85', price: 74000, rating: 4.7, reviews: 193 },
+  { name: 'Minimal ceramic table set', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=700&q=85', price: 42000, oldPrice: 52000, rating: 4.9, reviews: 86, badge: 'Deal' },
+  { name: 'Hydrating daily skincare set', brand: 'Lumière Botanics', category: 'Beauty', image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=700&q=85', price: 58000, rating: 4.6, reviews: 147 },
+  { name: 'Smart fitness watch', brand: 'PulseTech', category: 'Electronics', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=85', price: 98000, oldPrice: 119000, rating: 4.8, reviews: 321, badge: '-18%' },
 ]
 
 export const homeProducts: Product[] = [
-  { name: 'Lounge accent chair', category: 'Home', image: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=700&q=85', price: 185000, rating: 4.8, reviews: 64 },
-  { name: 'Stoneware vase collection', category: 'Home', image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=700&q=85', price: 36000, oldPrice: 44000, rating: 4.7, reviews: 72 },
-  { name: 'Modern pendant lamp', category: 'Home', image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?auto=format&fit=crop&w=700&q=85', price: 68000, rating: 4.9, reviews: 105, badge: 'Popular' },
-  { name: 'Soft woven throw blanket', category: 'Home', image: 'https://images.unsplash.com/photo-1583845112203-29329902332e?auto=format&fit=crop&w=700&q=85', price: 29000, rating: 4.6, reviews: 88 },
-  { name: 'Handmade storage basket', category: 'Home', image: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=700&q=85', price: 24000, rating: 4.7, reviews: 51 },
+  { name: 'Lounge accent chair', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=700&q=85', price: 185000, rating: 4.8, reviews: 64 },
+  { name: 'Stoneware vase collection', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=700&q=85', price: 36000, oldPrice: 44000, rating: 4.7, reviews: 72 },
+  { name: 'Modern pendant lamp', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?auto=format&fit=crop&w=700&q=85', price: 68000, rating: 4.9, reviews: 105, badge: 'Popular' },
+  { name: 'Soft woven throw blanket', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1583845112203-29329902332e?auto=format&fit=crop&w=700&q=85', price: 29000, rating: 4.6, reviews: 88 },
+  { name: 'Handmade storage basket', brand: 'Nuru Home', category: 'Home', image: 'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=700&q=85', price: 24000, rating: 4.7, reviews: 51 },
 ]
 
 export const brands = ['Samsung', 'Nike', 'Apple', 'Nestlé', 'L’Oréal', 'Adidas']

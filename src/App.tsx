@@ -4,12 +4,26 @@ import { StoreHeader } from './components/layout/StoreHeader'
 import { CartDrawer } from './features/cart/CartDrawer'
 import type { CartItem } from './features/cart/types'
 import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
-import type { Product } from './data/catalog'
+import { homeProducts, products, type Product } from './data/catalog'
 import { AccountPage } from './pages/account/AccountPage'
 import { AuthPage, type AuthMode } from './pages/auth/AuthPage'
 import { HomePage } from './pages/home/HomePage'
+import { ProductDetailPage } from './pages/product/ProductDetailPage'
+import { BrandStorePage } from './pages/shop/BrandStorePage'
 
-type Page = 'home' | 'account' | AuthMode
+type Page = 'home' | 'account' | 'product' | 'shop' | AuthMode
+const allProducts = [...products, ...homeProducts]
+
+function productFromHash() {
+  if (!window.location.hash.startsWith('#product/')) return undefined
+  const productName = decodeURIComponent(window.location.hash.slice('#product/'.length))
+  return allProducts.find((product) => product.name === productName)
+}
+
+function brandFromHash() {
+  if (!window.location.hash.startsWith('#shop/')) return undefined
+  return decodeURIComponent(window.location.hash.slice('#shop/'.length))
+}
 
 function pageFromHash(): Page {
   if (window.location.hash === '#login') return 'login'
@@ -17,11 +31,15 @@ function pageFromHash(): Page {
   if (window.location.hash === '#account') {
     return localStorage.getItem('sova-authenticated') === 'true' ? 'account' : 'login'
   }
+  if (productFromHash()) return 'product'
+  if (brandFromHash()) return 'shop'
   return 'home'
 }
 
 export default function App() {
   const [page, setPage] = useState<Page>(pageFromHash)
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
+  const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
   const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sova-authenticated') === 'true')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
@@ -33,6 +51,8 @@ export default function App() {
 
   useEffect(() => {
     function handleHashChange() {
+      setSelectedProduct(productFromHash())
+      setSelectedBrand(brandFromHash())
       setPage(pageFromHash())
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -46,15 +66,15 @@ export default function App() {
     window.setTimeout(() => setMessage(''), 1800)
   }
 
-  function addToCart(product: Product) {
+  function addToCart(product: Product, quantity = 1) {
     setCartItems((items) => {
       const existingItem = items.find((item) => item.product.name === product.name)
       if (existingItem) {
-        return items.map((item) => item.product.name === product.name ? { ...item, quantity: item.quantity + 1 } : item)
+        return items.map((item) => item.product.name === product.name ? { ...item, quantity: item.quantity + quantity } : item)
       }
-      return [...items, { product, quantity: 1 }]
+      return [...items, { product, quantity }]
     })
-    showMessage(`${product.name} added to your cart`)
+    showMessage(`${quantity > 1 ? `${quantity} × ` : ''}${product.name} added to your cart`)
   }
 
   function toggleFavorite(product: Product) {
@@ -101,6 +121,18 @@ export default function App() {
     showMessage('You have been logged out')
   }
 
+  function openProduct(product: Product) {
+    setSelectedProduct(product)
+    setPage('product')
+    window.location.hash = `product/${encodeURIComponent(product.name)}`
+  }
+
+  function openBrand(brand: string) {
+    setSelectedBrand(brand)
+    setPage('shop')
+    window.location.hash = `shop/${encodeURIComponent(brand)}`
+  }
+
   if (page === 'login' || page === 'signup') {
     return (
       <AuthPage
@@ -135,10 +167,32 @@ export default function App() {
       />
       {page === 'account' ? (
         <AccountPage onLogout={logout} onSaved={() => showMessage('Your settings have been saved')} />
+      ) : page === 'product' && selectedProduct ? (
+        <ProductDetailPage
+          allProducts={allProducts}
+          favoriteProductNames={favoriteItems.map((item) => item.name)}
+          key={selectedProduct.name}
+          onAddToCart={addToCart}
+          onBrandOpen={openBrand}
+          onProductOpen={openProduct}
+          onToggleFavorite={toggleFavorite}
+          product={selectedProduct}
+        />
+      ) : page === 'shop' && selectedBrand ? (
+        <BrandStorePage
+          allProducts={allProducts}
+          brand={selectedBrand}
+          favoriteProductNames={favoriteItems.map((item) => item.name)}
+          key={selectedBrand}
+          onAddToCart={addToCart}
+          onProductOpen={openProduct}
+          onToggleFavorite={toggleFavorite}
+        />
       ) : (
         <HomePage
           favoriteProductNames={favoriteItems.map((item) => item.name)}
           onAddToCart={addToCart}
+          onProductOpen={openProduct}
           onToggleFavorite={toggleFavorite}
         />
       )}
