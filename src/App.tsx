@@ -6,10 +6,22 @@ import type { CartItem } from './features/cart/types'
 import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
 import type { Product } from './data/catalog'
 import { AccountPage } from './pages/account/AccountPage'
+import { AuthPage, type AuthMode } from './pages/auth/AuthPage'
 import { HomePage } from './pages/home/HomePage'
 
+type Page = 'home' | 'account' | AuthMode
+
+function pageFromHash(): Page {
+  if (window.location.hash === '#login') return 'login'
+  if (window.location.hash === '#signup') return 'signup'
+  if (window.location.hash === '#account') {
+    return localStorage.getItem('sova-authenticated') === 'true' ? 'account' : 'login'
+  }
+  return 'home'
+}
+
 export default function App() {
-  const [page, setPage] = useState<'home' | 'account'>(() => window.location.hash === '#account' ? 'account' : 'home')
+  const [page, setPage] = useState<Page>(pageFromHash)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
@@ -20,7 +32,7 @@ export default function App() {
 
   useEffect(() => {
     function handleHashChange() {
-      setPage(window.location.hash === '#account' ? 'account' : 'home')
+      setPage(pageFromHash())
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
@@ -64,6 +76,34 @@ export default function App() {
     setCartItems((items) => items.filter((item) => item.product.name !== productName))
   }
 
+  function authenticate(name?: string, email?: string) {
+    localStorage.setItem('sova-authenticated', 'true')
+    if (name || email) {
+      try {
+        const current = JSON.parse(localStorage.getItem('sova-account-settings') || '{}')
+        localStorage.setItem('sova-account-settings', JSON.stringify({ ...current, name: name || current.name || '', email: email || current.email || '' }))
+      } catch {
+        localStorage.setItem('sova-account-settings', JSON.stringify({ name: name || '', email: email || '' }))
+      }
+    }
+    setPage('account')
+    window.location.hash = 'account'
+    showMessage('Welcome to SOVA')
+  }
+
+  if (page === 'login' || page === 'signup') {
+    return (
+      <AuthPage
+        mode={page}
+        onAuthenticate={authenticate}
+        onModeChange={(mode) => {
+          setPage(mode)
+          window.location.hash = mode
+        }}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
@@ -71,7 +111,7 @@ export default function App() {
         cartCount={cartCount}
         favoriteCount={favoriteItems.length}
         onAccountOpen={() => {
-          window.location.hash = 'account'
+          window.location.hash = localStorage.getItem('sova-authenticated') === 'true' ? 'account' : 'login'
         }}
         onCartOpen={() => setCartOpen(true)}
         onFavoritesOpen={() => setFavoritesOpen(true)}
