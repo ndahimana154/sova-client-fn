@@ -5,16 +5,34 @@ import { CartDrawer } from './features/cart/CartDrawer'
 import type { CartItem } from './features/cart/types'
 import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
 import { homeProducts, products, type Product } from './data/catalog'
+import {
+  clearClientSession,
+  isSeller,
+  loadClientSession,
+  loginClient,
+  registerBuyer,
+  type ClientSession,
+} from './lib/clientAuth'
 import { AccountPage } from './pages/account/AccountPage'
 import { AuthPage, type AuthMode } from './pages/auth/AuthPage'
 import { CategoryPage } from './pages/category/CategoryPage'
 import { HomePage } from './pages/home/HomePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
+import { SellerDashboardPage } from './pages/seller/SellerDashboardPage'
 import { SearchPage } from './pages/search/SearchPage'
 import { BrandStorePage } from './pages/shop/BrandStorePage'
 
-type Page = 'home' | 'account' | 'category' | 'product' | 'search' | 'seller' | 'shop' | AuthMode
+type Page =
+  | 'home'
+  | 'account'
+  | 'category'
+  | 'product'
+  | 'search'
+  | 'seller'
+  | 'seller-dashboard'
+  | 'shop'
+  | AuthMode
 const allProducts = [...products, ...homeProducts]
 
 function productFromHash() {
@@ -38,14 +56,17 @@ function searchFromHash() {
   return decodeURIComponent(window.location.hash.slice('#search/'.length))
 }
 
-function pageFromHash(): Page {
+function pageFromLocation(session: ClientSession | null): Page {
+  if (window.location.pathname.startsWith('/seller/dashboard')) {
+    return isSeller(session) ? 'seller-dashboard' : session ? 'home' : 'login'
+  }
   if (window.location.hash === '#login') return 'login'
   if (window.location.hash === '#signup') return 'signup'
   if (window.location.hash === '#account') {
-    return localStorage.getItem('sova-authenticated') === 'true' ? 'account' : 'login'
+    return session ? 'account' : 'login'
   }
   if (window.location.hash === '#sell') {
-    return localStorage.getItem('sova-authenticated') === 'true' ? 'seller' : 'login'
+    return session ? 'seller' : 'login'
   }
   if (productFromHash()) return 'product'
   if (brandFromHash()) return 'shop'
@@ -55,13 +76,12 @@ function pageFromHash(): Page {
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>(pageFromHash)
+  const [session, setSession] = useState<ClientSession | null>(loadClientSession)
+  const [page, setPage] = useState<Page>(() => pageFromLocation(loadClientSession()))
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categoryFromHash)
   const [searchQuery, setSearchQuery] = useState<string | undefined>(searchFromHash)
-  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sova-authenticated') === 'true')
-  const [sellerAfterAuth, setSellerAfterAuth] = useState(() => window.location.hash === '#sell')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
@@ -71,18 +91,32 @@ export default function App() {
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
 
   useEffect(() => {
-    function handleHashChange() {
+    function handleLocationChange() {
+      const currentSession = loadClientSession()
+      setSession(currentSession)
       setSelectedProduct(productFromHash())
       setSelectedBrand(brandFromHash())
       setSelectedCategory(categoryFromHash())
       setSearchQuery(searchFromHash())
-      setPage(pageFromHash())
+      setPage(pageFromLocation(currentSession))
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    window.addEventListener('hashchange', handleHashChange)
-    return () => window.removeEventListener('hashchange', handleHashChange)
+    window.addEventListener('hashchange', handleLocationChange)
+    window.addEventListener('popstate', handleLocationChange)
+    return () => {
+      window.removeEventListener('hashchange', handleLocationChange)
+      window.removeEventListener('popstate', handleLocationChange)
+    }
   }, [])
+
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/seller/dashboard') && !isSeller(session)) {
+      window.history.replaceState(null, '', session ? '/' : '/#login')
+      setPage(session ? 'home' : 'login')
+      if (session) showMessage('Seller access is required for that page')
+    }
+  }, [session])
 
   function showMessage(text: string) {
     setMessage(text)
@@ -120,29 +154,34 @@ export default function App() {
     setCartItems((items) => items.filter((item) => item.product.name !== productName))
   }
 
-  function authenticate(name?: string, email?: string) {
-    localStorage.setItem('sova-authenticated', 'true')
-    setAuthenticated(true)
-    if (name || email) {
-      try {
-        const current = JSON.parse(localStorage.getItem('sova-account-settings') || '{}')
-        localStorage.setItem('sova-account-settings', JSON.stringify({ ...current, name: name || current.name || '', email: email || current.email || '' }))
-      } catch {
-        localStorage.setItem('sova-account-settings', JSON.stringify({ name: name || '', email: email || '' }))
-      }
+  async function authenticate(mode: AuthMode, email: string, password: string) {
+    if (mode === 'signup') {
+      await registerBuyer(email, password)
     }
-    const nextPage = sellerAfterAuth ? 'seller' : 'account'
-    setSellerAfterAuth(false)
-    setPage(nextPage)
-    window.location.hash = nextPage === 'seller' ? 'sell' : 'account'
+    const nextSession = await loginClient(email, password)
+    setSession(nextSession)
+    localStorage.setItem('sova-account-settings', JSON.stringify({
+      email: nextSession.user.email,
+      name: nextSession.user.name || '',
+    }))
+
+    if (isSeller(nextSession)) {
+      setPage('seller-dashboard')
+      window.history.pushState(null, '', '/seller/dashboard')
+      showMessage('Welcome to your seller workspace')
+      return
+    }
+
+    setPage('home')
+    window.history.pushState(null, '', '/')
     showMessage('Welcome to SOVA')
   }
 
   function logout() {
-    localStorage.removeItem('sova-authenticated')
-    setAuthenticated(false)
+    clearClientSession()
+    setSession(null)
     setPage('home')
-    window.location.hash = ''
+    window.history.pushState(null, '', '/')
     showMessage('You have been logged out')
   }
 
@@ -171,11 +210,10 @@ export default function App() {
   }
 
   function openSellerApplication() {
-    if (authenticated) {
+    if (session) {
       window.location.hash = 'sell'
       return
     }
-    setSellerAfterAuth(true)
     window.location.hash = 'login'
   }
 
@@ -192,11 +230,24 @@ export default function App() {
     )
   }
 
+  if (page === 'seller-dashboard' && session && isSeller(session)) {
+    return (
+      <SellerDashboardPage
+        onLogout={logout}
+        onStorefrontOpen={() => {
+          window.history.pushState(null, '', '/')
+          setPage('home')
+        }}
+        user={session.user}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
         accountActive={page === 'account'}
-        authenticated={authenticated}
+        authenticated={Boolean(session)}
         cartCount={cartCount}
         favoriteCount={favoriteItems.length}
         onAccountOpen={() => {
@@ -212,6 +263,11 @@ export default function App() {
         onSignupOpen={() => {
           window.location.hash = 'signup'
         }}
+        onSellerDashboardOpen={() => {
+          window.history.pushState(null, '', '/seller/dashboard')
+          setPage('seller-dashboard')
+        }}
+        seller={isSeller(session)}
       />
       {page === 'account' ? (
         <AccountPage onLogout={logout} onSaved={() => showMessage('Your settings have been saved')} />

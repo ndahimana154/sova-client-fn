@@ -5,17 +5,16 @@ import {
   EyeOff,
   LockKeyhole,
   Mail,
-  Phone,
-  UserRound,
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Brand } from '../../components/ui/Brand'
+import { normalizeApiError } from '../../api/errors'
 
 export type AuthMode = 'login' | 'signup'
 
 interface AuthPageProps {
   mode: AuthMode
-  onAuthenticate: (name?: string, email?: string) => void
+  onAuthenticate: (mode: AuthMode, email: string, password: string) => Promise<void>
   onModeChange: (mode: AuthMode) => void
 }
 
@@ -24,10 +23,9 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
-    const name = String(data.get('name') ?? '').trim()
     const email = String(data.get('email') ?? '').trim()
     const password = String(data.get('password') ?? '')
     const confirmation = String(data.get('confirmation') ?? '')
@@ -39,7 +37,12 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
 
     setError('')
     setSubmitting(true)
-    window.setTimeout(() => onAuthenticate(name || undefined, email), 450)
+    try {
+      await onAuthenticate(mode, email, password)
+    } catch (cause) {
+      setError(normalizeApiError(cause).message)
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -72,17 +75,6 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
             </div>
 
             <form className="mt-4 space-y-3" onSubmit={submit}>
-              {mode === 'signup' && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <AuthField icon={<UserRound size={17} />} label="Full name">
-                    <input autoComplete="name" name="name" placeholder="Your full name" required type="text" />
-                  </AuthField>
-                  <AuthField icon={<Phone size={17} />} label="Phone number">
-                    <input autoComplete="tel" name="phone" placeholder="+250 7XX XXX XXX" required type="tel" />
-                  </AuthField>
-                </div>
-              )}
-
               <AuthField icon={<Mail size={17} />} label="Email address">
                 <input autoComplete="email" name="email" placeholder="you@example.com" required type="email" />
               </AuthField>
@@ -91,9 +83,9 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
                 <AuthField icon={<LockKeyhole size={17} />} label="Password">
                   <input
                     autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                    minLength={6}
+                    minLength={8}
                     name="password"
-                    placeholder={mode === 'login' ? 'Enter your password' : 'At least 6 characters'}
+                    placeholder={mode === 'login' ? 'Enter your password' : 'At least 8 characters'}
                     required
                     type={showPassword ? 'text' : 'password'}
                   />
@@ -142,13 +134,6 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
               </button>
             </form>
 
-            <div className="auth-divider"><span>or continue with</span></div>
-
-            <button className="auth-google" onClick={() => onAuthenticate(mode === 'signup' ? 'SOVA client' : undefined, 'client@gmail.com')} type="button">
-              <GoogleMark />
-              Google
-            </button>
-
             <p className="mt-4 text-center text-xs text-muted">
               {mode === 'login' ? 'New to SOVA?' : 'Already have an account?'}{' '}
               <button className="font-bold text-primary-dark hover:underline" onClick={() => onModeChange(mode === 'login' ? 'signup' : 'login')} type="button">
@@ -185,16 +170,5 @@ function AuthField({ children, icon, label }: { children: React.ReactNode; icon:
         {children}
       </span>
     </label>
-  )
-}
-
-function GoogleMark() {
-  return (
-    <svg aria-hidden="true" height="18" viewBox="0 0 24 24" width="18">
-      <path d="M21.6 12.23c0-.71-.06-1.23-.2-1.77H12v3.4h5.52a4.77 4.77 0 0 1-2.05 3.03l-.02.11 2.97 2.3.2.02c1.84-1.7 2.98-4.2 2.98-7.09Z" fill="#4285F4" />
-      <path d="M12 22c2.69 0 4.95-.89 6.6-2.42l-3.14-2.43c-.84.57-1.97.97-3.46.97a5.99 5.99 0 0 1-5.67-4.14l-.1.01-3.09 2.39-.04.1A9.97 9.97 0 0 0 12 22Z" fill="#34A853" />
-      <path d="M6.33 13.98A6.16 6.16 0 0 1 6 12c0-.69.12-1.35.32-1.98v-.12L3.2 7.47l-.1.05A10 10 0 0 0 2 12c0 1.61.39 3.14 1.1 4.48l3.23-2.5Z" fill="#FBBC05" />
-      <path d="M12 5.88c1.87 0 3.13.8 3.85 1.47l2.82-2.75C16.94 2.99 14.69 2 12 2a9.97 9.97 0 0 0-8.9 5.52l3.22 2.5A6.01 6.01 0 0 1 12 5.88Z" fill="#EA4335" />
-    </svg>
   )
 }

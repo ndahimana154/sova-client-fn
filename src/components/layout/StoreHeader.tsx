@@ -14,6 +14,8 @@ interface StoreHeaderProps {
   onLoginOpen: () => void
   onSearch: (query: string) => void
   onSignupOpen: () => void
+  onSellerDashboardOpen?: () => void
+  seller: boolean
 }
 
 const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
@@ -30,6 +32,8 @@ export function StoreHeader({
   onLoginOpen,
   onSearch,
   onSignupOpen,
+  onSellerDashboardOpen,
+  seller,
 }: StoreHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -56,14 +60,21 @@ export function StoreHeader({
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
           {authenticated ? (
-            <button
-              aria-current={accountActive ? 'page' : undefined}
-              aria-label="Account settings"
-              className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
-              onClick={onAccountOpen}
-            >
-              <UserRound size={19} />
-            </button>
+            <>
+              {seller && (
+                <button className="header-login-link hidden sm:block" onClick={onSellerDashboardOpen}>
+                  Seller dashboard
+                </button>
+              )}
+              <button
+                aria-current={accountActive ? 'page' : undefined}
+                aria-label="Account settings"
+                className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
+                onClick={onAccountOpen}
+              >
+                <UserRound size={19} />
+              </button>
+            </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
               <button className="header-login-link" onClick={onLoginOpen}>Log in</button>

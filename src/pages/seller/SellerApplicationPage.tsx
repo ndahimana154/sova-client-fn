@@ -27,6 +27,7 @@ import {
   type ShopApplicationPayload,
   type SellerApplicationResponse,
 } from '../../lib/sellerApi'
+import { normalizeApiError } from '../../api/errors'
 
 interface SellerApplicationPageProps {
   onBack: () => void
@@ -173,7 +174,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
       setApplication(record)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
-      setSubmissionError(error instanceof Error ? error.message : 'Your application could not be submitted. Please try again.')
+      setSubmissionError(normalizeApiError(error).message)
     } finally {
       setSubmitting(false)
     }

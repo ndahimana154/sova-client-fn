@@ -31,8 +31,13 @@ export interface SellerApplicationResponse {
   status: 'submitted' | 'resubmitted' | 'under review' | 'returned' | 'active' | 'suspended' | 'rejected'
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://137.184.42.115:7090').replace(/\/$/, '')
 const locationPath = '/seller/shop-applications/locations'
+
+interface ApiEnvelope<T> {
+  data: T
+  message: string
+  status: number
+}
 
 export function getProvinces() {
   return getLocations('provinces', 'root')
@@ -70,28 +75,22 @@ export async function submitShopApplication(payload: ShopApplicationPayload) {
   if (payload.googleMapsLocationLink) data.set('googleMapsLocationLink', payload.googleMapsLocationLink)
   if (payload.logo) data.set('logo', payload.logo)
 
-  const response = await fetch(`${apiBaseUrl}/seller/shop-applications`, { method: 'POST', body: data })
-  return unwrapResponse<SellerApplicationResponse>(response)
+  return (await api.post<ApiEnvelope<SellerApplicationResponse>, FormData>('/seller/shop-applications', data)).data
 }
 
 export async function trackShopApplication(applicationCode: string) {
-  const response = await fetch(`${apiBaseUrl}/seller/shop-applications/${encodeURIComponent(applicationCode)}`)
-  return unwrapResponse<SellerApplicationResponse>(response)
+  return (
+    await api.get<ApiEnvelope<SellerApplicationResponse>>(
+      `/seller/shop-applications/${encodeURIComponent(applicationCode)}`,
+    )
+  ).data
 }
 
 async function getLocations(level: string, parentId: string) {
-  const response = await fetch(`${apiBaseUrl}${locationPath}/${level}?parentId=${encodeURIComponent(parentId)}`)
-  return unwrapResponse<LocationOption[]>(response)
+  return (
+    await api.get<ApiEnvelope<LocationOption[]>>(`${locationPath}/${level}`, {
+      params: { parentId },
+    })
+  ).data
 }
-
-async function unwrapResponse<Result>(response: Response): Promise<Result> {
-  const body = await response.json().catch(() => null)
-  if (!response.ok) {
-    const message = body?.message
-    if (response.status >= 500) {
-      throw new Error('The SOVA server could not store the uploaded file. Please try a smaller PDF or image; if it continues, the backend upload storage needs attention.')
-    }
-    throw new Error(Array.isArray(message) ? message.join(' ') : message || 'The SOVA service could not complete this request.')
-  }
-  return (body?.data ?? body) as Result
-}
+import { api } from '../api/request'
