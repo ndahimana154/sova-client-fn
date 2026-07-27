@@ -9,9 +9,10 @@ import { AccountPage } from './pages/account/AccountPage'
 import { AuthPage, type AuthMode } from './pages/auth/AuthPage'
 import { HomePage } from './pages/home/HomePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
+import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
 import { BrandStorePage } from './pages/shop/BrandStorePage'
 
-type Page = 'home' | 'account' | 'product' | 'shop' | AuthMode
+type Page = 'home' | 'account' | 'product' | 'seller' | 'shop' | AuthMode
 const allProducts = [...products, ...homeProducts]
 
 function productFromHash() {
@@ -31,6 +32,9 @@ function pageFromHash(): Page {
   if (window.location.hash === '#account') {
     return localStorage.getItem('sova-authenticated') === 'true' ? 'account' : 'login'
   }
+  if (window.location.hash === '#sell') {
+    return localStorage.getItem('sova-authenticated') === 'true' ? 'seller' : 'login'
+  }
   if (productFromHash()) return 'product'
   if (brandFromHash()) return 'shop'
   return 'home'
@@ -41,6 +45,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
   const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sova-authenticated') === 'true')
+  const [sellerAfterAuth, setSellerAfterAuth] = useState(() => window.location.hash === '#sell')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
@@ -108,8 +113,10 @@ export default function App() {
         localStorage.setItem('sova-account-settings', JSON.stringify({ name: name || '', email: email || '' }))
       }
     }
-    setPage('account')
-    window.location.hash = 'account'
+    const nextPage = sellerAfterAuth ? 'seller' : 'account'
+    setSellerAfterAuth(false)
+    setPage(nextPage)
+    window.location.hash = nextPage === 'seller' ? 'sell' : 'account'
     showMessage('Welcome to SOVA')
   }
 
@@ -131,6 +138,15 @@ export default function App() {
     setSelectedBrand(brand)
     setPage('shop')
     window.location.hash = `shop/${encodeURIComponent(brand)}`
+  }
+
+  function openSellerApplication() {
+    if (authenticated) {
+      window.location.hash = 'sell'
+      return
+    }
+    setSellerAfterAuth(true)
+    window.location.hash = 'login'
   }
 
   if (page === 'login' || page === 'signup') {
@@ -188,6 +204,8 @@ export default function App() {
           onProductOpen={openProduct}
           onToggleFavorite={toggleFavorite}
         />
+      ) : page === 'seller' ? (
+        <SellerApplicationPage onBack={() => { window.location.hash = '' }} />
       ) : (
         <HomePage
           favoriteProductNames={favoriteItems.map((item) => item.name)}
@@ -197,7 +215,7 @@ export default function App() {
           onToggleFavorite={toggleFavorite}
         />
       )}
-      <Footer />
+      <Footer onSellOnSova={openSellerApplication} />
       {cartOpen && (
         <CartDrawer
           items={cartItems}
