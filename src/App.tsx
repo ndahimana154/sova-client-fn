@@ -11,9 +11,10 @@ import { CategoryPage } from './pages/category/CategoryPage'
 import { HomePage } from './pages/home/HomePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
+import { SearchPage } from './pages/search/SearchPage'
 import { BrandStorePage } from './pages/shop/BrandStorePage'
 
-type Page = 'home' | 'account' | 'category' | 'product' | 'seller' | 'shop' | AuthMode
+type Page = 'home' | 'account' | 'category' | 'product' | 'search' | 'seller' | 'shop' | AuthMode
 const allProducts = [...products, ...homeProducts]
 
 function productFromHash() {
@@ -32,6 +33,11 @@ function categoryFromHash() {
   return decodeURIComponent(window.location.hash.slice('#category/'.length))
 }
 
+function searchFromHash() {
+  if (!window.location.hash.startsWith('#search/')) return undefined
+  return decodeURIComponent(window.location.hash.slice('#search/'.length))
+}
+
 function pageFromHash(): Page {
   if (window.location.hash === '#login') return 'login'
   if (window.location.hash === '#signup') return 'signup'
@@ -44,6 +50,7 @@ function pageFromHash(): Page {
   if (productFromHash()) return 'product'
   if (brandFromHash()) return 'shop'
   if (categoryFromHash()) return 'category'
+  if (searchFromHash()) return 'search'
   return 'home'
 }
 
@@ -52,6 +59,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categoryFromHash)
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(searchFromHash)
   const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sova-authenticated') === 'true')
   const [sellerAfterAuth, setSellerAfterAuth] = useState(() => window.location.hash === '#sell')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -67,6 +75,7 @@ export default function App() {
       setSelectedProduct(productFromHash())
       setSelectedBrand(brandFromHash())
       setSelectedCategory(categoryFromHash())
+      setSearchQuery(searchFromHash())
       setPage(pageFromHash())
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -155,6 +164,12 @@ export default function App() {
     window.location.hash = `category/${encodeURIComponent(category)}`
   }
 
+  function searchProducts(query: string) {
+    setSearchQuery(query)
+    setPage('search')
+    window.location.hash = `search/${encodeURIComponent(query)}`
+  }
+
   function openSellerApplication() {
     if (authenticated) {
       window.location.hash = 'sell'
@@ -193,6 +208,7 @@ export default function App() {
         onLoginOpen={() => {
           window.location.hash = 'login'
         }}
+        onSearch={searchProducts}
         onSignupOpen={() => {
           window.location.hash = 'signup'
         }}
@@ -232,6 +248,16 @@ export default function App() {
           onCategoryOpen={openCategory}
           onProductOpen={openProduct}
           onToggleFavorite={toggleFavorite}
+        />
+      ) : page === 'search' && searchQuery ? (
+        <SearchPage
+          favoriteProductNames={favoriteItems.map((item) => item.name)}
+          key={searchQuery}
+          onAddToCart={addToCart}
+          onProductOpen={openProduct}
+          onToggleFavorite={toggleFavorite}
+          products={allProducts}
+          query={searchQuery}
         />
       ) : (
         <HomePage
