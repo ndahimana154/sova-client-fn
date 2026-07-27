@@ -7,7 +7,7 @@ const columns = [
   { title: 'About', links: ['Our story', 'Sell on SOVA', 'Careers', 'Terms & privacy'] },
 ]
 
-export function Footer() {
+export function Footer({ onSellOnSova }: { onSellOnSova: () => void }) {
   return (
     <footer className="mt-16 bg-ink text-white">
       <div className="page-container grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
@@ -21,7 +21,11 @@ export function Footer() {
         {columns.map((column) => (
           <div key={column.title}>
             <h3 className="text-xs font-bold uppercase tracking-[0.12em]">{column.title}</h3>
-            <div className="mt-4 space-y-3">{column.links.map((link) => <a className="block text-xs text-white/50 hover:text-white" href="#" key={link}>{link}</a>)}</div>
+            <div className="mt-4 space-y-3">
+              {column.links.map((link) => link === 'Sell on SOVA'
+                ? <button className="block text-xs text-white/50 hover:text-white" key={link} onClick={onSellOnSova} type="button">{link}</button>
+                : <a className="block text-xs text-white/50 hover:text-white" href="#" key={link}>{link}</a>)}
+            </div>
           </div>
         ))}
       </div>

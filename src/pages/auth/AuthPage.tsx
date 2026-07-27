@@ -54,12 +54,12 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
           <div className="auth-form-wrap">
             <Brand />
 
-            <div className="mt-10">
+            <div className="mt-5">
               <p className="auth-eyebrow">{mode === 'login' ? 'Welcome back' : 'Join the marketplace'}</p>
-              <h1 className="mt-2 text-[2rem] font-black tracking-[-0.045em] text-ink sm:text-[2.35rem]">
+              <h1 className="mt-1.5 text-[1.7rem] font-black tracking-[-0.045em] text-ink sm:text-[1.95rem]">
                 {mode === 'login' ? 'Login to SOVA' : 'Create your account'}
               </h1>
-              <p className="mt-3 max-w-md text-sm leading-6 text-muted">
+              <p className="mt-1.5 max-w-md text-xs leading-5 text-muted">
                 {mode === 'login'
                   ? 'Enter your details to access your orders, favorites, and more.'
                   : 'Sign up as a client and make every SOVA shopping trip simpler.'}
@@ -71,53 +71,54 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
               <button aria-selected={mode === 'signup'} onClick={() => onModeChange('signup')} role="tab" type="button">Sign up</button>
             </div>
 
-            <form className="mt-7 space-y-4" onSubmit={submit}>
+            <form className="mt-4 space-y-3" onSubmit={submit}>
               {mode === 'signup' && (
-                <AuthField icon={<UserRound size={17} />} label="Full name">
-                  <input autoComplete="name" name="name" placeholder="Your full name" required type="text" />
-                </AuthField>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <AuthField icon={<UserRound size={17} />} label="Full name">
+                    <input autoComplete="name" name="name" placeholder="Your full name" required type="text" />
+                  </AuthField>
+                  <AuthField icon={<Phone size={17} />} label="Phone number">
+                    <input autoComplete="tel" name="phone" placeholder="+250 7XX XXX XXX" required type="tel" />
+                  </AuthField>
+                </div>
               )}
 
               <AuthField icon={<Mail size={17} />} label="Email address">
                 <input autoComplete="email" name="email" placeholder="you@example.com" required type="email" />
               </AuthField>
 
-              {mode === 'signup' && (
-                <AuthField icon={<Phone size={17} />} label="Phone number">
-                  <input autoComplete="tel" name="phone" placeholder="+250 7XX XXX XXX" required type="tel" />
-                </AuthField>
-              )}
-
-              <AuthField icon={<LockKeyhole size={17} />} label="Password">
-                <input
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  minLength={6}
-                  name="password"
-                  placeholder={mode === 'login' ? 'Enter your password' : 'At least 6 characters'}
-                  required
-                  type={showPassword ? 'text' : 'password'}
-                />
-                <button
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="auth-password-toggle"
-                  onClick={() => setShowPassword((visible) => !visible)}
-                  type="button"
-                >
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </AuthField>
-
-              {mode === 'signup' && (
-                <AuthField icon={<LockKeyhole size={17} />} label="Confirm password">
+              <div className={mode === 'signup' ? 'grid gap-3 sm:grid-cols-2' : ''}>
+                <AuthField icon={<LockKeyhole size={17} />} label="Password">
                   <input
-                    autoComplete="new-password"
-                    name="confirmation"
-                    placeholder="Repeat your password"
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    minLength={6}
+                    name="password"
+                    placeholder={mode === 'login' ? 'Enter your password' : 'At least 6 characters'}
                     required
                     type={showPassword ? 'text' : 'password'}
                   />
+                  <button
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="auth-password-toggle"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    type="button"
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
                 </AuthField>
-              )}
+
+                {mode === 'signup' && (
+                  <AuthField icon={<LockKeyhole size={17} />} label="Confirm password">
+                    <input
+                      autoComplete="new-password"
+                      name="confirmation"
+                      placeholder="Repeat password"
+                      required
+                      type={showPassword ? 'text' : 'password'}
+                    />
+                  </AuthField>
+                )}
+              </div>
 
               {mode === 'login' ? (
                 <div className="flex items-center justify-between gap-3 text-xs">
@@ -148,7 +149,7 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
               Google
             </button>
 
-            <p className="mt-7 text-center text-xs text-muted">
+            <p className="mt-4 text-center text-xs text-muted">
               {mode === 'login' ? 'New to SOVA?' : 'Already have an account?'}{' '}
               <button className="font-bold text-primary-dark hover:underline" onClick={() => onModeChange(mode === 'login' ? 'signup' : 'login')} type="button">
                 {mode === 'login' ? 'Create an account' : 'Log in'}
@@ -178,7 +179,7 @@ export function AuthPage({ mode, onAuthenticate, onModeChange }: AuthPageProps) 
 function AuthField({ children, icon, label }: { children: React.ReactNode; icon: React.ReactNode; label: string }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-bold text-ink">{label}</span>
+      <span className="mb-1.5 block text-[11px] font-bold text-ink">{label}</span>
       <span className="auth-input">
         <span className="text-muted">{icon}</span>
         {children}
