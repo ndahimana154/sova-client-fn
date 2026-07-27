@@ -9,6 +9,7 @@ interface StoreHeaderProps {
   favoriteCount: number
   onAccountOpen: () => void
   onCartOpen: () => void
+  onCategoryOpen: (category: string) => void
   onFavoritesOpen: () => void
   onLoginOpen: () => void
   onSignupOpen: () => void
@@ -23,6 +24,7 @@ export function StoreHeader({
   favoriteCount,
   onAccountOpen,
   onCartOpen,
+  onCategoryOpen,
   onFavoritesOpen,
   onLoginOpen,
   onSignupOpen,
@@ -72,12 +74,12 @@ export function StoreHeader({
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
-          <button className="flex items-center gap-2 text-primary"><Menu size={16} /> All categories <ChevronDown size={13} /></button>
-          {links.map((link) => <a className="transition-colors hover:text-primary" href={`#${link.toLowerCase().replaceAll(' ', '-')}`} key={link}>{link}</a>)}
+          <button className="flex items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
+          {links.map((link) => <button className="transition-colors hover:text-primary" key={link} onClick={() => onCategoryOpen(link)}>{link}</button>)}
           <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today’s deals</a>
         </div>
       </nav>
-      {menuOpen && <MobileMenu onClose={() => setMenuOpen(false)} />}
+      {menuOpen && <MobileMenu onCategoryOpen={onCategoryOpen} onClose={() => setMenuOpen(false)} />}
     </header>
   )
 }
@@ -90,12 +92,15 @@ function CountButton({ count, icon, label, onClick }: { count: number; icon: Rea
   )
 }
 
-function MobileMenu({ onClose }: { onClose: () => void }) {
+function MobileMenu({ onCategoryOpen, onClose }: { onCategoryOpen: (category: string) => void; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-ink/25" onMouseDown={onClose}>
       <aside className="h-full w-72 bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between"><Brand /><button className="icon-control" onClick={onClose}><X size={19} /></button></div>
-        <nav className="mt-8 space-y-1">{links.map((link) => <a className="block rounded-xl px-3 py-3 text-sm font-semibold hover:bg-soft" href="#" key={link}>{link}</a>)}</nav>
+        <nav className="mt-8 space-y-1">
+          <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={() => { onCategoryOpen('All products'); onClose() }} type="button">All categories</button>
+          {links.map((link) => <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" key={link} onClick={() => { onCategoryOpen(link); onClose() }} type="button">{link}</button>)}
+        </nav>
       </aside>
     </div>
   )

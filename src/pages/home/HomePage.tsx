@@ -11,15 +11,16 @@ interface HomePageProps {
   favoriteProductNames: string[]
   onAddToCart: (product: Product) => void
   onBrandOpen: (brand: string) => void
+  onCategoryOpen: (category: string) => void
   onProductOpen: (product: Product) => void
   onToggleFavorite: (product: Product) => void
 }
 
-export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onProductOpen, onToggleFavorite }: HomePageProps) {
+export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onCategoryOpen, onProductOpen, onToggleFavorite }: HomePageProps) {
   return (
     <main>
       <Hero />
-      <CategoryRail />
+      <CategoryRail onCategoryOpen={onCategoryOpen} />
       <ProductSection
         eyebrow="Handpicked this week"
         favoriteProductNames={favoriteProductNames}

@@ -7,12 +7,13 @@ import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
 import { homeProducts, products, type Product } from './data/catalog'
 import { AccountPage } from './pages/account/AccountPage'
 import { AuthPage, type AuthMode } from './pages/auth/AuthPage'
+import { CategoryPage } from './pages/category/CategoryPage'
 import { HomePage } from './pages/home/HomePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
 import { BrandStorePage } from './pages/shop/BrandStorePage'
 
-type Page = 'home' | 'account' | 'product' | 'seller' | 'shop' | AuthMode
+type Page = 'home' | 'account' | 'category' | 'product' | 'seller' | 'shop' | AuthMode
 const allProducts = [...products, ...homeProducts]
 
 function productFromHash() {
@@ -26,6 +27,11 @@ function brandFromHash() {
   return decodeURIComponent(window.location.hash.slice('#shop/'.length))
 }
 
+function categoryFromHash() {
+  if (!window.location.hash.startsWith('#category/')) return undefined
+  return decodeURIComponent(window.location.hash.slice('#category/'.length))
+}
+
 function pageFromHash(): Page {
   if (window.location.hash === '#login') return 'login'
   if (window.location.hash === '#signup') return 'signup'
@@ -37,6 +43,7 @@ function pageFromHash(): Page {
   }
   if (productFromHash()) return 'product'
   if (brandFromHash()) return 'shop'
+  if (categoryFromHash()) return 'category'
   return 'home'
 }
 
@@ -44,6 +51,7 @@ export default function App() {
   const [page, setPage] = useState<Page>(pageFromHash)
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categoryFromHash)
   const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('sova-authenticated') === 'true')
   const [sellerAfterAuth, setSellerAfterAuth] = useState(() => window.location.hash === '#sell')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -58,6 +66,7 @@ export default function App() {
     function handleHashChange() {
       setSelectedProduct(productFromHash())
       setSelectedBrand(brandFromHash())
+      setSelectedCategory(categoryFromHash())
       setPage(pageFromHash())
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -140,6 +149,12 @@ export default function App() {
     window.location.hash = `shop/${encodeURIComponent(brand)}`
   }
 
+  function openCategory(category: string) {
+    setSelectedCategory(category)
+    setPage('category')
+    window.location.hash = `category/${encodeURIComponent(category)}`
+  }
+
   function openSellerApplication() {
     if (authenticated) {
       window.location.hash = 'sell'
@@ -173,6 +188,7 @@ export default function App() {
           window.location.hash = 'account'
         }}
         onCartOpen={() => setCartOpen(true)}
+        onCategoryOpen={openCategory}
         onFavoritesOpen={() => setFavoritesOpen(true)}
         onLoginOpen={() => {
           window.location.hash = 'login'
@@ -206,11 +222,23 @@ export default function App() {
         />
       ) : page === 'seller' ? (
         <SellerApplicationPage onBack={() => { window.location.hash = '' }} />
+      ) : page === 'category' && selectedCategory ? (
+        <CategoryPage
+          allProducts={allProducts}
+          category={selectedCategory}
+          favoriteProductNames={favoriteItems.map((item) => item.name)}
+          key={selectedCategory}
+          onAddToCart={addToCart}
+          onCategoryOpen={openCategory}
+          onProductOpen={openProduct}
+          onToggleFavorite={toggleFavorite}
+        />
       ) : (
         <HomePage
           favoriteProductNames={favoriteItems.map((item) => item.name)}
           onAddToCart={addToCart}
           onBrandOpen={openBrand}
+          onCategoryOpen={openCategory}
           onProductOpen={openProduct}
           onToggleFavorite={toggleFavorite}
         />
