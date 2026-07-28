@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Feedback, PageTitle, StatusBadge, attributesText, mediaUrl } from '../../../components/seller/products/ProductPageUi'
 import { useSellerProduct } from '../../../components/seller/products/useSellerProduct'
 import { formatPrice } from '../../../lib/formatPrice'
+import type { SellerProduct } from '../../../lib/sellerProductsApi'
 import { appPaths } from '../../../router/paths'
 
 export function SellerProductDetailsPage() {
