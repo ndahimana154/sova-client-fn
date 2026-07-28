@@ -1,4 +1,4 @@
-import { ChevronDown, Edit3, Eye, Image, Plus, Send, Trash2 } from 'lucide-react'
+import { ChevronDown, Edit3, Eye, Image, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Feedback, PageTitle, StatusBadge, errorMessage } from '../../../components/seller/products/ProductPageUi'
@@ -15,14 +15,13 @@ export function SellerProductListPage() {
   const [limit, setLimit] = useState(10)
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('')
-  const [status, setStatus] = useState('')
   const [meta, setMeta] = useState({ totalItems: 0, totalPages: 1 })
   const load = useCallback(async () => {
     try {
-      const result = await sellerProductsApi.list({ categoryId, limit, page, search, status, sortBy: 'updatedAt', sortOrder: 'desc' })
+      const result = await sellerProductsApi.list({ categoryId, limit, page, search, sortBy: 'updatedAt', sortOrder: 'desc' })
       setProducts(result.contents); setMeta(result.meta)
     } catch (cause) { setError(errorMessage(cause)) }
-  }, [categoryId, limit, page, search, status])
+  }, [categoryId, limit, page, search])
   useEffect(() => { void load() }, [load])
   useEffect(() => { sellerProductsApi.categories().then(setCategories).catch(() => undefined) }, [])
   async function remove(product: SellerProduct) {
@@ -32,31 +31,27 @@ export function SellerProductListPage() {
   return <div className="space-y-5 p-5">
     <PageTitle title="Products" subtitle="Manage your shop catalogue." actions={<Link className="seller-primary-button" to={appPaths.sellerProductCreate}><Plus size={14} /> New product</Link>} />
     <Feedback error={error} />
-    <DataTable columns={['Product', 'Category', 'Price', 'Stock', 'Status']} onSearchChange={(value) => { setPage(1); setSearch(value) }} searchPlaceholder="Search products or SKU"
-      filters={<><select className="seller-filter-select" onChange={(e) => { setPage(1); setCategoryId(e.target.value) }} value={categoryId}><option value="">All categories</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select className="seller-filter-select" onChange={(e) => { setPage(1); setStatus(e.target.value) }} value={status}><option value="">All statuses</option>{['ACTIVE', 'DRAFT', 'SUBMITTED', 'REJECTED'].map((item) => <option key={item}>{item}</option>)}</select></>}
+    <DataTable columns={['Product', 'Category', 'Price', 'Stock', 'Quantity']} onSearchChange={(value) => { setPage(1); setSearch(value) }} searchPlaceholder="Search products"
+      filters={<select className="seller-filter-select" onChange={(e) => { setPage(1); setCategoryId(e.target.value) }} value={categoryId}><option value="">All categories</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}
       pagination={{ page, pageSize: limit, totalItems: meta.totalItems, totalPages: meta.totalPages, onPageChange: setPage, onPageSizeChange: (value) => { setLimit(value); setPage(1) } }}
       rows={products.map((product) => [
         <strong>{product.name}</strong>,
-        product.category?.name || 'Uncategorized',
-        formatPrice(product.minimumPrice ?? product.defaultVariant?.price ?? 0),
+        product.category.name,
+        formatPrice(product.finalPrice),
         <StatusBadge value={product.stockStatus} />,
-        <StatusBadge value={product.status} />,
+        product.quantity,
       ])}
       rowActions={(index) => <ProductActions
         dropUp={index >= products.length - 2}
         onDelete={() => void remove(products[index])}
-        onError={(cause) => setError(errorMessage(cause))}
-        onSubmitted={load}
         product={products[index]}
       />} />
   </div>
 }
 
-function ProductActions({ dropUp, onDelete, onError, onSubmitted, product }: {
+function ProductActions({ dropUp, onDelete, product }: {
   dropUp: boolean
   onDelete: () => void
-  onError: (cause: unknown) => void
-  onSubmitted: () => Promise<void>
   product: SellerProduct
 }) {
   const [open, setOpen] = useState(false)
@@ -81,19 +76,6 @@ function ProductActions({ dropUp, onDelete, onError, onSubmitted, product }: {
           <ActionLink icon={<Eye size={14} />} label="View details" to={appPaths.sellerProductDetails(product.id)} />
           <ActionLink icon={<Edit3 size={14} />} label="Edit product" to={appPaths.sellerProductEdit(product.id)} />
           <ActionLink icon={<Image size={14} />} label="Manage media" to={appPaths.sellerProductMedia(product.id)} />
-          {product.status === 'DRAFT' && (
-            <button
-              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs hover:bg-soft"
-              onClick={() => {
-                setOpen(false)
-                sellerProductsApi.submit(product.id).then(onSubmitted).catch(onError)
-              }}
-              role="menuitem"
-              type="button"
-            >
-              <Send size={14} /> Submit product
-            </button>
-          )}
           <div className="my-1 border-t border-line" />
           <button className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50" onClick={() => { setOpen(false); onDelete() }} role="menuitem" type="button">
             <Trash2 size={14} /> Delete product
