@@ -1,5 +1,7 @@
-import { ChevronDown, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { appPaths } from '../../router/paths'
 import { Brand } from '../ui/Brand'
 
 interface StoreHeaderProps {
@@ -14,6 +16,8 @@ interface StoreHeaderProps {
   onLoginOpen: () => void
   onSearch: (query: string) => void
   onSignupOpen: () => void
+  onSellerDashboardOpen?: () => void
+  seller: boolean
 }
 
 const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
@@ -30,6 +34,8 @@ export function StoreHeader({
   onLoginOpen,
   onSearch,
   onSignupOpen,
+  onSellerDashboardOpen,
+  seller,
 }: StoreHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -56,14 +62,21 @@ export function StoreHeader({
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
           {authenticated ? (
-            <button
-              aria-current={accountActive ? 'page' : undefined}
-              aria-label="Account settings"
-              className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
-              onClick={onAccountOpen}
-            >
-              <UserRound size={19} />
-            </button>
+            <>
+              {seller && (
+                <button className="header-login-link hidden sm:block" onClick={onSellerDashboardOpen}>
+                  Seller dashboard
+                </button>
+              )}
+              <button
+                aria-current={accountActive ? 'page' : undefined}
+                aria-label="Account settings"
+                className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
+                onClick={onAccountOpen}
+              >
+                <UserRound size={19} />
+              </button>
+            </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
               <button className="header-login-link" onClick={onLoginOpen}>Log in</button>
@@ -81,6 +94,7 @@ export function StoreHeader({
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
           <button className="flex items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
+          <Link className="flex items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
           {links.map((link) => <button className="transition-colors hover:text-primary" key={link} onClick={() => onCategoryOpen(link)}>{link}</button>)}
           <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
         </div>
@@ -114,6 +128,7 @@ function MobileMenu({ onCategoryOpen, onClose }: { onCategoryOpen: (category: st
       <aside className="h-full w-72 bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between"><Brand /><button className="icon-control" onClick={onClose}><X size={19} /></button></div>
         <nav className="mt-8 space-y-1">
+          <Link className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={onClose} to={appPaths.videos}><Clapperboard size={17} /> Shop through videos</Link>
           <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={() => { onCategoryOpen('All products'); onClose() }} type="button">All categories</button>
           {links.map((link) => <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" key={link} onClick={() => { onCategoryOpen(link); onClose() }} type="button">{link}</button>)}
         </nav>
