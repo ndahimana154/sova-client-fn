@@ -1,6 +1,5 @@
 import { api } from '../api/request'
 
-export type ProductStatus = 'DRAFT' | 'SUBMITTED' | 'ACTIVE' | 'REJECTED'
 export type StockStatus = 'IN_STOCK' | 'OUT_OF_STOCK'
 
 export interface SellerCategory {
@@ -39,22 +38,21 @@ export interface ProductMedia {
 }
 
 export interface SellerProduct {
-  availableQuantity: number
   brand: string | null
   category: SellerCategory
   createdAt: string
-  defaultVariant: ProductVariant
   description: string
+  discount: number
+  finalPrice: number
   id: string
-  maximumPrice: number
   media: ProductMedia[]
-  minimumPrice: number
   name: string
-  status: ProductStatus
+  price: number
+  quantity: number
+  slug: string
   stockStatus: StockStatus
-  totalQuantity: number
   updatedAt: string
-  variants: ProductVariant[]
+  variants: Record<string, string>
 }
 
 export interface VariantInput {
@@ -102,9 +100,9 @@ export const sellerProductsApi = {
     (await api.get<ApiEnvelope<PaginatedProducts>>('/seller/products', { params: query })).data,
   get: async (productId: string) =>
     (await api.get<ApiEnvelope<SellerProduct>>(`/seller/products/${productId}`)).data,
-  create: async (input: { brand?: string; categoryId: string; description: string; name: string; variants: VariantInput[] }) =>
+  create: async (input: { brand?: string; categoryId: string; description: string; discount?: number; name: string; price: number; quantity?: number; variants: Record<string, string> }) =>
     (await api.post<ApiEnvelope<SellerProduct>, typeof input>('/seller/products', input)).data,
-  update: async (productId: string, input: { brand?: string | null; categoryId?: string; description?: string; name?: string }) =>
+  update: async (productId: string, input: { brand?: string | null; categoryId?: string; description?: string; discount?: number; name?: string; price?: number; quantity?: number; variants?: Record<string, string> }) =>
     (await api.patch<ApiEnvelope<SellerProduct>, typeof input>(`/seller/products/${productId}`, input)).data,
   delete: (productId: string) => api.delete<ApiEnvelope<null>>(`/seller/products/${productId}`),
   createVariant: async (productId: string, input: VariantInput) =>
