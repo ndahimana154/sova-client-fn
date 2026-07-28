@@ -35,6 +35,8 @@
   .brand-mark i:first-child { @apply absolute -right-2 top-1/2 size-6 -translate-y-1/2 rounded-full bg-white; }
   .brand-mark i:last-child { @apply absolute right-0 top-1/2 size-2.5 -translate-y-1/2 rounded-l-full bg-primary; }
   .hero-panel { @apply relative overflow-hidden rounded-[28px] border border-primary/10 bg-primary-light; }
+  .video-pin-grid { column-count: 2; column-gap: .75rem; }
+  .video-pin { transform: translateZ(0); }
   .primary-button { @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-primary-dark; }
   .secondary-button { @apply inline-flex items-center justify-center rounded-full border border-ink/15 bg-white/75 px-5 py-3 text-xs font-bold text-ink transition hover:border-primary hover:text-primary-dark; }
   .category-card { @apply flex min-w-0 flex-col items-center rounded-2xl p-2 transition hover:bg-soft; }
@@ -67,6 +69,18 @@
   .auth-visual { @apply relative hidden min-h-[610px] overflow-hidden bg-[#ca7b24] lg:block; background-image: url("/images/storefront-hero.png"); background-position: 68% center; background-size: cover; }
   .auth-visual-shade { @apply absolute inset-0 bg-gradient-to-t from-[#2d1709]/80 via-[#5a2a09]/10 to-transparent; }
   .auth-visual-copy { @apply absolute bottom-0 left-0 right-0 p-12; }
+}
+
+@media (min-width: 640px) {
+  .video-pin-grid { column-count: 3; column-gap: 1rem; }
+}
+
+@media (min-width: 900px) {
+  .video-pin-grid { column-count: 4; }
+}
+
+@media (min-width: 1280px) {
+  .video-pin-grid { column-count: 5; }
 }
 
 @media (max-width: 640px) {

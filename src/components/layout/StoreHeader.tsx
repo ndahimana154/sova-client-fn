@@ -1,5 +1,7 @@
-import { ChevronDown, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { appPaths } from '../../router/paths'
 import { Brand } from '../ui/Brand'
 
 interface StoreHeaderProps {
@@ -92,6 +94,7 @@ export function StoreHeader({
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
           <button className="flex items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
+          <Link className="flex items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
           {links.map((link) => <button className="transition-colors hover:text-primary" key={link} onClick={() => onCategoryOpen(link)}>{link}</button>)}
           <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
         </div>
@@ -125,6 +128,7 @@ function MobileMenu({ onCategoryOpen, onClose }: { onCategoryOpen: (category: st
       <aside className="h-full w-72 bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between"><Brand /><button className="icon-control" onClick={onClose}><X size={19} /></button></div>
         <nav className="mt-8 space-y-1">
+          <Link className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={onClose} to={appPaths.videos}><Clapperboard size={17} /> Shop through videos</Link>
           <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={() => { onCategoryOpen('All products'); onClose() }} type="button">All categories</button>
           {links.map((link) => <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" key={link} onClick={() => { onCategoryOpen(link); onClose() }} type="button">{link}</button>)}
         </nav>
