@@ -35,7 +35,13 @@ export function SellerProductListPage() {
     <DataTable columns={['Product', 'Category', 'Price', 'Stock', 'Status']} onSearchChange={(value) => { setPage(1); setSearch(value) }} searchPlaceholder="Search products or SKU"
       filters={<><select className="seller-filter-select" onChange={(e) => { setPage(1); setCategoryId(e.target.value) }} value={categoryId}><option value="">All categories</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select className="seller-filter-select" onChange={(e) => { setPage(1); setStatus(e.target.value) }} value={status}><option value="">All statuses</option>{['ACTIVE', 'DRAFT', 'SUBMITTED', 'REJECTED'].map((item) => <option key={item}>{item}</option>)}</select></>}
       pagination={{ page, pageSize: limit, totalItems: meta.totalItems, totalPages: meta.totalPages, onPageChange: setPage, onPageSizeChange: (value) => { setLimit(value); setPage(1) } }}
-      rows={products.map((product) => [<strong>{product.name}</strong>, product.category.name, formatPrice(product.minimumPrice), <StatusBadge value={product.stockStatus} />, <StatusBadge value={product.status} />])}
+      rows={products.map((product) => [
+        <strong>{product.name}</strong>,
+        product.category?.name || 'Uncategorized',
+        formatPrice(product.minimumPrice ?? product.defaultVariant?.price ?? 0),
+        <StatusBadge value={product.stockStatus} />,
+        <StatusBadge value={product.status} />,
+      ])}
       rowActions={(index) => <ProductActions
         dropUp={index >= products.length - 2}
         onDelete={() => void remove(products[index])}

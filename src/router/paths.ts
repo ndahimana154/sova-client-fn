@@ -1,5 +1,6 @@
 export const appPaths = {
   home: '/',
+  videos: '/videos',
   sellerDashboard: '/seller/dashboard',
   sellerCategories: '/seller/dashboard/product-categories',
   sellerProductCreate: '/seller/dashboard/products/new',

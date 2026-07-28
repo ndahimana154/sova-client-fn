@@ -53,9 +53,10 @@ export function Feedback({ error, notice = '' }: { error?: string; notice?: stri
   return <p className={`rounded-xl border px-3 py-2 text-xs font-semibold ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>{error || notice}</p>
 }
 
-export function StatusBadge({ value }: { value: string }) {
-  const success = value === 'ACTIVE' || value === 'IN_STOCK'
-  return <span className={`inline-flex rounded-full border px-2 py-1 text-[9px] font-bold ${success ? 'border-green-200 bg-green-50 text-green-700' : value === 'OUT_OF_STOCK' || value === 'REJECTED' ? 'border-red-200 bg-red-50 text-red-700' : 'border-line bg-soft text-muted'}`}>{value.replaceAll('_', ' ')}</span>
+export function StatusBadge({ value }: { value?: string | null }) {
+  const normalized = value?.trim() || 'UNKNOWN'
+  const success = normalized === 'ACTIVE' || normalized === 'IN_STOCK'
+  return <span className={`inline-flex rounded-full border px-2 py-1 text-[9px] font-bold ${success ? 'border-green-200 bg-green-50 text-green-700' : normalized === 'OUT_OF_STOCK' || normalized === 'REJECTED' ? 'border-red-200 bg-red-50 text-red-700' : 'border-line bg-soft text-muted'}`}>{normalized.replaceAll('_', ' ')}</span>
 }
 
 export function PageTitle({ actions, subtitle, title }: { actions?: ReactNode; subtitle: string; title: string }) {
