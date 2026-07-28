@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BadgeCheck,
   Building2,
   Check,
   CheckCircle2,
@@ -8,7 +7,6 @@ import {
   Clock3,
   FileCheck2,
   LoaderCircle,
-  Mail,
   MapPin,
   ShieldCheck,
   Store,
@@ -147,11 +145,13 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
       setSubmissionError('Please attach the RDB registration document.')
       return
     }
+    const applicantEmail = String(data.get('applicantEmail')).trim()
+    const applicantName = String(data.get('applicantName')).trim()
     const payload: ShopApplicationPayload = {
-      applicantEmail: account.email,
-      applicantName: account.name,
+      applicantEmail,
+      applicantName,
       name: String(data.get('shopName')).trim(),
-      email: account.email,
+      email: applicantEmail,
       phone: String(data.get('phone')).trim(),
       description: String(data.get('description')).trim(),
       villageId: String(data.get('villageId')),
@@ -167,7 +167,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
       const response = await submitShopApplication(payload)
       const record: ApplicationRecord = {
         ...response,
-        applicantEmail: account.email,
+        applicantEmail,
         submittedAt: new Date().toISOString(),
       }
       localStorage.setItem('sova-seller-application', JSON.stringify(record))
@@ -196,7 +196,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
             <aside className="h-fit rounded-3xl bg-ink p-6 text-white">
               <span className="grid size-11 place-items-center rounded-2xl bg-primary"><Store size={21} /></span>
               <h1 className="mt-5 text-2xl font-black tracking-[-0.04em]">Open your shop on SOVA</h1>
-              <p className="mt-3 text-xs leading-5 text-white/60">Apply with your existing customer account. Our team will review your business before your store goes live.</p>
+              <p className="mt-3 text-xs leading-5 text-white/60">No account is required to apply. Our team will review your business before your store goes live.</p>
               <div className="mt-7 space-y-5">
                 <ProcessStep active={step === 1} complete={step > 1} label="Shop information" number={1} />
                 <ProcessStep active={step === 2} complete={step > 2} label="Location" number={2} />
@@ -216,10 +216,14 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
               </div>
 
               <div className={step === 1 ? 'block' : 'hidden'} data-application-step="1">
-                <FormHeading icon={<Building2 size={20} />} title="Tell us about your shop" copy="Use your current SOVA identity and add the business customers will see." />
+                <FormHeading icon={<Building2 size={20} />} title="Tell us about your shop" copy="Start your application directly. If you are signed in, your saved contact details are filled in for you." />
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <ReadOnlyField icon={<Mail size={15} />} label="Account email" value={account.email} />
-                  <ReadOnlyField icon={<BadgeCheck size={15} />} label="Applicant" value={account.name} />
+                  <FormField label="Applicant email">
+                    <input defaultValue={account.email} name="applicantEmail" placeholder="you@example.com" readOnly={Boolean(account.email)} required type="email" />
+                  </FormField>
+                  <FormField label="Applicant name">
+                    <input defaultValue={account.name} name="applicantName" placeholder="Your full name" readOnly={Boolean(account.name)} required />
+                  </FormField>
                   <FormField label="Shop name"><input name="shopName" placeholder="Example: Kigali Home Studio" required /></FormField>
                   <FormField label="Business phone"><input name="phone" placeholder="+250 7XX XXX XXX" required type="tel" /></FormField>
                   <FormField label="Main category">
@@ -331,10 +335,6 @@ function FormField({ children, className = '', label }: { children: React.ReactN
   return <label className={`block ${className}`}><span className="text-xs font-bold text-ink">{label}</span><span className="seller-input">{children}</span></label>
 }
 
-function ReadOnlyField({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return <div><span className="text-xs font-bold text-ink">{label}</span><span className="seller-input bg-soft text-muted">{icon}<span className="truncate text-xs">{value}</span></span></div>
-}
-
 function UploadField({ accept, label, name, required = true }: { accept: string; label: string; name: string; required?: boolean }) {
   const [fileName, setFileName] = useState('')
   const [fileSize, setFileSize] = useState('')
@@ -405,9 +405,9 @@ function FeedbackPanel({ application }: { application: ApplicationRecord }) {
 function loadAccount() {
   try {
     const account = JSON.parse(localStorage.getItem('sova-account-settings') || '{}')
-    return { name: account.name || 'SOVA customer', email: account.email || 'customer@sova.rw' }
+    return { name: account.name || '', email: account.email || '' }
   } catch {
-    return { name: 'SOVA customer', email: 'customer@sova.rw' }
+    return { name: '', email: '' }
   }
 }
 

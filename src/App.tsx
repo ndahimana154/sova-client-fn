@@ -76,9 +76,7 @@ function pageFromLocation(session: ClientSession | null): Page {
   if (window.location.hash === '#account') {
     return session ? 'account' : 'login'
   }
-  if (window.location.hash === '#sell') {
-    return session ? 'seller' : 'login'
-  }
+  if (window.location.hash === '#sell') return 'seller'
   if (productFromHash()) return 'product'
   if (brandFromHash()) return 'shop'
   if (categoryFromHash()) return 'category'
@@ -208,11 +206,7 @@ export default function App() {
   }
 
   function openSellerApplication() {
-    if (session) {
-      window.location.hash = 'sell'
-      return
-    }
-    window.location.hash = 'login'
+    window.location.hash = 'sell'
   }
 
   if (page === 'login' || page === 'signup') {
@@ -264,6 +258,7 @@ export default function App() {
           window.location.hash = 'login'
         }}
         onSearch={searchProducts}
+        onSellOnSova={openSellerApplication}
         onSignupOpen={() => {
           window.location.hash = 'signup'
         }}
@@ -329,7 +324,7 @@ export default function App() {
           onToggleFavorite={toggleFavorite}
         />
       )}
-      <Footer onSellOnSova={openSellerApplication} />
+      <Footer />
       {cartOpen && (
         <CartDrawer
           items={cartItems}
