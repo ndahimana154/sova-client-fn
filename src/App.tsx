@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Footer } from './components/layout/Footer'
 import { StoreHeader } from './components/layout/StoreHeader'
 import { CartDrawer } from './features/cart/CartDrawer'
-import type { CartItem } from './features/cart/types'
 import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
 import { homeProducts, products, type Product } from './data/catalog'
 import {
@@ -22,6 +21,18 @@ import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
 import { SellerDashboardPage } from './pages/seller/SellerDashboardPage'
 import { SearchPage } from './pages/search/SearchPage'
 import { BrandStorePage } from './pages/shop/BrandStorePage'
+import { useAppDispatch, useAppSelector } from './store/hooks'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { AppRoutes } from './router/routes'
+import { clearSession, setSession } from './store/authSlice'
+import {
+  addToCart as addCartItem,
+  changeCartQuantity,
+  removeFromCart as removeCartItem,
+  setCartOpen,
+  setFavoritesOpen,
+  toggleFavorite as toggleFavoriteItem,
+} from './store/commerceSlice'
 
 type Page =
   | 'home'
@@ -76,16 +87,15 @@ function pageFromLocation(session: ClientSession | null): Page {
 }
 
 export default function App() {
-  const [session, setSession] = useState<ClientSession | null>(loadClientSession)
+  const dispatch = useAppDispatch()
+  const routerNavigate = useNavigate()
+  const session = useAppSelector((state) => state.auth.session)
+  const { cartItems, cartOpen, favoriteItems, favoritesOpen } = useAppSelector((state) => state.commerce)
   const [page, setPage] = useState<Page>(() => pageFromLocation(loadClientSession()))
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categoryFromHash)
   const [searchQuery, setSearchQuery] = useState<string | undefined>(searchFromHash)
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [cartOpen, setCartOpen] = useState(false)
-  const [favoriteItems, setFavoriteItems] = useState<Product[]>([])
-  const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [message, setMessage] = useState('')
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
@@ -93,7 +103,7 @@ export default function App() {
   useEffect(() => {
     function handleLocationChange() {
       const currentSession = loadClientSession()
-      setSession(currentSession)
+      dispatch(setSession(currentSession))
       setSelectedProduct(productFromHash())
       setSelectedBrand(brandFromHash())
       setSelectedCategory(categoryFromHash())
@@ -108,7 +118,7 @@ export default function App() {
       window.removeEventListener('hashchange', handleLocationChange)
       window.removeEventListener('popstate', handleLocationChange)
     }
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
     if (window.location.pathname.startsWith('/seller/dashboard') && !isSeller(session)) {
@@ -124,34 +134,22 @@ export default function App() {
   }
 
   function addToCart(product: Product, quantity = 1) {
-    setCartItems((items) => {
-      const existingItem = items.find((item) => item.product.name === product.name)
-      if (existingItem) {
-        return items.map((item) => item.product.name === product.name ? { ...item, quantity: item.quantity + quantity } : item)
-      }
-      return [...items, { product, quantity }]
-    })
+    dispatch(addCartItem({ product, quantity }))
     showMessage(`${quantity > 1 ? `${quantity} × ` : ''}${product.name} added to your cart`)
   }
 
   function toggleFavorite(product: Product) {
     const isFavorite = favoriteItems.some((item) => item.name === product.name)
-    setFavoriteItems((items) => isFavorite
-      ? items.filter((item) => item.name !== product.name)
-      : [...items, product])
+    dispatch(toggleFavoriteItem(product))
     showMessage(isFavorite ? 'Removed from your favorites' : `${product.name} saved to your favorites`)
   }
 
   function changeQuantity(productName: string, quantity: number) {
-    if (quantity < 1) {
-      setCartItems((items) => items.filter((item) => item.product.name !== productName))
-      return
-    }
-    setCartItems((items) => items.map((item) => item.product.name === productName ? { ...item, quantity } : item))
+    dispatch(changeCartQuantity({ productName, quantity }))
   }
 
   function removeFromCart(productName: string) {
-    setCartItems((items) => items.filter((item) => item.product.name !== productName))
+    dispatch(removeCartItem(productName))
   }
 
   async function authenticate(mode: AuthMode, email: string, password: string) {
@@ -159,7 +157,7 @@ export default function App() {
       await registerBuyer(email, password)
     }
     const nextSession = await loginClient(email, password)
-    setSession(nextSession)
+    dispatch(setSession(nextSession))
     localStorage.setItem('sova-account-settings', JSON.stringify({
       email: nextSession.user.email,
       name: nextSession.user.name || '',
@@ -167,21 +165,21 @@ export default function App() {
 
     if (isSeller(nextSession)) {
       setPage('seller-dashboard')
-      window.history.pushState(null, '', '/seller/dashboard')
+      routerNavigate('/seller/dashboard')
       showMessage('Welcome to your seller workspace')
       return
     }
 
     setPage('home')
-    window.history.pushState(null, '', '/')
+    routerNavigate('/')
     showMessage('Welcome to SOVA')
   }
 
   function logout() {
     clearClientSession()
-    setSession(null)
+    dispatch(clearSession())
     setPage('home')
-    window.history.pushState(null, '', '/')
+    routerNavigate('/')
     showMessage('You have been logged out')
   }
 
@@ -219,31 +217,37 @@ export default function App() {
 
   if (page === 'login' || page === 'signup') {
     return (
-      <AuthPage
-        mode={page}
-        onAuthenticate={authenticate}
-        onModeChange={(mode) => {
-          setPage(mode)
-          window.location.hash = mode
-        }}
+      <AppRoutes
+        sellerLayout={<Navigate replace to="/" />}
+        storefront={<AuthPage
+          mode={page}
+          onAuthenticate={authenticate}
+          onModeChange={(mode) => {
+            setPage(mode)
+            window.location.hash = mode
+          }}
+        />}
       />
     )
   }
 
   if (page === 'seller-dashboard' && session && isSeller(session)) {
     return (
-      <SellerDashboardPage
-        onLogout={logout}
-        onStorefrontOpen={() => {
-          window.history.pushState(null, '', '/')
-          setPage('home')
-        }}
-        user={session.user}
+      <AppRoutes
+        sellerLayout={<SellerDashboardPage
+          onLogout={logout}
+          onStorefrontOpen={() => {
+            routerNavigate('/')
+            setPage('home')
+          }}
+          user={session.user}
+        />}
+        storefront={<Navigate replace to="/seller/dashboard" />}
       />
     )
   }
 
-  return (
+  const storefront = (
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
         accountActive={page === 'account'}
@@ -253,9 +257,9 @@ export default function App() {
         onAccountOpen={() => {
           window.location.hash = 'account'
         }}
-        onCartOpen={() => setCartOpen(true)}
+        onCartOpen={() => dispatch(setCartOpen(true))}
         onCategoryOpen={openCategory}
-        onFavoritesOpen={() => setFavoritesOpen(true)}
+        onFavoritesOpen={() => dispatch(setFavoritesOpen(true))}
         onLoginOpen={() => {
           window.location.hash = 'login'
         }}
@@ -264,7 +268,7 @@ export default function App() {
           window.location.hash = 'signup'
         }}
         onSellerDashboardOpen={() => {
-          window.history.pushState(null, '', '/seller/dashboard')
+          routerNavigate('/seller/dashboard')
           setPage('seller-dashboard')
         }}
         seller={isSeller(session)}
@@ -329,7 +333,7 @@ export default function App() {
       {cartOpen && (
         <CartDrawer
           items={cartItems}
-          onClose={() => setCartOpen(false)}
+          onClose={() => dispatch(setCartOpen(false))}
           onQuantityChange={changeQuantity}
           onRemove={removeFromCart}
         />
@@ -338,7 +342,7 @@ export default function App() {
         <FavoritesDrawer
           items={favoriteItems}
           onAddToCart={addToCart}
-          onClose={() => setFavoritesOpen(false)}
+          onClose={() => dispatch(setFavoritesOpen(false))}
           onRemove={toggleFavorite}
         />
       )}
@@ -349,4 +353,5 @@ export default function App() {
       )}
     </div>
   )
+  return <AppRoutes sellerLayout={<Navigate replace to="/" />} storefront={storefront} />
 }

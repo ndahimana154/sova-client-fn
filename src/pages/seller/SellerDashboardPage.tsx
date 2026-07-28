@@ -16,10 +16,13 @@ import {
   Tags,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Brand } from '../../components/ui/Brand'
 import type { ClientUser } from '../../lib/clientAuth'
-import { SellerProductsPage } from './SellerProductsPage'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { setSellerSidebarOpen, toggleSellerSidebarCollapsed } from '../../store/uiSlice'
+import { appPaths } from '../../router/paths'
 
 interface SellerDashboardPageProps {
   onLogout: () => void
@@ -63,15 +66,18 @@ export function SellerDashboardPage({
   onStorefrontOpen,
   user,
 }: SellerDashboardPageProps) {
-  const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const dispatch = useAppDispatch()
+  const location = useLocation()
+  const routerNavigate = useNavigate()
+  const collapsed = useAppSelector((state) => state.ui.sellerSidebarCollapsed)
+  const mobileOpen = useAppSelector((state) => state.ui.sellerSidebarOpen)
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     general: true,
     settings: true,
     workspace: true,
   })
   const [productOpen, setProductOpen] = useState(true)
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'products' | 'categories'>(sectionFromPath)
+  const activeSection = sectionFromPath(location.pathname)
   const initials = user.name
     .split(/\s+/)
     .map((part) => part[0])
@@ -79,21 +85,13 @@ export function SellerDashboardPage({
     .slice(0, 2)
     .toUpperCase() || 'S'
 
-  useEffect(() => {
-    const syncPath = () => setActiveSection(sectionFromPath())
-    window.addEventListener('popstate', syncPath)
-    return () => window.removeEventListener('popstate', syncPath)
-  }, [])
-
   function navigate(section: 'dashboard' | 'products' | 'categories') {
     const path = section === 'dashboard'
-      ? '/seller/dashboard'
+      ? appPaths.sellerDashboard
       : section === 'products'
-        ? '/seller/dashboard/products'
-        : '/seller/dashboard/product-categories'
-    window.history.pushState(null, '', path)
-    setActiveSection(section)
-    window.dispatchEvent(new PopStateEvent('popstate'))
+        ? appPaths.sellerProducts
+        : appPaths.sellerCategories
+    routerNavigate(path)
   }
 
   return (
@@ -102,7 +100,7 @@ export function SellerDashboardPage({
         <button
           aria-label="Close navigation"
           className="fixed inset-0 z-30 bg-[#241f1a]/20 lg:hidden"
-          onClick={() => setMobileOpen(false)}
+          onClick={() => dispatch(setSellerSidebarOpen(false))}
           type="button"
         />
       )}
@@ -110,11 +108,11 @@ export function SellerDashboardPage({
       <aside className={`seller-sidebar ${mobileOpen ? 'translate-x-0' : ''} ${collapsed ? 'seller-sidebar-collapsed' : ''}`}>
         <div className="flex h-14 items-center justify-between border-b border-[#eee7de] px-3">
           <Brand compact={collapsed} />
-          <button className="seller-icon-button lg:hidden" onClick={() => setMobileOpen(false)} type="button"><X size={17} /></button>
+          <button className="seller-icon-button lg:hidden" onClick={() => dispatch(setSellerSidebarOpen(false))} type="button"><X size={17} /></button>
           <button
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="seller-icon-button hidden lg:grid"
-            onClick={() => setCollapsed((value) => !value)}
+            onClick={() => dispatch(toggleSellerSidebarCollapsed())}
             type="button"
           >
             {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
@@ -145,7 +143,7 @@ export function SellerDashboardPage({
                             <button
                               className="seller-nav-item"
                               onClick={() => {
-                                if (collapsed) setCollapsed(false)
+                                if (collapsed) dispatch(toggleSellerSidebarCollapsed())
                                 setProductOpen((value) => !value)
                               }}
                               type="button"
@@ -165,7 +163,7 @@ export function SellerDashboardPage({
                                       key={child.label}
                                       onClick={() => {
                                         navigate(section)
-                                        setMobileOpen(false)
+                                        dispatch(setSellerSidebarOpen(false))
                                       }}
                                       type="button"
                                     >
@@ -185,7 +183,7 @@ export function SellerDashboardPage({
                           key={item.label}
                           onClick={() => {
                             if (item.label === 'Dashboard') navigate('dashboard')
-                            setMobileOpen(false)
+                            dispatch(setSellerSidebarOpen(false))
                           }}
                           type="button"
                         >
@@ -212,7 +210,7 @@ export function SellerDashboardPage({
       </aside>
 
       <header className={`seller-topbar ${collapsed ? 'seller-topbar-collapsed' : ''}`}>
-        <button className="seller-icon-button lg:hidden" onClick={() => setMobileOpen(true)} type="button"><Menu size={18} /></button>
+        <button className="seller-icon-button lg:hidden" onClick={() => dispatch(setSellerSidebarOpen(true))} type="button"><Menu size={18} /></button>
         <label className="hidden h-8 w-72 items-center gap-2 rounded-md border border-[#eee7de] px-2.5 text-[#a69c92] lg:flex">
           <Search size={14} />
           <input className="min-w-0 flex-1 border-0 bg-transparent text-xs text-[#241f1a] outline-none" placeholder="Search" />
@@ -234,33 +232,27 @@ export function SellerDashboardPage({
       <main className={`seller-content ${collapsed ? 'seller-content-collapsed' : ''}`}>
         <header className="border-b border-[#eee7de] bg-white px-4 py-3 lg:px-5">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[10px] text-[#a69c92]">
-            <button aria-label="Dashboard" className="transition-colors hover:text-[#c96f00]" onClick={() => navigate('dashboard')} type="button"><Home size={12} /></button>
+            <Link aria-label="Dashboard" className="transition-colors hover:text-[#c96f00]" to={appPaths.sellerDashboard}><Home size={12} /></Link>
             {activeSection === 'dashboard' ? (
               <><ChevronRight size={11} /><span aria-current="page" className="font-medium text-[#6f665d]">Dashboard</span></>
             ) : (
               <>
                 <ChevronRight size={11} />
-                <button className="transition-colors hover:text-[#c96f00]" onClick={() => navigate('products')} type="button">Product management</button>
+                <Link className="transition-colors hover:text-[#c96f00]" to={appPaths.sellerProducts}>Product management</Link>
                 <ChevronRight size={11} />
                 <span aria-current="page" className="font-medium text-[#6f665d]">{activeSection === 'products' ? 'Products' : 'Product categories'}</span>
               </>
             )}
           </nav>
         </header>
-        {activeSection === 'dashboard' ? (
-          <div className="grid min-h-[calc(100vh-101px)] place-items-center bg-[#fffaf3] p-6">
-            <h1 className="text-center text-3xl font-bold tracking-[-0.04em] text-[#241f1a]">Seller Dashboard</h1>
-          </div>
-        ) : (
-          <SellerProductsPage initialView={activeSection} />
-        )}
+        <Outlet />
       </main>
     </div>
   )
 }
 
-function sectionFromPath(): 'dashboard' | 'products' | 'categories' {
-  if (window.location.pathname.startsWith('/seller/dashboard/product-categories')) return 'categories'
-  if (window.location.pathname.startsWith('/seller/dashboard/products')) return 'products'
+function sectionFromPath(pathname: string): 'dashboard' | 'products' | 'categories' {
+  if (pathname.startsWith('/seller/dashboard/product-categories')) return 'categories'
+  if (pathname.startsWith('/seller/dashboard/products')) return 'products'
   return 'dashboard'
 }
