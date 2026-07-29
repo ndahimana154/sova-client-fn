@@ -9,11 +9,10 @@ import {
   isSeller,
   loadClientSession,
   loginClient,
-  registerBuyer,
   type ClientSession,
 } from './lib/clientAuth'
 import { AccountPage } from './pages/account/AccountPage'
-import { AuthPage, type AuthMode } from './pages/auth/AuthPage'
+import { AuthPage } from './pages/auth/AuthPage'
 import { CategoryPage } from './pages/category/CategoryPage'
 import { HomePage } from './pages/home/HomePage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
@@ -43,7 +42,7 @@ type Page =
   | 'seller'
   | 'seller-dashboard'
   | 'shop'
-  | AuthMode
+  | 'login'
 const allProducts = [...products, ...homeProducts]
 
 function productFromHash() {
@@ -72,7 +71,7 @@ function pageFromLocation(session: ClientSession | null): Page {
     return isSeller(session) ? 'seller-dashboard' : session ? 'home' : 'login'
   }
   if (window.location.hash === '#login') return 'login'
-  if (window.location.hash === '#signup') return 'signup'
+  if (window.location.hash === '#signup') return 'login'
   if (window.location.hash === '#account') {
     return session ? 'account' : 'login'
   }
@@ -150,11 +149,8 @@ export default function App() {
     dispatch(removeCartItem(productName))
   }
 
-  async function authenticate(mode: AuthMode, email: string, password: string) {
-    if (mode === 'signup') {
-      await registerBuyer(email, password)
-    }
-    const nextSession = await loginClient(email, password)
+  async function authenticate(email: string, otp: string) {
+    const nextSession = await loginClient(email, otp)
     dispatch(setSession(nextSession))
     localStorage.setItem('sova-account-settings', JSON.stringify({
       email: nextSession.user.email,
@@ -209,17 +205,12 @@ export default function App() {
     window.location.hash = 'sell'
   }
 
-  if (page === 'login' || page === 'signup') {
+  if (page === 'login') {
     return (
       <AppRoutes
         sellerLayout={<Navigate replace to="/" />}
         storefront={<AuthPage
-          mode={page}
           onAuthenticate={authenticate}
-          onModeChange={(mode) => {
-            setPage(mode)
-            window.location.hash = mode
-          }}
         />}
       />
     )
@@ -259,9 +250,6 @@ export default function App() {
         }}
         onSearch={searchProducts}
         onSellOnSova={openSellerApplication}
-        onSignupOpen={() => {
-          window.location.hash = 'signup'
-        }}
         onSellerDashboardOpen={() => {
           routerNavigate('/seller/dashboard')
           setPage('seller-dashboard')

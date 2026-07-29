@@ -80,7 +80,6 @@ export function ProductDetailPage({
   const reviewForm = useRef<HTMLFormElement>(null)
   const isFavorite = favoriteProductNames.includes(product.name)
   const stock = stockFor(product)
-  const stockMessage = scarcityMessage(product, stock)
   const customerRatingCount = product.reviews + reviews.filter((review) => !review.id.startsWith('sample-')).length
 
   const relatedProducts = useMemo(() => {
@@ -174,45 +173,6 @@ export function ProductDetailPage({
             <div className="mt-6 flex items-baseline gap-3">
               <strong className="text-2xl text-ink">{formatPrice(product.price)}</strong>
               {product.oldPrice && <span className="text-sm text-muted line-through">{formatPrice(product.oldPrice)}</span>}
-            </div>
-
-            <div className={`mt-6 rounded-2xl border px-4 py-4 ${stockMessage.style}`}>
-              <p className="flex items-center gap-2 text-sm font-black">
-                <span className="relative flex size-2">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-current opacity-30" />
-                  <span className="relative inline-flex size-2 rounded-full bg-current" />
-                </span>
-                {stockMessage.title}
-              </p>
-              <p className="mt-1.5 pl-4 text-xs leading-5 opacity-80">{stockMessage.description}</p>
-            </div>
-
-            <div className="mt-7">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-black text-ink">Choose size</p>
-                <button className="flex items-center gap-1 text-xs font-bold text-primary-dark hover:underline" onClick={() => setGuideOpen((open) => !open)} type="button">
-                  Size &amp; fit guide <ChevronDown className={`transition ${guideOpen ? 'rotate-180' : ''}`} size={14} />
-                </button>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {sizeOptions(product).map((size) => (
-                  <button
-                    aria-pressed={selectedSize === size}
-                    className={`min-w-14 rounded-xl border px-4 py-3 text-xs font-bold transition ${selectedSize === size ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink hover:border-primary'}`}
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    type="button"
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-              {guideOpen && (
-                <div className="mt-3 rounded-xl bg-soft p-4 text-xs leading-5 text-muted">
-                  <strong className="block text-ink">Finding the right size</strong>
-                  {fitGuide(product)}
-                </div>
-              )}
             </div>
 
             <div className="mt-7 flex gap-3">
@@ -436,34 +396,4 @@ function sellerDetails(product: Product): [string, string][] {
     Beauty: [['Routine', 'Suitable for daily use'], ['Skin feel', 'Lightweight and hydrating'], ['Package', 'Coordinated full-size set'], ['Storage', 'Store in a cool, dry place'], ['Seller', product.brand ?? 'SOVA Select']],
   }
   return details[product.category] ?? [['Condition', 'Brand new'], ['Seller', product.brand ?? 'SOVA Select'], ['Quality', 'Inspected before dispatch'], ['Care', 'Follow the included care instructions']]
-}
-
-function scarcityMessage(product: Product, stock: number) {
-  const variant = product.name.length % 3
-  if (stock <= 5) {
-    return {
-      title: 'This one is nearly spoken for',
-      description: `There are ${stock} remaining, and it has been getting attention today.`,
-      style: 'border-rose-200 bg-rose-50 text-rose-800',
-    }
-  }
-  if (variant === 0) {
-    return {
-      title: 'A small batch is available',
-      description: `${stock} pieces are ready to dispatch from this seller’s current batch.`,
-      style: 'border-amber-200 bg-amber-50 text-amber-800',
-    }
-  }
-  if (variant === 1) {
-    return {
-      title: 'Finding new homes quickly',
-      description: `${stock} are still available. The next restock date has not been confirmed.`,
-      style: 'border-orange-200 bg-orange-50 text-orange-800',
-    }
-  }
-  return {
-    title: 'Available, but not for long',
-    description: `The seller has ${stock} ready now—once they go, there may be a wait.`,
-    style: 'border-yellow-200 bg-yellow-50 text-yellow-900',
-  }
 }

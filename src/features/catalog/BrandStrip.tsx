@@ -1,4 +1,5 @@
 import { SectionHeader } from '../../components/ui/SectionHeader'
+import { VerifiedShopLogo } from '../../components/shop/VerifiedShopLogo'
 import { brands } from '../../data/catalog'
 
 interface BrandStripProps {
@@ -17,7 +18,13 @@ export function BrandStrip({ onBrandOpen }: BrandStripProps) {
             onClick={() => onBrandOpen(brand)}
             type="button"
           >
-            <span className="grid size-11 place-items-center rounded-full text-sm font-black" style={{ backgroundColor: ['#eef4ff', '#fff4ea', '#eef8ef'][index % 3] }}>{brand.slice(0, 2).toUpperCase()}</span>
+            <VerifiedShopLogo
+              badgeClassName="size-[18px]"
+              className="size-11"
+              logoClassName="text-sm"
+              name={brand}
+              style={{ backgroundColor: ['#eef4ff', '#fff4ea', '#eef8ef'][index % 3] }}
+            />
             <span><strong className="block text-sm text-ink">{brand}</strong><small className="text-[10px] text-muted">Official store</small></span>
           </button>
         ))}

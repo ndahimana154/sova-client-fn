@@ -30,7 +30,7 @@
   .header-location small { @apply block text-[9px] leading-none text-muted; }
   .header-location strong { @apply mt-1 block text-[11px] leading-none; }
   .header-login-link { @apply whitespace-nowrap rounded-full px-2 py-2 text-[11px] font-bold text-ink transition hover:bg-soft sm:px-3 sm:text-xs; }
-  .header-signup-link { @apply whitespace-nowrap rounded-full bg-primary px-3 py-2 text-[11px] font-bold text-white transition hover:bg-primary-dark sm:px-4 sm:text-xs; }
+  .header-signup-link { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3 py-2 text-[11px] font-bold text-white transition hover:bg-primary-dark sm:px-4 sm:text-xs; }
   .brand-mark { @apply relative block size-8 overflow-hidden rounded-lg bg-primary; }
   .brand-mark i:first-child { @apply absolute -right-2 top-1/2 size-6 -translate-y-1/2 rounded-full bg-white; }
   .brand-mark i:last-child { @apply absolute right-0 top-1/2 size-2.5 -translate-y-1/2 rounded-l-full bg-primary; }
@@ -44,12 +44,11 @@
   .quick-add { @apply items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-xs font-bold text-white transition duration-300 hover:bg-primary-dark; }
   .quick-add-touch { @apply mt-3 flex w-full; }
   .quick-add-desktop { @apply hidden; }
-  .auth-page { @apply relative grid min-h-screen place-items-center overflow-hidden bg-[#fbf3e8] px-4 py-3 sm:px-8 sm:py-5; }
+  .auth-page { @apply relative grid h-dvh place-items-center overflow-hidden bg-[#fbf3e8] px-4 py-3 sm:px-8 sm:py-5; }
   .auth-page::before { content: ""; @apply pointer-events-none absolute -left-32 -top-32 size-96 rounded-full bg-primary/10 blur-3xl; }
   .auth-page::after { content: ""; @apply pointer-events-none absolute -bottom-40 -right-24 size-[30rem] rounded-full bg-white/70 blur-3xl; }
-  .auth-back { @apply absolute left-5 top-5 z-20 flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-xs font-bold text-ink shadow-sm backdrop-blur transition hover:bg-white sm:left-8 sm:top-8; }
-  .auth-shell { @apply relative z-10 grid w-full max-w-[1120px] overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(84,54,27,0.16)] lg:grid-cols-[minmax(0,0.94fr)_minmax(420px,1.06fr)]; }
-  .auth-form-panel { @apply flex min-h-[610px] items-center bg-white px-6 py-7 sm:px-10 lg:px-14; }
+  .auth-shell { @apply relative z-10 grid max-h-full w-full max-w-[1120px] overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(84,54,27,0.16)] lg:h-[min(610px,calc(100dvh-2.5rem))] lg:grid-cols-[minmax(0,0.94fr)_minmax(420px,1.06fr)]; }
+  .auth-form-panel { @apply flex min-h-0 items-center overflow-hidden bg-white px-6 py-6 sm:px-10 lg:h-full lg:px-14; }
   .auth-form-wrap { @apply mx-auto w-full max-w-[430px]; }
   .auth-eyebrow { @apply text-[10px] font-black uppercase tracking-[0.2em] text-primary-dark; }
   .auth-tabs { @apply mt-4 grid grid-cols-2 rounded-xl bg-soft p-1; }
@@ -66,7 +65,7 @@
   .review-input { @apply mt-2 block w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted/65 focus:border-primary focus:ring-4 focus:ring-primary/10; }
   .seller-input { @apply mt-2 flex min-h-11 items-center gap-2 rounded-xl border border-line bg-white px-3.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10; }
   .seller-input input, .seller-input select, .seller-input textarea { @apply min-w-0 flex-1 bg-transparent py-3 text-sm text-ink outline-none placeholder:text-muted/65 disabled:cursor-not-allowed disabled:text-muted; }
-  .auth-visual { @apply relative hidden min-h-[610px] overflow-hidden bg-[#ca7b24] lg:block; background-image: url("/images/storefront-hero.png"); background-position: 68% center; background-size: cover; }
+  .auth-visual { @apply relative hidden h-full min-h-0 overflow-hidden bg-[#ca7b24] lg:block; background-image: url("/images/storefront-hero.png"); background-position: 68% center; background-size: cover; }
   .auth-visual-shade { @apply absolute inset-0 bg-gradient-to-t from-[#2d1709]/80 via-[#5a2a09]/10 to-transparent; }
   .auth-visual-copy { @apply absolute bottom-0 left-0 right-0 p-12; }
 }
