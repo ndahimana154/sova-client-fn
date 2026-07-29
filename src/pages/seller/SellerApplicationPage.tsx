@@ -240,7 +240,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
       setSubmissionSuccess('Your request has been sent successfully.')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
-      setSubmissionError(formatSellerApplicationError(error))
+      setSubmissionError(normalizeApiError(error).message)
     } finally {
       setSubmitting(false)
     }
