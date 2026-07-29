@@ -240,7 +240,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
       setSubmissionSuccess('Your request has been sent successfully.')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
-      setSubmissionError(normalizeApiError(error).message)
+      setSubmissionError(formatSellerApplicationError(error))
     } finally {
       setSubmitting(false)
     }
@@ -318,23 +318,23 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
       </section>
 
       <section className="page-container py-10 sm:py-14">
-          <section className="mb-6 w-full rounded-3xl border border-line bg-white p-5 sm:p-6">
-            <FormHeading icon={<Search size={18} />} title="Track your seller application" copy="Enter the application code you received after submitting to view its progress and feedback." />
-            <form className="mt-4 flex flex-col items-end gap-3 sm:flex-row" onSubmit={trackApplication}>
-              <label className="w-full flex-1">
-                <span className="text-xs font-bold text-ink">Application code<span className="ml-1 text-red-600" aria-hidden="true">*</span></span>
-                <span className="seller-input">
-                  <input name="applicationCode" placeholder="Enter application code" required />
-                </span>
-              </label>
-              <button className="primary-button justify-center sm:min-w-32" disabled={tracking} type="submit">
-                {tracking ? <><LoaderCircle className="animate-spin" size={15} /> Tracking…</> : 'Track'}
-              </button>
-            </form>
-            {trackingError && <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{trackingError}</p>}
-          </section>
+        <section className="mb-6 w-full rounded-3xl border border-line bg-white p-5 sm:p-6">
+          <FormHeading icon={<Search size={18} />} title="Track your seller application" copy="Enter the application code you received after submitting to view its progress and feedback." />
+          <form className="mt-4 flex flex-col items-end gap-3 sm:flex-row" onSubmit={trackApplication}>
+            <label className="w-full flex-1">
+              <span className="text-xs font-bold text-ink">Application code<span className="ml-1 text-red-600" aria-hidden="true">*</span></span>
+              <span className="seller-input">
+                <input name="applicationCode" placeholder="Enter application code" required />
+              </span>
+            </label>
+            <button className="primary-button justify-center sm:min-w-32" disabled={tracking} type="submit">
+              {tracking ? <><LoaderCircle className="animate-spin" size={15} /> Tracking…</> : 'Track'}
+            </button>
+          </form>
+          {trackingError && <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{trackingError}</p>}
+        </section>
 
-          <ValidationErrorsContext.Provider value={validationErrors}>
+        <ValidationErrorsContext.Provider value={validationErrors}>
           {submissionSuccess && (
             <p className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700" role="status">
               {submissionSuccess}
@@ -359,121 +359,121 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
             }}
             onSubmit={submit}
           >
-              {returnMessage && (
-                <div className="mb-7 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-                  <strong className="block">Changes requested by SOVA</strong>
-                  <p className="mt-2 leading-6">{returnMessage}</p>
-                </div>
-              )}
-              <div>
-                <FormHeading icon={<Building2 size={20} />} title="Tell us about your shop" copy="Start your application directly. If you are signed in, your saved contact details are filled in for you." />
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <FormField label="Shop name"><input defaultValue={renewalShop?.name} maxLength={120} minLength={2} name="shopName" placeholder="Example: Kigali Home Studio" required /></FormField>
-                  <FormField label="Shop email"><input defaultValue={renewalShop?.email || ''} name="shopEmail" placeholder="shop@example.com" required type="email" /></FormField>
-                  <FormField label="Shop phone"><input defaultValue={renewalShop?.phone || ''} inputMode="numeric" maxLength={10} name="phone" pattern="07(8|9|3|2)[0-9]{7}" placeholder="0781234567" required title="Use 10 digits starting with 078, 079, 073, or 072." type="tel" /></FormField>
-                  <FormField className="sm:col-span-2 lg:col-span-3" label="Shop description">
-                    <textarea className="min-h-28 resize-y" defaultValue={renewalShop?.description || ''} maxLength={2000} minLength={20} name="description" placeholder="Describe what you sell, where products come from, and what makes your shop trustworthy." required />
-                  </FormField>
-                  <div className="mt-2 border-t border-line pt-5 sm:col-span-2 lg:col-span-3">
-                    <h3 className="text-sm font-black text-ink">Representative details</h3>
-                    <p className="mt-1 text-xs text-muted">The person SOVA should contact about this application.</p>
-                  </div>
-                  <FormField label="Representative name">
-                    <input defaultValue={renewalShop?.representativeNames || prefilledAccount.name} maxLength={120} minLength={2} name="applicantName" placeholder="Full name" readOnly={Boolean(prefilledAccount.name)} required />
-                  </FormField>
-                  <FormField label="Representative email">
-                    <input defaultValue={renewalShop?.representativeEmail || prefilledAccount.email} name="applicantEmail" placeholder="you@example.com" readOnly={Boolean(prefilledAccount.email)} required type="email" />
-                  </FormField>
-                  <FormField label="Representative phone">
-                    <input defaultValue={renewalShop?.representativePhone || ''} inputMode="numeric" maxLength={10} name="representativePhone" pattern="07(8|9|3|2)[0-9]{7}" placeholder="0781234567" required title="Use 10 digits starting with 078, 079, 073, or 072." type="tel" />
-                  </FormField>
-                </div>
+            {returnMessage && (
+              <div className="mb-7 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+                <strong className="block">Changes requested by SOVA</strong>
+                <p className="mt-2 leading-6">{returnMessage}</p>
               </div>
+            )}
+            <div>
+              <FormHeading icon={<Building2 size={20} />} title="Tell us about your shop" copy="Start your application directly. If you are signed in, your saved contact details are filled in for you." />
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <FormField label="Shop name"><input defaultValue={renewalShop?.name} maxLength={120} minLength={2} name="shopName" placeholder="Example: Kigali Home Studio" required /></FormField>
+                <FormField label="Shop email"><input defaultValue={renewalShop?.email || ''} name="shopEmail" placeholder="shop@example.com" required type="email" /></FormField>
+                <FormField label="Shop phone"><input defaultValue={renewalShop?.phone || ''} inputMode="numeric" maxLength={10} name="phone" pattern="07(8|9|3|2)[0-9]{7}" placeholder="0781234567" required title="Use 10 digits starting with 078, 079, 073, or 072." type="tel" /></FormField>
+                <FormField className="sm:col-span-2 lg:col-span-3" label="Shop description">
+                  <textarea className="min-h-28 resize-y" defaultValue={renewalShop?.description || ''} maxLength={2000} minLength={20} name="description" placeholder="Describe what you sell, where products come from, and what makes your shop trustworthy." required />
+                </FormField>
+                <div className="mt-2 border-t border-line pt-5 sm:col-span-2 lg:col-span-3">
+                  <h3 className="text-sm font-black text-ink">Representative details</h3>
+                  <p className="mt-1 text-xs text-muted">The person SOVA should contact about this application.</p>
+                </div>
+                <FormField label="Representative name">
+                  <input defaultValue={renewalShop?.representativeNames || prefilledAccount.name} maxLength={120} minLength={2} name="applicantName" placeholder="Full name" readOnly={Boolean(prefilledAccount.name)} required />
+                </FormField>
+                <FormField label="Representative email">
+                  <input defaultValue={renewalShop?.representativeEmail || prefilledAccount.email} name="applicantEmail" placeholder="you@example.com" readOnly={Boolean(prefilledAccount.email)} required type="email" />
+                </FormField>
+                <FormField label="Representative phone">
+                  <input defaultValue={renewalShop?.representativePhone || ''} inputMode="numeric" maxLength={10} name="representativePhone" pattern="07(8|9|3|2)[0-9]{7}" placeholder="0781234567" required title="Use 10 digits starting with 078, 079, 073, or 072." type="tel" />
+                </FormField>
+              </div>
+            </div>
 
-              <div className="mt-10 border-t border-line pt-8">
-                <FormHeading icon={<MapPin size={20} />} title="Where is the shop located?" copy="Province, district, sector, cell, and village options come directly from the SOVA public location API." />
-                {locationError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">{locationError}</p>}
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <FormField label="Province">
-                    <select name="provinceId" onChange={(event) => {
-                      setLocationHydrated(false)
-                      setProvinceId(event.target.value)
-                      setDistrictId('')
-                      setSectorId('')
-                      setCellId('')
-                      setVillageId('')
-                    }} required value={provinceId}>
-                      <option value="">Select province</option>{provinces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                    </select>
-                  </FormField>
-                  <FormField label="District">
-                    <select disabled={!provinceId} name="districtId" onChange={(event) => {
-                      setLocationHydrated(false)
-                      setDistrictId(event.target.value)
-                      setSectorId('')
-                      setCellId('')
-                      setVillageId('')
-                    }} required value={districtId}>
-                      <option value="">Select district</option>{districts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                    </select>
-                  </FormField>
-                  <FormField label="Sector">
-                    <select disabled={!districtId} name="sectorId" onChange={(event) => {
-                      setLocationHydrated(false)
-                      setSectorId(event.target.value)
-                      setCellId('')
-                      setVillageId('')
-                    }} required value={sectorId}>
-                      <option value="">Select sector</option>{sectors.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                    </select>
-                  </FormField>
-                  <FormField label="Cell">
-                    <select disabled={!sectorId} name="cellId" onChange={(event) => {
-                      setLocationHydrated(false)
-                      setCellId(event.target.value)
-                      setVillageId('')
-                    }} required value={cellId}>
-                      <option value="">Select cell</option>{cells.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                    </select>
-                  </FormField>
-                  <FormField label="Village">
-                    <select disabled={!cellId} name="villageId" onChange={(event) => setVillageId(event.target.value)} required value={villageId}><option value="">Select village</option>{villages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-                  </FormField>
-                  <FormField label="Street or building"><input defaultValue={renewalShop?.street || ''} name="street" placeholder="Street, building, or landmark" required /></FormField>
-                  <FormField className="sm:col-span-2 lg:col-span-3" label="Google Maps link (optional)"><input defaultValue={renewalShop?.googleMapsLocationLink || ''} name="googleMapsLocationLink" placeholder="https://maps.google.com/..." type="url" /></FormField>
-                </div>
-                {locationLoading && <p className="mt-4 flex items-center gap-2 text-xs text-muted"><LoaderCircle className="animate-spin" size={14} /> Loading location information…</p>}
+            <div className="mt-10 border-t border-line pt-8">
+              <FormHeading icon={<MapPin size={20} />} title="Where is the shop located?" copy="Province, district, sector, cell, and village options come directly from the SOVA public location API." />
+              {locationError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">{locationError}</p>}
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <FormField label="Province">
+                  <select name="provinceId" onChange={(event) => {
+                    setLocationHydrated(false)
+                    setProvinceId(event.target.value)
+                    setDistrictId('')
+                    setSectorId('')
+                    setCellId('')
+                    setVillageId('')
+                  }} required value={provinceId}>
+                    <option value="">Select province</option>{provinces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="District">
+                  <select disabled={!provinceId} name="districtId" onChange={(event) => {
+                    setLocationHydrated(false)
+                    setDistrictId(event.target.value)
+                    setSectorId('')
+                    setCellId('')
+                    setVillageId('')
+                  }} required value={districtId}>
+                    <option value="">Select district</option>{districts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="Sector">
+                  <select disabled={!districtId} name="sectorId" onChange={(event) => {
+                    setLocationHydrated(false)
+                    setSectorId(event.target.value)
+                    setCellId('')
+                    setVillageId('')
+                  }} required value={sectorId}>
+                    <option value="">Select sector</option>{sectors.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="Cell">
+                  <select disabled={!sectorId} name="cellId" onChange={(event) => {
+                    setLocationHydrated(false)
+                    setCellId(event.target.value)
+                    setVillageId('')
+                  }} required value={cellId}>
+                    <option value="">Select cell</option>{cells.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="Village">
+                  <select disabled={!cellId} name="villageId" onChange={(event) => setVillageId(event.target.value)} required value={villageId}><option value="">Select village</option>{villages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                </FormField>
+                <FormField label="Street or building"><input defaultValue={renewalShop?.street || ''} name="street" placeholder="Street, building, or landmark" required /></FormField>
+                <FormField className="sm:col-span-2 lg:col-span-3" label="Google Maps link (optional)"><input defaultValue={renewalShop?.googleMapsLocationLink || ''} name="googleMapsLocationLink" placeholder="https://maps.google.com/..." type="url" /></FormField>
               </div>
+              {locationLoading && <p className="mt-4 flex items-center gap-2 text-xs text-muted"><LoaderCircle className="animate-spin" size={14} /> Loading location information…</p>}
+            </div>
 
-              <div className="mt-10 border-t border-line pt-8">
-                <FormHeading icon={<FileCheck2 size={20} />} title="Business verification" copy="Provide the registration information SOVA needs to review your application." />
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <FormField className="sm:col-span-2 lg:col-span-3" label="TIN number"><input defaultValue={renewalShop?.tinNumber || ''} inputMode="numeric" maxLength={9} name="tinNumber" pattern="[0-9]{9}" placeholder="Enter 9-digit TIN" required title="TIN number must contain exactly 9 digits and numbers only." /></FormField>
-                  <UploadField accept=".pdf,image/png,image/jpeg" existingUrl={renewalShop?.rbdRegistrationDocument} label="RDB registration document" name="rbdRegistrationDocument" />
-                  <UploadField accept="image/png,image/jpeg,image/webp" existingUrl={renewalShop?.logo} label="Shop logo (optional)" name="logo" required={false} />
-                </div>
-                <div className="mt-5 space-y-3">
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-soft p-4 text-xs leading-5 text-muted">
-                    <input className="auth-checkbox mt-0.5" name="informationConfirmed" required type="checkbox" />
-                    <span>I confirm that this information is accurate and authorize SOVA to review the business details before approving the shop.<span className="ml-1 text-red-600" aria-hidden="true">*</span></span>
-                  </label>
-                  {validationErrors.informationConfirmed && <p className="text-xs font-semibold text-red-600" role="alert">{validationErrors.informationConfirmed}</p>}
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-soft p-4 text-xs leading-5 text-muted">
-                    <input className="auth-checkbox mt-0.5" name="termsAccepted" required type="checkbox" />
-                    <span>I have read and agree to the <a className="font-bold text-ink underline underline-offset-2 transition hover:text-primary-dark" href="#terms">SOVA terms and conditions</a>.<span className="ml-1 text-red-600" aria-hidden="true">*</span></span>
-                  </label>
-                  {validationErrors.termsAccepted && <p className="text-xs font-semibold text-red-600" role="alert">{validationErrors.termsAccepted}</p>}
-                </div>
+            <div className="mt-10 border-t border-line pt-8">
+              <FormHeading icon={<FileCheck2 size={20} />} title="Business verification" copy="Provide the registration information SOVA needs to review your application." />
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <FormField className="sm:col-span-2 lg:col-span-3" label="TIN number"><input defaultValue={renewalShop?.tinNumber || ''} inputMode="numeric" maxLength={9} name="tinNumber" pattern="[0-9]{9}" placeholder="Enter 9-digit TIN" required title="TIN number must contain exactly 9 digits and numbers only." /></FormField>
+                <UploadField accept=".pdf,image/png,image/jpeg" existingUrl={renewalShop?.rbdRegistrationDocument} label="RDB registration document" name="rbdRegistrationDocument" />
+                <UploadField accept="image/png,image/jpeg,image/webp" existingUrl={renewalShop?.logo} label="Shop logo (optional)" name="logo" required={false} />
               </div>
+              <div className="mt-5 space-y-3">
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-soft p-4 text-xs leading-5 text-muted">
+                  <input className="auth-checkbox mt-0.5" name="informationConfirmed" required type="checkbox" />
+                  <span>I confirm that this information is accurate and authorize SOVA to review the business details before approving the shop.<span className="ml-1 text-red-600" aria-hidden="true">*</span></span>
+                </label>
+                {validationErrors.informationConfirmed && <p className="text-xs font-semibold text-red-600" role="alert">{validationErrors.informationConfirmed}</p>}
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-soft p-4 text-xs leading-5 text-muted">
+                  <input className="auth-checkbox mt-0.5" name="termsAccepted" required type="checkbox" />
+                  <span>I have read and agree to the <a className="font-bold text-ink underline underline-offset-2 transition hover:text-primary-dark" href="#terms">SOVA terms and conditions</a>.<span className="ml-1 text-red-600" aria-hidden="true">*</span></span>
+                </label>
+                {validationErrors.termsAccepted && <p className="text-xs font-semibold text-red-600" role="alert">{validationErrors.termsAccepted}</p>}
+              </div>
+            </div>
 
-              <div className="mt-8 flex justify-end border-t border-line pt-5">
-                  <button className="primary-button min-w-40 justify-center" disabled={submitting} type="submit">
-                    {submitting ? <><LoaderCircle className="animate-spin" size={15} /> Submitting…</> : renewalApplication ? 'Resubmit application' : 'Submit application'}
-                  </button>
-              </div>
-              {submissionError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{submissionError}</p>}
+            <div className="mt-8 flex justify-end border-t border-line pt-5">
+              <button className="primary-button min-w-40 justify-center" disabled={submitting} type="submit">
+                {submitting ? <><LoaderCircle className="animate-spin" size={15} /> Submitting…</> : renewalApplication ? 'Resubmit application' : 'Submit application'}
+              </button>
+            </div>
+            {submissionError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{submissionError}</p>}
           </form>
-          </ValidationErrorsContext.Provider>
+        </ValidationErrorsContext.Provider>
       </section>
       {application && (
         <ApplicationStatus
