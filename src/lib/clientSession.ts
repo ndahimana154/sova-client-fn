@@ -14,6 +14,7 @@ export interface ClientSession {
 }
 
 const sessionKey = 'sova-client-session'
+const storagePrefix = 'sova-'
 
 export function loadClientSession(): ClientSession | null {
   try {
@@ -29,9 +30,21 @@ export function loadClientSession(): ClientSession | null {
   }
 }
 
+function removeSovaStorage(storage: Storage) {
+  const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index))
+  keys.forEach((key) => {
+    if (key?.startsWith(storagePrefix)) storage.removeItem(key)
+  })
+}
+
 export function clearClientSession() {
   localStorage.removeItem(sessionKey)
   localStorage.removeItem('sova-authenticated')
+}
+
+export function clearClientStorage() {
+  removeSovaStorage(localStorage)
+  removeSovaStorage(sessionStorage)
 }
 
 export function isSeller(session: ClientSession | null): boolean {

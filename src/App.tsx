@@ -5,10 +5,10 @@ import { CartDrawer } from './features/cart/CartDrawer'
 import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
 import { homeProducts, products, type Product } from './data/catalog'
 import {
-  clearClientSession,
   isSeller,
   loadClientSession,
   loginClient,
+  logoutClient,
   type ClientSession,
 } from './lib/clientAuth'
 import { AccountPage } from './pages/account/AccountPage'
@@ -28,6 +28,7 @@ import {
   addToCart as addCartItem,
   changeCartQuantity,
   removeFromCart as removeCartItem,
+  resetCommerce,
   setCartOpen,
   setFavoritesOpen,
   toggleFavorite as toggleFavoriteItem,
@@ -169,12 +170,20 @@ export default function App() {
     showMessage('Welcome to SOVA')
   }
 
-  function logout() {
-    clearClientSession()
-    dispatch(clearSession())
-    setPage('home')
-    routerNavigate('/')
-    showMessage('You have been logged out')
+  async function logout() {
+    try {
+      await logoutClient()
+    } finally {
+      dispatch(clearSession())
+      dispatch(resetCommerce())
+      setSelectedProduct(undefined)
+      setSelectedBrand(undefined)
+      setSelectedCategory(undefined)
+      setSearchQuery(undefined)
+      setPage('home')
+      routerNavigate('/')
+      showMessage('You have been logged out')
+    }
   }
 
   function openProduct(product: Product) {

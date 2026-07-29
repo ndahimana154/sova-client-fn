@@ -36,6 +36,9 @@ const commerceSlice = createSlice({
     removeFromCart(state, action: PayloadAction<string>) {
       state.cartItems = state.cartItems.filter((item) => item.product.name !== action.payload)
     },
+    resetCommerce() {
+      return initialState
+    },
     setCartOpen(state, action: PayloadAction<boolean>) {
       state.cartOpen = action.payload
     },
@@ -54,6 +57,7 @@ export const {
   addToCart,
   changeCartQuantity,
   removeFromCart,
+  resetCommerce,
   setCartOpen,
   setFavoritesOpen,
   toggleFavorite,

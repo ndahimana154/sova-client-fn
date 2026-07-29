@@ -1,5 +1,7 @@
 import { api } from '../api/request'
 import {
+  clearClientStorage,
+  loadClientSession,
   saveClientSession,
   type ClientSession,
   type ClientUser,
@@ -46,4 +48,13 @@ export async function loginClient(email: string, otp: string): Promise<ClientSes
   }
   saveClientSession(session)
   return session
+}
+
+export async function logoutClient(): Promise<void> {
+  const session = loadClientSession()
+  try {
+    if (session) await api.post<void>('/clients/auth/logout')
+  } finally {
+    clearClientStorage()
+  }
 }
