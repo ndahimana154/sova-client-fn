@@ -26,10 +26,16 @@ interface ApiEnvelope<T> {
   status: number
 }
 
-export async function loginClient(email: string, password: string): Promise<ClientSession> {
-  const response = await api.post<ApiEnvelope<LoginResponse>, { email: string; password: string }>(
-    '/clients/auth/login',
-    { email, password },
+export async function requestLoginOtp(email: string): Promise<{ message: string; expiresInMinutes: number }> {
+  return (await api.post<ApiEnvelope<{ message: string; expiresInMinutes: number }>, { email: string }>(
+    '/clients/auth/login', { email },
+  )).data
+}
+
+export async function loginClient(email: string, otp: string): Promise<ClientSession> {
+  const response = await api.post<ApiEnvelope<LoginResponse>, { email: string; otp: string }>(
+    '/clients/auth/login/verify',
+    { email, otp },
   )
   const result = response.data
   const session = {
@@ -40,11 +46,4 @@ export async function loginClient(email: string, password: string): Promise<Clie
   }
   saveClientSession(session)
   return session
-}
-
-export async function registerBuyer(email: string, password: string): Promise<void> {
-  await api.post<ApiEnvelope<unknown>, { email: string; password: string }>(
-    '/clients/auth/register/buyer',
-    { email, password },
-  )
 }

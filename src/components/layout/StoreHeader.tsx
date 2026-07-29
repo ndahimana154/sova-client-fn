@@ -17,7 +17,6 @@ interface StoreHeaderProps {
   onLoginOpen: () => void
   onSearch: (query: string) => void
   onSellOnSova: () => void
-  onSignupOpen: () => void
   onSellerDashboardOpen?: () => void
   seller: boolean
 }
@@ -36,7 +35,6 @@ export function StoreHeader({
   onLoginOpen,
   onSearch,
   onSellOnSova,
-  onSignupOpen,
   onSellerDashboardOpen,
   seller,
 }: StoreHeaderProps) {
@@ -62,7 +60,7 @@ export function StoreHeader({
           <button className="header-location">
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
-          {!seller && (
+          {authenticated && !seller && (
             <button
               className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
               onClick={onSellOnSova}
@@ -91,8 +89,8 @@ export function StoreHeader({
             </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
-              <button className="header-login-link" onClick={onLoginOpen}>Log in</button>
-              <button className="header-signup-link" onClick={onSignupOpen}>Sign up</button>
+              <button className="header-login-link" onClick={onLoginOpen}>Account</button>
+              <button className="header-signup-link" onClick={onSellOnSova}><Store size={14} /> Sell on SOVA</button>
             </div>
           )}
         </div>

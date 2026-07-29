@@ -13,6 +13,7 @@ import {
   Truck,
 } from 'lucide-react'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { VerifiedShopLogo } from '../../components/shop/VerifiedShopLogo'
 import type { Product } from '../../data/catalog'
 import { ProductCard } from '../../features/catalog/ProductCard'
 
@@ -118,12 +119,14 @@ export function BrandStorePage({
           </a>
           <div className="mt-8 flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-center gap-5">
-              <div className="grid size-20 shrink-0 place-items-center rounded-3xl bg-ink text-2xl font-black text-white shadow-xl">
-                {brand.split(' ').map((word) => word[0]).join('').slice(0, 2)}
-              </div>
+              <VerifiedShopLogo
+                badgeClassName="size-7"
+                className="size-20"
+                logoClassName="rounded-3xl bg-ink text-2xl text-white shadow-xl"
+                name={brand}
+              />
               <div>
-                <p className="flex items-center gap-1.5 text-xs font-bold text-primary-dark"><BadgeCheck size={16} /> Verified official store</p>
-                <h1 className="mt-2 text-3xl font-black tracking-[-0.045em] text-ink sm:text-4xl">{brand}</h1>
+                <h1 className="text-3xl font-black tracking-[-0.045em] text-ink sm:text-4xl">{brand}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
                   <Star className="fill-primary text-primary" size={14} />
                   <strong className="text-ink">{storeRating.toFixed(1)}</strong>
@@ -135,14 +138,6 @@ export function BrandStorePage({
             </div>
             <p className="max-w-md text-sm leading-6 text-muted">{profile.summary}</p>
           </div>
-        </div>
-      </section>
-
-      <section className="border-b border-line bg-white">
-        <div className="page-container grid gap-4 py-6 sm:grid-cols-3">
-          <StorePromise icon={<BadgeCheck size={18} />} label="Identity verified by SOVA" />
-          <StorePromise icon={<PackageCheck size={18} />} label="Authenticity checked" />
-          <StorePromise icon={<Truck size={18} />} label="SOVA-supported delivery" />
         </div>
       </section>
 
