@@ -26,6 +26,6 @@ apiClient.interceptors.response.use(
       clearClientSession()
       location.assign('/#login')
     }
-    return Promise.reject(normalized)
+    return Promise.reject(error)
   },
 )

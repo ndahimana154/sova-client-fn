@@ -19,8 +19,6 @@ interface HomePageProps {
 export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onCategoryOpen, onProductOpen, onToggleFavorite }: HomePageProps) {
   return (
     <main>
-      <Hero />
-      <CategoryRail onCategoryOpen={onCategoryOpen} />
       <ProductSection
         eyebrow="Handpicked this week"
         favoriteProductNames={favoriteProductNames}
@@ -31,6 +29,8 @@ export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onCat
         products={products}
         title="Today’s best deals"
       />
+      <CategoryRail onCategoryOpen={onCategoryOpen} />
+      <Hero />
       <PromoGrid />
       <BrandStrip onBrandOpen={onBrandOpen} />
       <ProductSection
