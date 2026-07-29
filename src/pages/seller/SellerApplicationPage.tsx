@@ -58,6 +58,8 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
   const [locationError, setLocationError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submissionError, setSubmissionError] = useState('')
+  const [submissionSuccess, setSubmissionSuccess] = useState('')
+  const [formVersion, setFormVersion] = useState(0)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [tracking, setTracking] = useState(false)
   const [trackingError, setTrackingError] = useState('')
@@ -217,20 +219,28 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
     setSubmitting(true)
     setValidationErrors({})
     setSubmissionError('')
+    setSubmissionSuccess('')
     try {
-      const response = renewalApplication
-        ? await renewShopApplication(renewalApplication.applicationCode, payload)
-        : await submitShopApplication(payload)
-      const record: ApplicationRecord = {
-        ...response,
-        applicantEmail,
-        submittedAt: renewalApplication?.submittedAt || new Date().toISOString(),
-      }
+      await (renewalApplication
+        ? renewShopApplication(renewalApplication.applicationCode, payload)
+        : submitShopApplication(payload))
       setRenewalApplication(null)
-      setApplication(record)
+      setApplication(null)
+      setProvinceId('')
+      setDistrictId('')
+      setSectorId('')
+      setCellId('')
+      setVillageId('')
+      setDistricts([])
+      setSectors([])
+      setCells([])
+      setVillages([])
+      setLocationHydrated(false)
+      setFormVersion((current) => current + 1)
+      setSubmissionSuccess('Your request has been sent successfully.')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
-      setSubmissionError(formatSellerApplicationError(error))
+      setSubmissionError(normalizeApiError(error).message)
     } finally {
       setSubmitting(false)
     }
@@ -291,6 +301,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
 
   const renewalShop = renewalApplication?.shop
   const returnMessage = renewalApplication ? applicationFeedback(renewalApplication) : undefined
+  const prefilledAccount = formVersion === 0 && !renewalApplication ? account : { email: '', name: '' }
 
   return (
     <main className="min-h-[75vh]">
@@ -324,9 +335,14 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
           </section>
 
           <ValidationErrorsContext.Provider value={validationErrors}>
+          {submissionSuccess && (
+            <p className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700" role="status">
+              {submissionSuccess}
+            </p>
+          )}
           <form
             className="w-full rounded-3xl border border-line bg-white p-6 sm:p-8"
-            key={renewalApplication?.applicationCode || 'new-application'}
+            key={`${renewalApplication?.applicationCode || 'new-application'}-${formVersion}`}
             noValidate
             onInput={(event) => {
               const fieldName = (event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).name
@@ -339,6 +355,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
                 })
               }
               setSubmissionError('')
+              setSubmissionSuccess('')
             }}
             onSubmit={submit}
           >
@@ -362,10 +379,10 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
                     <p className="mt-1 text-xs text-muted">The person SOVA should contact about this application.</p>
                   </div>
                   <FormField label="Representative name">
-                    <input defaultValue={renewalShop?.representativeNames || account.name} maxLength={120} minLength={2} name="applicantName" placeholder="Full name" readOnly={!renewalApplication && Boolean(account.name)} required />
+                    <input defaultValue={renewalShop?.representativeNames || prefilledAccount.name} maxLength={120} minLength={2} name="applicantName" placeholder="Full name" readOnly={Boolean(prefilledAccount.name)} required />
                   </FormField>
                   <FormField label="Representative email">
-                    <input defaultValue={renewalShop?.representativeEmail || account.email} name="applicantEmail" placeholder="you@example.com" readOnly={!renewalApplication && Boolean(account.email)} required type="email" />
+                    <input defaultValue={renewalShop?.representativeEmail || prefilledAccount.email} name="applicantEmail" placeholder="you@example.com" readOnly={Boolean(prefilledAccount.email)} required type="email" />
                   </FormField>
                   <FormField label="Representative phone">
                     <input defaultValue={renewalShop?.representativePhone || ''} inputMode="numeric" maxLength={10} name="representativePhone" pattern="07(8|9|3|2)[0-9]{7}" placeholder="0781234567" required title="Use 10 digits starting with 078, 079, 073, or 072." type="tel" />
@@ -454,7 +471,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
                     {submitting ? <><LoaderCircle className="animate-spin" size={15} /> Submitting…</> : renewalApplication ? 'Resubmit application' : 'Submit application'}
                   </button>
               </div>
-              {submissionError && <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{submissionError}</pre>}
+              {submissionError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{submissionError}</p>}
           </form>
           </ValidationErrorsContext.Provider>
       </section>
@@ -678,18 +695,6 @@ function loadAccount() {
   }
 }
 
-function formatSellerApplicationError(error: unknown) {
-  const apiError = normalizeApiError(error)
-  if (apiError.details && typeof apiError.details === 'object') {
-    return JSON.stringify(apiError.details, null, 2)
-  }
-  return JSON.stringify({
-    message: apiError.message,
-    error: 'Request failed',
-    statusCode: apiError.status ?? null,
-  }, null, 2)
-}
-
 function toLocationOption(location: { id: string; name: string }): LocationOption {
   return { id: location.id, name: location.name }
 }
@@ -739,7 +744,7 @@ function findInvalidFields(form: HTMLFormElement) {
 
 function fieldValidationMessage(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
   const label = fieldLabels[field.name] || 'This field'
-  if (field.validity.valueMissing) return `${label} is required. Please complete it before submitting.`
+  if (field.validity.valueMissing) return `${label} is required.`
   if (field.validity.typeMismatch) return `${label} is not valid. Please enter a correctly formatted value.`
   if (field.validity.patternMismatch) return field.title || `${label} has an invalid format. Please correct it.`
   if (field.validity.tooShort && 'minLength' in field) return `${label} must contain at least ${field.minLength} characters.`
