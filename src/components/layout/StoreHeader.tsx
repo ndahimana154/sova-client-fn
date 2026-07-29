@@ -1,6 +1,7 @@
 import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, Store, UserRound, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { categories } from '../../data/catalog'
 import { appPaths } from '../../router/paths'
 import { Brand } from '../ui/Brand'
 
@@ -39,7 +40,8 @@ export function StoreHeader({
   onSellerDashboardOpen,
   seller,
 }: StoreHeaderProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [mobileCategory, setMobileCategory] = useState('')
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
@@ -54,7 +56,6 @@ export function StoreHeader({
         Free delivery on orders above Rwf 50,000 <span className="mx-2 text-white/30">•</span> Easy returns within 14 days
       </div>
       <div className="page-container flex h-[72px] items-center gap-4">
-        <button aria-label="Open menu" className="icon-control lg:hidden" onClick={() => setMenuOpen(true)}><Menu size={20} /></button>
         <Brand />
         <SearchForm onChange={setSearchQuery} onSubmit={submitSearch} query={searchQuery} />
         <div className="ml-auto flex items-center gap-1">
@@ -96,11 +97,68 @@ export function StoreHeader({
           )}
         </div>
       </div>
-      <div className="page-container pb-3 md:hidden">
-        <form className="flex items-center rounded-full bg-soft px-4 py-2.5 text-muted focus-within:ring-2 focus-within:ring-primary/20" onSubmit={submitSearch} role="search">
-          <button aria-label="Search" className="shrink-0" type="submit"><Search size={17} /></button>
-          <input aria-label="Search products" className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none" onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search SOVA" value={searchQuery} />
-        </form>
+      <div className="page-container flex items-center gap-2 pb-3 md:hidden">
+        {mobileSearchOpen ? (
+          <form className="flex min-w-0 flex-1 items-center rounded-full bg-soft px-3 py-2.5 text-muted focus-within:ring-2 focus-within:ring-primary/20" onSubmit={submitSearch} role="search">
+            <button aria-label="Search" className="shrink-0" type="submit"><Search size={17} /></button>
+            <input
+              aria-label="Search products"
+              autoFocus
+              className="min-w-0 flex-1 bg-transparent px-2 text-sm text-ink outline-none"
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search SOVA"
+              value={searchQuery}
+            />
+            <button
+              aria-label="Close search"
+              className="shrink-0"
+              onClick={() => {
+                setSearchQuery('')
+                setMobileSearchOpen(false)
+              }}
+              type="button"
+            >
+              <X size={16} />
+            </button>
+          </form>
+        ) : (
+          <>
+            <label className="relative min-w-0 flex-1">
+              <span className="sr-only">Browse categories</span>
+              <select
+                aria-label="Browse categories"
+                className="h-10 w-full appearance-none rounded-full border border-line bg-white pl-3 pr-8 text-xs font-bold text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                onChange={(event) => {
+                  const category = event.target.value
+                  setMobileCategory(category)
+                  if (category) onCategoryOpen(category)
+                }}
+                value={mobileCategory}
+              >
+                <option value="">All categories</option>
+                {categories.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted" size={14} />
+            </label>
+            <button
+              aria-label="Open search"
+              className="icon-control shrink-0"
+              onClick={() => setMobileSearchOpen(true)}
+              type="button"
+            >
+              <Search size={18} />
+            </button>
+          </>
+        )}
+        {!seller && (
+          <button
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark"
+            onClick={onSellOnSova}
+            type="button"
+          >
+            <Store size={14} /> Sell on SOVA
+          </button>
+        )}
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
@@ -110,7 +168,6 @@ export function StoreHeader({
           <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
         </div>
       </nav>
-      {menuOpen && <MobileMenu onCategoryOpen={onCategoryOpen} onClose={() => setMenuOpen(false)} onSellOnSova={onSellOnSova} seller={seller} />}
     </header>
   )
 }
@@ -130,39 +187,5 @@ function CountButton({ count, icon, label, onClick }: { count: number; icon: Rea
     <button className="icon-control relative" aria-label={label} onClick={onClick}>
       {icon}{count > 0 && <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-primary text-[9px] font-bold text-white">{count}</span>}
     </button>
-  )
-}
-
-function MobileMenu({
-  onCategoryOpen,
-  onClose,
-  onSellOnSova,
-  seller,
-}: {
-  onCategoryOpen: (category: string) => void
-  onClose: () => void
-  onSellOnSova: () => void
-  seller: boolean
-}) {
-  return (
-    <div className="fixed inset-0 z-50 bg-ink/25" onMouseDown={onClose}>
-      <aside className="h-full w-72 bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-center justify-between"><Brand /><button className="icon-control" onClick={onClose}><X size={19} /></button></div>
-        {!seller && (
-          <button
-            className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-sm font-black text-white shadow-sm"
-            onClick={() => { onSellOnSova(); onClose() }}
-            type="button"
-          >
-            <Store size={18} /> Sell on SOVA
-          </button>
-        )}
-        <nav className="mt-5 space-y-1">
-          <Link className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={onClose} to={appPaths.videos}><Clapperboard size={17} /> Shop through videos</Link>
-          <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={() => { onCategoryOpen('All products'); onClose() }} type="button">All categories</button>
-          {links.map((link) => <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" key={link} onClick={() => { onCategoryOpen(link); onClose() }} type="button">{link}</button>)}
-        </nav>
-      </aside>
-    </div>
   )
 }

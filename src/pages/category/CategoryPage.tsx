@@ -38,8 +38,7 @@ export function CategoryPage({
               </div>
             )}
             <div>
-              <p className="auth-eyebrow text-2xl">Explore the catalog</p>
-              <h1 className="mt-2 text-3xl font-black tracking-[-0.045em] text-ink sm:text-4xl">{category}</h1>
+              <h1 className="text-3xl font-black tracking-[-0.045em] text-ink sm:text-4xl">{category}</h1>
               <p className="mt-2 text-sm text-cream">{matchingProducts.length} {matchingProducts.length === 1 ? 'product' : 'products'} available</p>
             </div>
           </div>
