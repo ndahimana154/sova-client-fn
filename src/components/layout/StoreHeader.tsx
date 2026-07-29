@@ -1,4 +1,4 @@
-import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, Store, UserRound, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { appPaths } from '../../router/paths'
@@ -15,6 +15,7 @@ interface StoreHeaderProps {
   onFavoritesOpen: () => void
   onLoginOpen: () => void
   onSearch: (query: string) => void
+  onSellOnSova: () => void
   onSignupOpen: () => void
   onSellerDashboardOpen?: () => void
   seller: boolean
@@ -33,6 +34,7 @@ export function StoreHeader({
   onFavoritesOpen,
   onLoginOpen,
   onSearch,
+  onSellOnSova,
   onSignupOpen,
   onSellerDashboardOpen,
   seller,
@@ -59,6 +61,15 @@ export function StoreHeader({
           <button className="header-location">
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
+          {!seller && (
+            <button
+              className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
+              onClick={onSellOnSova}
+              type="button"
+            >
+              <Store size={16} /> Sell on SOVA
+            </button>
+          )}
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
           {authenticated ? (
@@ -99,7 +110,7 @@ export function StoreHeader({
           <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
         </div>
       </nav>
-      {menuOpen && <MobileMenu onCategoryOpen={onCategoryOpen} onClose={() => setMenuOpen(false)} />}
+      {menuOpen && <MobileMenu onCategoryOpen={onCategoryOpen} onClose={() => setMenuOpen(false)} onSellOnSova={onSellOnSova} seller={seller} />}
     </header>
   )
 }
@@ -122,12 +133,31 @@ function CountButton({ count, icon, label, onClick }: { count: number; icon: Rea
   )
 }
 
-function MobileMenu({ onCategoryOpen, onClose }: { onCategoryOpen: (category: string) => void; onClose: () => void }) {
+function MobileMenu({
+  onCategoryOpen,
+  onClose,
+  onSellOnSova,
+  seller,
+}: {
+  onCategoryOpen: (category: string) => void
+  onClose: () => void
+  onSellOnSova: () => void
+  seller: boolean
+}) {
   return (
     <div className="fixed inset-0 z-50 bg-ink/25" onMouseDown={onClose}>
       <aside className="h-full w-72 bg-white p-5 shadow-xl" onMouseDown={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between"><Brand /><button className="icon-control" onClick={onClose}><X size={19} /></button></div>
-        <nav className="mt-8 space-y-1">
+        {!seller && (
+          <button
+            className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-sm font-black text-white shadow-sm"
+            onClick={() => { onSellOnSova(); onClose() }}
+            type="button"
+          >
+            <Store size={18} /> Sell on SOVA
+          </button>
+        )}
+        <nav className="mt-5 space-y-1">
           <Link className="flex w-full items-center gap-2 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={onClose} to={appPaths.videos}><Clapperboard size={17} /> Shop through videos</Link>
           <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" onClick={() => { onCategoryOpen('All products'); onClose() }} type="button">All categories</button>
           {links.map((link) => <button className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-soft" key={link} onClick={() => { onCategoryOpen(link); onClose() }} type="button">{link}</button>)}
