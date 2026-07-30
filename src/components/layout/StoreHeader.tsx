@@ -62,7 +62,7 @@ export function StoreHeader({
           </button>
           {authenticated && !seller && (
             <button
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:px-4"
+              className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
               onClick={onAccountOpen}
               type="button"
             >
@@ -151,6 +151,15 @@ export function StoreHeader({
               <Search size={18} />
             </button>
           </>
+        )}
+        {!seller && (
+          <button
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark"
+            onClick={authenticated ? onAccountOpen : onLoginOpen}
+            type="button"
+          >
+            <UserRound size={14} /> Account
+          </button>
         )}
       </div>
       <nav className="hidden border-t border-line lg:block">
