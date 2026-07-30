@@ -154,7 +154,7 @@ export function StoreHeader({
         )}
         {!seller && (
           <button
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark"
+            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inlin-flex"
             onClick={authenticated ? onAccountOpen : onLoginOpen}
             type="button"
           >
