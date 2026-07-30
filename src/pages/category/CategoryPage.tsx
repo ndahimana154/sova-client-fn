@@ -1,4 +1,4 @@
-import { ChevronLeft, PackageSearch } from 'lucide-react'
+import { PackageSearch } from 'lucide-react'
 import { categories, type Product } from '../../data/catalog'
 import { ProductCard } from '../../features/catalog/ProductCard'
 
@@ -28,10 +28,7 @@ export function CategoryPage({
     <main className="min-h-[65vh]">
       <section className="border-b border-line bg-soft/60">
         <div className="page-container py-8 sm:py-12">
-          <a className="inline-flex items-center gap-2 text-xs font-bold text-cream transition hover:text-primary-dark" href="#">
-            <ChevronLeft size={16} /> Back to shopping
-          </a>
-          <div className="mt-7 flex items-center gap-5">
+          <div className="flex items-center gap-5">
             {categoryDetails && (
               <div className="size-20 shrink-0 overflow-hidden rounded-3xl bg-white sm:size-24">
                 <img alt="" className="size-full object-cover" src={categoryDetails.image} />
@@ -46,15 +43,8 @@ export function CategoryPage({
       </section>
 
       <section className="page-container py-10 sm:py-14">
-        <div className="flex gap-2 overflow-x-auto pb-3" aria-label="Browse product categories">
-          <CategoryFilter active={category === 'All products' || category === 'New arrivals'} label="All products" onClick={onCategoryOpen} />
-          {categories.map((item) => (
-            <CategoryFilter active={normalizeCategory(item.name) === normalizeCategory(category)} key={item.name} label={item.name} onClick={onCategoryOpen} />
-          ))}
-        </div>
-
         {matchingProducts.length > 0 ? (
-          <div className="mt-7 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
             {matchingProducts.map((product) => (
               <ProductCard
                 isFavorite={favoriteProductNames.includes(product.name)}
@@ -76,19 +66,6 @@ export function CategoryPage({
         )}
       </section>
     </main>
-  )
-}
-
-function CategoryFilter({ active, label, onClick }: { active: boolean; label: string; onClick: (category: string) => void }) {
-  return (
-    <button
-      aria-pressed={active}
-      className={`whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-bold transition ${active ? 'border-ink bg-ink text-white' : 'border-line bg-white text-muted hover:border-primary hover:text-ink'}`}
-      onClick={() => onClick(label)}
-      type="button"
-    >
-      {label}
-    </button>
   )
 }
 
