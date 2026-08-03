@@ -1,4 +1,4 @@
-import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, Store, UserRound, X } from 'lucide-react'
+import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { categories } from '../../data/catalog'
@@ -63,10 +63,10 @@ export function StoreHeader({
           {authenticated && !seller && (
             <button
               className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
-              onClick={onSellOnSova}
+              onClick={onAccountOpen}
               type="button"
             >
-              <Store size={16} /> Sell on SOVA
+              <UserRound size={16} /> Account
             </button>
           )}
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
@@ -78,19 +78,23 @@ export function StoreHeader({
                   Seller dashboard
                 </button>
               )}
-              <button
-                aria-current={accountActive ? 'page' : undefined}
-                aria-label="Account settings"
-                className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
-                onClick={onAccountOpen}
-              >
-                <UserRound size={19} />
-              </button>
+              {seller ? (
+                <button
+                  aria-current={accountActive ? 'page' : undefined}
+                  aria-label="Account settings"
+                  className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
+                  onClick={onAccountOpen}
+                >
+                  <UserRound size={19} />
+                </button>
+              ) : (
+                <button className="header-login-link" onClick={onSellOnSova}>Sell on SOVA</button>
+              )}
             </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
-              <button className="header-login-link" onClick={onLoginOpen}>Account</button>
-              <button className="header-signup-link" onClick={onSellOnSova}><Store size={14} /> Sell on SOVA</button>
+              <button className="header-login-link" onClick={onSellOnSova}>Sell on SOVA</button>
+              <button className="header-signup-link" onClick={onLoginOpen}><UserRound size={14} /> Account</button>
             </div>
           )}
         </div>
@@ -150,17 +154,17 @@ export function StoreHeader({
         )}
         {!seller && (
           <button
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark"
-            onClick={onSellOnSova}
+            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inlin-flex"
+            onClick={authenticated ? onAccountOpen : onLoginOpen}
             type="button"
           >
-            <Store size={14} /> Sell on SOVA
+            <UserRound size={14} /> Account
           </button>
         )}
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
-          <button className="flex items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
+          <button className="flex items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All products</button>
           <Link className="flex items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
           {links.map((link) => <button className="transition-colors hover:text-primary" key={link} onClick={() => onCategoryOpen(link)}>{link}</button>)}
           <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
