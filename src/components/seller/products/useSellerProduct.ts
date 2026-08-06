@@ -9,9 +9,13 @@ export function useSellerProduct() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const refresh = useCallback(async () => {
+  /**
+   * `silent` refetches without flipping `loading`, so callers that render a form
+   * behind a loading guard keep their unsaved input on the screen.
+   */
+  const refresh = useCallback(async ({ silent = false } = {}) => {
     if (!productId) return
-    setLoading(true)
+    if (!silent) setLoading(true)
     setError('')
     try {
       const [value, media] = await Promise.all([
@@ -22,7 +26,7 @@ export function useSellerProduct() {
     } catch (cause) {
       setError(errorMessage(cause))
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [productId])
 

@@ -181,9 +181,64 @@
   .seller-form-control textarea { @apply min-w-0 flex-1 bg-transparent py-2 text-xs text-[#241f1a] outline-none; }
   .seller-plain-input { @apply block h-10 w-full rounded-xl border border-line bg-white px-3 text-xs outline-none focus:border-primary focus:ring-4 focus:ring-primary/10; }
   .seller-default-badge { @apply inline-flex items-center gap-1 rounded-full border border-primary bg-[#fff6e8] px-2 py-1 text-[9px] font-bold text-[#c96f00]; }
-  .seller-modal-backdrop { @apply fixed inset-0 z-50 grid place-items-center bg-[#241f1a]/30 p-4; }
-  .seller-modal { @apply max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-lg border border-[#eee7de] bg-white p-4 shadow-xl; }
+
+  /* Overlay surfaces — one backdrop treatment for modals, drawers and lightboxes. */
+  .overlay-backdrop {
+    @apply fixed inset-0 bg-[#241f1a]/45 backdrop-blur-sm;
+    animation: overlay-fade 160ms ease-out;
+  }
+  .overlay-panel { animation: overlay-rise 200ms cubic-bezier(.22, 1, .36, 1); }
+  .drawer-panel { animation: drawer-slide 220ms cubic-bezier(.22, 1, .36, 1); }
+  .seller-modal-backdrop {
+    @apply fixed inset-0 z-50 grid place-items-center bg-[#241f1a]/45 p-4 backdrop-blur-sm;
+    animation: overlay-fade 160ms ease-out;
+  }
+  .seller-modal {
+    @apply max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-line bg-white p-5 shadow-[0_30px_80px_rgb(23_26_31/0.22)];
+    animation: overlay-rise 200ms cubic-bezier(.22, 1, .36, 1);
+  }
+
+  /* Surfaces */
+  .seller-card { @apply rounded-2xl border border-line bg-white shadow-[0_10px_30px_rgb(23_26_31/0.04)]; }
+  .seller-subcard { @apply rounded-xl border border-line bg-white; }
+  .seller-stat-tile { @apply rounded-xl border border-line bg-[#fffaf3] px-3.5 py-3; }
+  .seller-stat-tile dt { @apply text-[10px] font-semibold uppercase tracking-[0.08em] text-muted; }
+  .seller-stat-tile dd { @apply mt-1 text-sm font-bold text-ink; }
+  .seller-field-label { @apply mb-1.5 block text-[11px] font-semibold text-muted; }
+  .seller-legend { @apply text-[11px] font-semibold text-muted; }
+  .seller-legend-hint { @apply mt-1 text-[10px] text-muted; }
+
+  /* Media picker + gallery */
+  .seller-dropzone {
+    @apply flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-line bg-soft/40 px-5 py-7 text-center transition;
+    @apply hover:border-primary/45 hover:bg-primary-light/50;
+  }
+  .seller-dropzone-active { @apply border-primary bg-primary-light; }
+  .seller-media-tile { @apply relative aspect-square overflow-hidden rounded-xl border border-line bg-soft; }
+  .seller-media-tile-cover { @apply border-primary ring-2 ring-primary/25; }
+  .seller-media-tile img, .seller-media-tile video { @apply size-full object-cover; }
+  .seller-media-overlay {
+    @apply absolute inset-x-0 bottom-0 flex items-center justify-end gap-1 bg-gradient-to-t from-[#241f1a]/80 to-transparent p-1.5 opacity-0 transition;
+    @apply group-hover:opacity-100 group-focus-within:opacity-100;
+  }
+  .seller-media-action { @apply grid size-7 place-items-center rounded-full bg-white/95 text-ink transition hover:bg-white hover:text-primary-dark; }
+  .seller-media-badge { @apply absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-white shadow-sm; }
+  .seller-media-caption { @apply mt-1.5 block truncate text-[10px] text-muted; }
+  .seller-gallery-stage { @apply grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl border border-line bg-soft; }
+  .seller-gallery-thumb { @apply size-16 shrink-0 overflow-hidden rounded-lg border border-line bg-soft transition hover:border-primary/50; }
+  .seller-gallery-thumb-active { @apply border-primary ring-2 ring-primary/25; }
+
+  /* Select: the mirrored native control stays in the layout (so focusing an
+     invalid field scrolls to the right place) but is invisible and untouchable. */
+  .sr-only-field {
+    @apply pointer-events-none absolute inset-0 size-full opacity-0;
+    appearance: none;
+  }
+  .select-popup { animation: select-pop 130ms ease-out; }
+
   .global-table { @apply overflow-hidden rounded-xl border border-line bg-white; }
+  .global-table-scroll { @apply overflow-x-auto; }
+  .global-table-empty { @apply px-4 py-12 text-center text-xs text-muted; }
   .global-table-toolbar { @apply flex flex-col gap-2 border-b border-line bg-white p-2.5 sm:flex-row sm:items-center; }
   .global-table-filter-panel {
     @apply border-b border-line bg-[#fffaf3] p-3;
@@ -199,4 +254,36 @@
 @keyframes seller-filter-reveal {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes overlay-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlay-rise {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes select-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Touch devices never hover — keep the media controls permanently reachable. */
+@media (hover: none) {
+  .seller-media-overlay { opacity: 1; }
+}
+
+@keyframes drawer-slide {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-backdrop,
+  .overlay-panel,
+  .drawer-panel,
+  .global-table-filter-panel { animation: none; }
 }

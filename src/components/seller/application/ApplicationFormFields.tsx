@@ -1,6 +1,7 @@
 import { CheckCircle2, Upload, X } from "lucide-react";
-import { isValidElement, useContext, useState } from "react";
+import { cloneElement, isValidElement, useContext, useState, type ReactElement } from "react";
 import { sellerResourceUrl } from "../../../lib/sellerApi";
+import { Select } from "../../ui/Select";
 import { ValidationErrorsContext } from "./validationContext";
 
 export function FormHeading({ copy, icon, title }: { copy: string; icon: React.ReactNode; title: string }) {
@@ -19,9 +20,14 @@ export function FormField({ children, className = "", label }: { children: React
   const errors = useContext(ValidationErrorsContext);
   const field = isValidElement<{ name?: string; required?: boolean }>(children) ? children : undefined;
   const error = field?.props.name ? errors[field.props.name] : undefined;
+  // A custom control (Select) is a button plus a portalled popup, not a labelable
+  // element, so it gets a <div> + aria-labelledby instead of an implicit <label>.
+  const custom = field?.type === Select;
+  const labelId = `${field?.props.name ?? label}-label`;
+  const Wrapper = custom ? "div" : "label";
   return (
-    <label className={`block ${className}`}>
-      <span className="text-xs font-bold text-ink">
+    <Wrapper className={`block ${className}`}>
+      <span className="text-xs font-bold text-ink" id={custom ? labelId : undefined}>
         {label}
         {field?.props.required && (
           <span className="ml-1 text-red-600" aria-hidden="true">
@@ -29,13 +35,15 @@ export function FormField({ children, className = "", label }: { children: React
           </span>
         )}
       </span>
-      <span className={`seller-input ${error ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-100" : ""}`}>{children}</span>
+      <span className={`seller-input ${error ? "border-red-400 focus-within:border-red-500 focus-within:ring-red-100" : ""}`}>
+        {custom && field ? cloneElement(field as ReactElement<{ "aria-labelledby"?: string }>, { "aria-labelledby": labelId }) : children}
+      </span>
       {error && (
         <span className="mt-1.5 block text-xs font-semibold text-red-600" role="alert">
           {error}
         </span>
       )}
-    </label>
+    </Wrapper>
   );
 }
 

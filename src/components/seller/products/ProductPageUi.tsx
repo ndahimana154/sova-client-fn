@@ -5,13 +5,17 @@ import { env } from '../../../config/env'
 
 export interface AttributeRow { id: string; property: string; value: string }
 
-export function AttributeEditor({ onChange, rows }: { onChange: (rows: AttributeRow[]) => void; rows: AttributeRow[] }) {
+export function AttributeEditor({ hideHeading = false, onChange, rows }: {
+  hideHeading?: boolean
+  onChange: (rows: AttributeRow[]) => void
+  rows: AttributeRow[]
+}) {
   const update = (id: string, field: 'property' | 'value', value: string) =>
     onChange(rows.map((row) => row.id === id ? { ...row, [field]: value } : row))
   return (
     <fieldset>
-      <div className="flex items-center justify-between">
-        <div><legend className="text-[11px] font-semibold text-muted">Attributes</legend><p className="mt-1 text-[10px] text-muted">Add specifications as property and value pairs.</p></div>
+      <div className={`flex items-center gap-3 ${hideHeading ? 'justify-end' : 'justify-between'}`}>
+        {!hideHeading && <div><legend className="seller-legend">Attributes</legend><p className="seller-legend-hint">Add specifications as property and value pairs.</p></div>}
         <button className="seller-outline-button" onClick={() => onChange([...rows, { id: crypto.randomUUID(), property: '', value: '' }])} type="button"><Plus size={13} /> Add attribute</button>
       </div>
       <div className="mt-3 space-y-2">
@@ -45,7 +49,28 @@ export const attributesText = (attributes: Record<string, string>) =>
   Object.entries(attributes).map(([key, value]) => `${key}: ${value}`).join(', ')
 
 export function Field({ children, className = '', label }: { children: ReactNode; className?: string; label: string }) {
-  return <label className={className}><span className="mb-1.5 block text-[11px] font-semibold text-muted">{label}</span><span className="seller-form-control">{children}</span></label>
+  return <label className={className}><span className="seller-field-label">{label}</span><span className="seller-form-control">{children}</span></label>
+}
+
+/** Titled card that groups related form controls. */
+export function FormSection({ actions, children, subtitle, title }: {
+  actions?: ReactNode
+  children: ReactNode
+  subtitle?: string
+  title: string
+}) {
+  return (
+    <section className="seller-card p-5">
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-line pb-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-bold text-ink">{title}</h2>
+          {subtitle && <p className="mt-0.5 text-[11px] text-muted">{subtitle}</p>}
+        </div>
+        {actions}
+      </header>
+      {children}
+    </section>
+  )
 }
 
 export function Feedback({ error, notice = '' }: { error?: string; notice?: string }) {
