@@ -2,10 +2,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Inbox,
   Search,
   SlidersHorizontal,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import { Select } from './Select'
 
 export interface DataTablePagination {
   onPageChange: (page: number) => void
@@ -75,7 +77,7 @@ export function DataTable({
         </div>
       )}
       {filters && !inlineFilters && filtersOpen && <div className="global-table-filter-panel">{filters}</div>}
-      <div className="">
+      <div className="global-table-scroll">
         <table className="global-data-table">
           <thead><tr>{rowActions && <th>Actions</th>}{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
           <tbody>
@@ -85,7 +87,16 @@ export function DataTable({
                 {row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}
               </tr>
             ))}
-            {!rows.length && <tr><td className="py-10 text-center" colSpan={columns.length + (rowActions ? 1 : 0)}>{emptyMessage}</td></tr>}
+            {!rows.length && (
+              <tr>
+                <td className="global-table-empty" colSpan={columns.length + (rowActions ? 1 : 0)}>
+                  <span className="mx-auto flex max-w-xs flex-col items-center gap-2">
+                    <span className="grid size-9 place-items-center rounded-full bg-soft text-muted"><Inbox size={16} /></span>
+                    {emptyMessage}
+                  </span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -105,12 +116,16 @@ function TablePagination({
   return (
     <div className="flex flex-wrap items-center gap-3 border-t border-line bg-white px-3 py-2.5 text-xs">
       <span className="text-muted">{totalItems} item{totalItems === 1 ? '' : 's'}</span>
-      <label className="ml-auto flex items-center gap-2 text-muted">
+      <div className="ml-auto flex items-center gap-2 text-muted">
         Rows
-        <select className="seller-filter-select" onChange={(event) => onPageSizeChange(Number(event.target.value))} value={pageSize}>
-          {[10, 20, 50, 100].map((size) => <option key={size} value={size}>{size}</option>)}
-        </select>
-      </label>
+        <Select
+          className="w-20"
+          onChange={(value) => onPageSizeChange(Number(value))}
+          options={[10, 20, 50, 100].map((size) => ({ label: String(size), value: String(size) }))}
+          size="sm"
+          value={String(pageSize)}
+        />
+      </div>
       <nav aria-label="Table pagination" className="flex items-center gap-1">
         <PageButton disabled={page <= 1} onClick={() => onPageChange(page - 1)}><ChevronLeft size={14} /></PageButton>
         {pageNumbers(page, totalPages).map((number, index) =>

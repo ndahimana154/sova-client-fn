@@ -153,10 +153,6 @@ export default function App() {
   async function authenticate(email: string, otp: string) {
     const nextSession = await loginClient(email, otp)
     dispatch(setSession(nextSession))
-    localStorage.setItem('sova-account-settings', JSON.stringify({
-      email: nextSession.user.email,
-      name: nextSession.user.name || '',
-    }))
 
     if (isSeller(nextSession)) {
       setPage('seller-dashboard')

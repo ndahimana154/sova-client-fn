@@ -2,6 +2,7 @@ import { Building2, FileCheck2, LoaderCircle, MapPin } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { getCells, getDistricts, getLocationTree, getProvinces, getSectors, getVillages, renewShopApplication, submitShopApplication, trackShopApplication, type LocationOption, type ShopApplicationPayload } from "../../lib/sellerApi";
 import { normalizeApiError } from "../../api/errors";
+import { Select } from "../../components/ui/Select";
 import {
   ApplicationStatusModal,
   FormField,
@@ -22,6 +23,8 @@ import {
 interface SellerApplicationPageProps {
   onBack: () => void;
 }
+
+const locationOptions = (items: LocationOption[]) => items.map((item) => ({ label: item.name, value: item.id }));
 
 export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
   const account = loadSellerAccount();
@@ -352,99 +355,85 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
               {locationError && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">{locationError}</p>}
               <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <FormField label="Province">
-                  <select
+                  <Select
                     name="provinceId"
-                    onChange={(event) => {
+                    onChange={(value) => {
                       setLocationHydrated(false);
-                      setProvinceId(event.target.value);
+                      setProvinceId(value);
                       setDistrictId("");
                       setSectorId("");
                       setCellId("");
                       setVillageId("");
                     }}
+                    options={locationOptions(provinces)}
+                    placeholder="Select province"
                     required
                     value={provinceId}
-                  >
-                    <option value="">Select province</option>
-                    {provinces.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                    variant="bare"
+                  />
                 </FormField>
                 <FormField label="District">
-                  <select
+                  <Select
                     disabled={!provinceId}
                     name="districtId"
-                    onChange={(event) => {
+                    onChange={(value) => {
                       setLocationHydrated(false);
-                      setDistrictId(event.target.value);
+                      setDistrictId(value);
                       setSectorId("");
                       setCellId("");
                       setVillageId("");
                     }}
+                    options={locationOptions(districts)}
+                    placeholder="Select district"
                     required
                     value={districtId}
-                  >
-                    <option value="">Select district</option>
-                    {districts.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                    variant="bare"
+                  />
                 </FormField>
                 <FormField label="Sector">
-                  <select
+                  <Select
                     disabled={!districtId}
                     name="sectorId"
-                    onChange={(event) => {
+                    onChange={(value) => {
                       setLocationHydrated(false);
-                      setSectorId(event.target.value);
+                      setSectorId(value);
                       setCellId("");
                       setVillageId("");
                     }}
+                    options={locationOptions(sectors)}
+                    placeholder="Select sector"
                     required
                     value={sectorId}
-                  >
-                    <option value="">Select sector</option>
-                    {sectors.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                    variant="bare"
+                  />
                 </FormField>
                 <FormField label="Cell">
-                  <select
+                  <Select
                     disabled={!sectorId}
                     name="cellId"
-                    onChange={(event) => {
+                    onChange={(value) => {
                       setLocationHydrated(false);
-                      setCellId(event.target.value);
+                      setCellId(value);
                       setVillageId("");
                     }}
+                    options={locationOptions(cells)}
+                    placeholder="Select cell"
                     required
                     value={cellId}
-                  >
-                    <option value="">Select cell</option>
-                    {cells.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                    variant="bare"
+                  />
                 </FormField>
                 <FormField label="Village">
-                  <select disabled={!cellId} name="villageId" onChange={(event) => setVillageId(event.target.value)} required value={villageId}>
-                    <option value="">Select village</option>
-                    {villages.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    disabled={!cellId}
+                    name="villageId"
+                    onChange={setVillageId}
+                    options={locationOptions(villages)}
+                    placeholder="Select village"
+                    required
+                    value={villageId}
+                    variant="bare"
+                  />
                 </FormField>
                 <FormField label="Street or building">
                   <input defaultValue={renewalShop?.street || ""} name="street" placeholder="Street, building, or landmark" required />

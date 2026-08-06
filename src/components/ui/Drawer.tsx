@@ -28,12 +28,12 @@ export function Drawer({ ariaLabel, children, onClose, subtitle, title }: Drawer
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-[60] bg-ink/35 backdrop-blur-[2px]" onMouseDown={onClose}>
+    <div className="overlay-backdrop z-[60]" onMouseDown={onClose}>
       <aside
         aria-label={ariaLabel}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="ml-auto flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
+        className="drawer-panel ml-auto flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
         onMouseDown={(event) => event.stopPropagation()}
         role="dialog"
       >
