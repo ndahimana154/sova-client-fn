@@ -1,5 +1,5 @@
 import { CheckCircle2, Upload, X } from "lucide-react";
-import { isValidElement, useContext, useState } from "react";
+import { cloneElement, isValidElement, useContext, useState, type ReactElement } from "react";
 import { sellerResourceUrl } from "../../../lib/sellerApi";
 import { Select } from "../../ui/Select";
 import { ValidationErrorsContext } from "./validationContext";
