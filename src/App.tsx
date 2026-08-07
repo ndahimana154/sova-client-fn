@@ -20,22 +20,12 @@ export default function App() {
   const session = useAppSelector((state) => state.auth.session)
   const { authenticate, logout } = useAuthActions()
 
-  // Keep Redux in step with the stored session on load and on browser navigation.
   useEffect(() => {
     const sync = () => dispatch(setSession(loadClientSession()))
     sync()
     window.addEventListener('popstate', sync)
     return () => window.removeEventListener('popstate', sync)
   }, [dispatch])
-
-  useEffect(() => {
-    const slug = categorySlugFromPath()
-    setCategorySlug(slug)
-    if (slug) {
-      setPage('category')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }, [routerLocation.pathname])
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
