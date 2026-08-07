@@ -1,6 +1,7 @@
-import { Edit3, ImageIcon, ImagePlus, Play } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { Edit3, ImageIcon, Play } from 'lucide-react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { ProductInventory } from '../../../components/seller/products/ProductInventory'
 import { Feedback, PageTitle, StatusBadge, mediaUrl } from '../../../components/seller/products/ProductPageUi'
 import { useSellerProduct } from '../../../components/seller/products/useSellerProduct'
 import { formatPrice } from '../../../lib/formatPrice'
@@ -11,29 +12,29 @@ const TABS = ['description', 'attributes', 'inventory'] as const
 type Tab = typeof TABS[number]
 
 export function SellerProductDetailsPage() {
-  const { error, loading, product } = useSellerProduct()
+  const { error, loading, product, setProduct } = useSellerProduct()
   const [tab, setTab] = useState<Tab>('description')
+
+  // The movement response carries no media, so keep what is already loaded.
+  const applyProductUpdate = useCallback((updated: SellerProduct) => {
+    setProduct((current) => current ? { ...updated, media: current.media } : updated)
+  }, [setProduct])
+
   if (loading) return <div className="p-8 text-sm text-muted">Loading product…</div>
   if (!product) return <div className="p-5"><Feedback error={error || 'Product not found.'} /></div>
 
   const attributes = Object.entries(product.variants)
+  const savings = Math.max(0, product.price - product.finalPrice)
   return (
     <div className="space-y-5 p-5">
       <PageTitle
-        actions={<>
-          <Link className="seller-outline-button" to={appPaths.sellerProductMedia(product.id)}><ImagePlus size={14} /> Media</Link>
-          <Link className="seller-primary-button" to={appPaths.sellerProductEdit(product.id)}><Edit3 size={14} /> Edit</Link>
-        </>}
+        actions={<Link className="seller-primary-button" to={appPaths.sellerProductEdit(product.id)}><Edit3 size={14} /> Edit</Link>}
         subtitle={`${product.category.name} · #${product.id.slice(0, 8)}`}
         title={product.name}
       />
       <Feedback error={error} />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(320px,.85fr)_minmax(0,1.15fr)]">
-        <section className="seller-card p-4">
-          <ProductGallery media={product.media} name={product.name} />
-        </section>
-
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,.85fr)]">
         <div className="space-y-5">
           <section className="seller-card p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -41,14 +42,19 @@ export function SellerProductDetailsPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">Selling price</p>
                 <p className="mt-1 flex flex-wrap items-baseline gap-2">
                   <strong className="text-2xl font-black text-ink">{formatPrice(product.finalPrice)}</strong>
-                  {product.discount > 0 && <span className="text-xs text-muted line-through">{formatPrice(product.price)}</span>}
+                  {savings > 0 && <span className="text-xs text-muted line-through">{formatPrice(product.price)}</span>}
                 </p>
+                {savings > 0 && (
+                  <p className="mt-1 text-[11px] font-bold text-primary-dark">
+                    {product.discount}% off — saves {formatPrice(savings)}
+                  </p>
+                )}
               </div>
               <StatusBadge value={product.stockStatus} />
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               <Tile label="Quantity" value={String(product.quantity)} />
-              <Tile label="Discount" value={product.discount > 0 ? `${product.discount}%` : '—'} />
+              <Tile hint={savings > 0 ? formatPrice(savings) : undefined} label="Discount" value={savings > 0 ? `${product.discount}%` : '—'} />
               <Tile label="Media" value={String(product.media.length)} />
               <Tile label="Attributes" value={String(attributes.length)} />
             </dl>
@@ -85,17 +91,14 @@ export function SellerProductDetailsPage() {
                   ? <dl className="divide-y divide-line text-sm">{attributes.map(([key, value]) => <Row key={key} label={key} value={value} />)}</dl>
                   : <EmptyNote>No attributes added for this product.</EmptyNote>
               )}
-              {tab === 'inventory' && (
-                <dl className="divide-y divide-line text-sm">
-                  <Row label="Stock status" value={product.stockStatus.replaceAll('_', ' ')} />
-                  <Row label="Quantity" value={String(product.quantity)} />
-                  <Row label="Base price" value={formatPrice(product.price)} />
-                  <Row label="Final price" value={formatPrice(product.finalPrice)} />
-                </dl>
-              )}
+              {tab === 'inventory' && <ProductInventory onRecorded={applyProductUpdate} product={product} />}
             </div>
           </section>
         </div>
+
+        <section className="seller-card order-first p-4 lg:order-none">
+          <ProductGallery media={product.media} name={product.name} />
+        </section>
       </div>
     </div>
   )
@@ -150,8 +153,13 @@ function Thumb({ item, name }: { item: ProductMedia; name: string }) {
   )
 }
 
-function Tile({ label, value }: { label: string; value: string }) {
-  return <div className="seller-stat-tile"><dt>{label}</dt><dd>{value}</dd></div>
+function Tile({ hint, label, value }: { hint?: string; label: string; value: string }) {
+  return (
+    <div className="seller-stat-tile">
+      <dt>{label}</dt>
+      <dd>{value}{hint && <span className="ml-1 text-[10px] font-semibold text-muted">{hint}</span>}</dd>
+    </div>
+  )
 }
 
 function Row({ label, value }: { label: string; value: string }) {

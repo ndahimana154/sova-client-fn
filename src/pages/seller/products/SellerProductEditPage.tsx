@@ -2,8 +2,9 @@ import { Save } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ProductMediaGrid, ProductMediaPicker, type MediaDraft } from '../../../components/seller/products/ProductMedia'
-import { AttributeEditor, Feedback, Field, FormSection, PageTitle, attributeRows, attributesObject, errorMessage, type AttributeRow } from '../../../components/seller/products/ProductPageUi'
+import { AttributeEditor, Feedback, Field, FormSection, PageTitle, PricingFields, attributeRows, attributesObject, errorMessage, type AttributeRow } from '../../../components/seller/products/ProductPageUi'
 import { useSellerProduct } from '../../../components/seller/products/useSellerProduct'
+import { useConfirm } from '../../../components/ui/ConfirmDialog'
 import { Select } from '../../../components/ui/Select'
 import { sellerProductsApi, type ProductMedia, type SellerCategory } from '../../../lib/sellerProductsApi'
 import { appPaths } from '../../../router/paths'
@@ -18,6 +19,7 @@ export function SellerProductEditPage() {
   const [mediaBusy, setMediaBusy] = useState(false)
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
+  const confirm = useConfirm()
 
   useEffect(() => { sellerProductsApi.categories().then(setCategories).catch(() => undefined) }, [])
   useEffect(() => {
@@ -40,7 +42,6 @@ export function SellerProductEditPage() {
         variants: attributesObject(attributes),
         price: Number(data.get('price')),
         discount: Number(data.get('discount') || 0),
-        quantity: Number(data.get('quantity') || 0),
       })
       for (const [index, draft] of drafts.entries()) {
         setStatus(`Uploading media ${index + 1} of ${drafts.length}…`)
@@ -63,8 +64,17 @@ export function SellerProductEditPage() {
     finally { setMediaBusy(false) }
   }
 
-  function removeMedia(item: ProductMedia) {
-    if (!product || !window.confirm('Delete this media file?')) return
+  async function removeMedia(item: ProductMedia) {
+    if (!product) return
+    const ok = await confirm({
+      body: item.isPrimary
+        ? 'This is the cover file. The next file in the list becomes the new cover.'
+        : 'This file will be removed from the product permanently.',
+      confirmLabel: 'Delete file',
+      danger: true,
+      title: 'Delete this media file?',
+    })
+    if (!ok) return
     const replacement = item.isPrimary ? product.media.find((media) => media.id !== item.id)?.id : undefined
     void runMediaTask(() => sellerProductsApi.deleteMedia(product.id, item.id, replacement))
   }
@@ -74,8 +84,8 @@ export function SellerProductEditPage() {
 
   return (
     <div className="space-y-5 p-5">
+      {confirm.dialog}
       <PageTitle subtitle={`Update ${product.name}.`} title="Edit product" />
-      <Feedback error={loadError} />
       <form className="space-y-5" onSubmit={submit}>
         <FormSection subtitle="How this product is identified across your shop." title="Basics">
           <div className="grid gap-4 md:grid-cols-2">
@@ -92,20 +102,15 @@ export function SellerProductEditPage() {
                 variant="bare"
               />
             </Field>
-            <Field label="Quantity"><input defaultValue={product.quantity} min="0" name="quantity" step="1" type="number" /></Field>
             <Field className="md:col-span-2" label="Description"><textarea defaultValue={product.description} name="description" required rows={5} /></Field>
           </div>
         </FormSection>
 
         <FormSection subtitle="Buyers see the final price after the discount is applied." title="Pricing">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Price (RWF)"><input defaultValue={product.price} min="0" name="price" required step="1" type="number" /></Field>
-            <Field label="Discount (%)"><input defaultValue={product.discount} max="100" min="0" name="discount" step="1" type="number" /></Field>
-          </div>
+          <PricingFields defaultDiscount={product.discount} defaultPrice={product.price} />
         </FormSection>
 
         <FormSection
-          actions={<Link className="seller-outline-button" to={appPaths.sellerProductMedia(product.id)}>Open media manager</Link>}
           subtitle="Cover and delete changes apply immediately. New files upload when you save."
           title="Media"
         >
@@ -116,7 +121,7 @@ export function SellerProductEditPage() {
               <ProductMediaGrid
                 busy={mediaBusy}
                 media={product.media}
-                onDelete={removeMedia}
+                onDelete={(item) => void removeMedia(item)}
                 onMakePrimary={(item) => void runMediaTask(() => sellerProductsApi.updateMedia(product.id, item.id, { isPrimary: true }))}
               />
             </div>
@@ -133,12 +138,15 @@ export function SellerProductEditPage() {
           <AttributeEditor hideHeading onChange={setAttributes} rows={attributes} />
         </FormSection>
 
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {saving && status && <span className="text-xs text-muted">{status}</span>}
-          <Link className="seller-outline-button" to={appPaths.sellerProductDetails(product.id)}>Cancel</Link>
-          <button className="seller-primary-button" disabled={saving} type="submit">
-            <Save size={14} /> {saving ? 'Saving…' : 'Save changes'}
-          </button>
+        <div className="space-y-3">
+          <Feedback error={loadError} />
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {saving && status && <span className="text-xs text-muted">{status}</span>}
+            <Link className="seller-outline-button" to={appPaths.sellerProductDetails(product.id)}>Cancel</Link>
+            <button className="seller-primary-button" disabled={saving} type="submit">
+              <Save size={14} /> {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

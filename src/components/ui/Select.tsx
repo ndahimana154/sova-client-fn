@@ -5,7 +5,6 @@ import { useAnchoredPosition } from './useAnchoredPosition'
 
 export interface SelectOption {
   disabled?: boolean
-  /** Secondary line under the label. */
   hint?: string
   label: string
   value: string
@@ -30,12 +29,8 @@ interface SelectProps {
 }
 
 /**
- * Listbox-style select.
- *
- * The popup is portalled so table cards and scroll containers cannot clip it,
- * long lists get a filter box, and a mirrored native `<select>` keeps the control
- * working with `FormData` and native constraint validation — both of which this
- * app relies on for form submission.
+ * Listbox-style select. The popup is portalled so nothing can clip it, and a
+ * mirrored native `<select>` keeps `FormData` and constraint validation working.
  */
 export function Select({
   className = '',
@@ -98,7 +93,6 @@ export function Select({
     close()
   }
 
-  // Keep the active option in view as the highlight moves.
   useEffect(() => {
     if (!open) return
     listRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' })
@@ -177,11 +171,7 @@ export function Select({
         <ChevronDown className={`shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`} size={14} />
       </button>
 
-      {/*
-        Mirrors the value into the form: `FormData` reads it, and native constraint
-        validation flags it when `required` and empty. Hidden from tab order and
-        assistive tech — the button above is the real control.
-      */}
+      {/* Mirrors the value for FormData and native validation; the button is the real control. */}
       {name && (
         <select
           aria-hidden="true"
@@ -200,7 +190,7 @@ export function Select({
 
       {open && createPortal(
         <div
-          className="select-popup fixed z-[100] overflow-hidden rounded-xl border border-line bg-white shadow-[0_20px_50px_rgb(23_26_31/0.16)]"
+          className="select-popup fixed z-[200] overflow-hidden rounded-xl border border-line bg-white shadow-[0_20px_50px_rgb(23_26_31/0.16)]"
           onKeyDown={handleKeyDown}
           ref={popupRef}
           style={{

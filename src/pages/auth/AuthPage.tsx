@@ -1,35 +1,53 @@
-import { Check, KeyRound, Mail } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { Check, Mail } from 'lucide-react'
+import { useCallback, useRef, useState, type FormEvent } from 'react'
 import { normalizeApiError } from '../../api/errors'
 import { Brand } from '../../components/ui/Brand'
+import { OtpInput } from '../../components/ui/OtpInput'
 import { requestLoginOtp } from '../../lib/clientAuth'
 
 interface AuthPageProps {
   onAuthenticate: (email: string, otp: string) => Promise<void>
 }
 
+const OTP_LENGTH = 6
+
 export function AuthPage({ onAuthenticate }: AuthPageProps) {
   const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
   const [step, setStep] = useState<'email' | 'otp'>('email')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const verifying = useRef(false)
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
+  const verify = useCallback(async (code: string) => {
+    // A ref, not `submitting`: auto-submit fires before a state update applies.
+    if (verifying.current || code.length !== OTP_LENGTH) return
+    verifying.current = true
     setError('')
     setSubmitting(true)
     try {
-      if (step === 'email') {
-        const nextEmail = String(data.get('email') ?? '').trim().toLowerCase()
-        const challenge = await requestLoginOtp(nextEmail)
-        setEmail(nextEmail)
-        setMessage(challenge.message)
-        setStep('otp')
-      } else {
-        await onAuthenticate(email, String(data.get('otp') ?? '').trim())
-      }
+      await onAuthenticate(email, code)
+    } catch (cause) {
+      setError(normalizeApiError(cause).message)
+    } finally {
+      verifying.current = false
+      setSubmitting(false)
+    }
+  }, [email, onAuthenticate])
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (step === 'otp') { await verify(otp); return }
+    const nextEmail = String(new FormData(event.currentTarget).get('email') ?? '').trim().toLowerCase()
+    setError('')
+    setSubmitting(true)
+    try {
+      const challenge = await requestLoginOtp(nextEmail)
+      setEmail(nextEmail)
+      setMessage(challenge.message)
+      setOtp('')
+      setStep('otp')
     } catch (cause) {
       setError(normalizeApiError(cause).message)
     } finally {
@@ -58,14 +76,23 @@ export function AuthPage({ onAuthenticate }: AuthPageProps) {
               ) : (
                 <>
                   <p className="rounded-xl bg-soft px-4 py-3 text-xs text-muted">Signing in as <strong className="text-ink">{email}</strong></p>
-                  <AuthField icon={<KeyRound size={17} />} label="Six-character sign-in code">
-                    <input autoComplete="one-time-code" autoFocus maxLength={6} minLength={6} name="otp" pattern="[A-Za-z0-9]{6}" placeholder="123456" required />
-                  </AuthField>
-                  <button className="text-xs font-bold text-primary-dark hover:underline" onClick={() => { setStep('email'); setError(''); setMessage('') }} type="button">Use a different email</button>
+                  <OtpInput
+                    autoFocus
+                    disabled={submitting}
+                    invalid={Boolean(error)}
+                    label={``}
+                    length={OTP_LENGTH}
+                    onChange={(value) => { setOtp(value); setError('') }}
+                    onComplete={(value) => void verify(value)}
+                    value={otp}
+                  />
+                  <button className="text-xs font-bold text-primary-dark hover:underline" onClick={() => { setStep('email'); setOtp(''); setError(''); setMessage('') }} type="button">Use a different email</button>
                 </>
               )}
               {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-xs font-semibold text-red-700" role="alert">{error}</p>}
-              <button className="auth-submit" disabled={submitting} type="submit">{submitting ? 'Please wait…' : step === 'email' ? 'Continue with email' : 'Verify and sign in'}</button>
+              <button className="auth-submit" disabled={submitting || (step === 'otp' && otp.length < OTP_LENGTH)} type="submit">
+                {submitting ? 'Please wait…' : step === 'email' ? 'Continue with email' : 'Verify and sign in'}
+              </button>
             </form>
           </div>
         </div>

@@ -21,12 +21,7 @@ interface ActionMenuProps {
   label?: ReactNode
 }
 
-/**
- * Dropdown menu rendered in a portal so it is never clipped by scroll or
- * `overflow-hidden` ancestors (table cards, drawers, cards). It flips above the
- * trigger only when there is genuinely not enough room below, and stays pinned
- * to the trigger while the page scrolls or resizes.
- */
+/** Portalled so table cards and scroll containers cannot clip it. */
 export function ActionMenu({ align = 'start', buttonClassName, items, label = 'Actions' }: ActionMenuProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -54,7 +49,7 @@ export function ActionMenu({ align = 'start', buttonClassName, items, label = 'A
       </button>
       {open && createPortal(
         <div
-          className="fixed z-[100] max-h-[min(20rem,calc(100vh-1rem))] min-w-44 overflow-y-auto overflow-x-hidden rounded-lg border border-line bg-white py-1 shadow-xl"
+          className="fixed z-[200] max-h-[min(20rem,calc(100vh-1rem))] min-w-44 overflow-y-auto overflow-x-hidden rounded-lg border border-line bg-white py-1 shadow-xl"
           ref={menuRef}
           role="menu"
           style={{ left: position?.left ?? 0, top: position?.top ?? 0, visibility: position ? 'visible' : 'hidden' }}

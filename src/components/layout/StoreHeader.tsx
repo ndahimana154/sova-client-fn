@@ -1,9 +1,10 @@
 import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, Store, UserRound, X } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { categories } from '../../data/catalog'
+import { flattenCategories, marketplaceApi, type MarketplaceCategory } from '../../lib/marketplaceApi'
 import { appPaths } from '../../router/paths'
 import { Brand } from '../ui/Brand'
+import { CategoryNav } from './CategoryNav'
 
 interface StoreHeaderProps {
   accountActive: boolean
@@ -20,8 +21,6 @@ interface StoreHeaderProps {
   onSellerDashboardOpen?: () => void
   seller: boolean
 }
-
-const links = ['New arrivals', 'Electronics', 'Fashion', 'Home & living', 'Beauty', 'Groceries']
 
 export function StoreHeader({
   accountActive,
@@ -41,6 +40,11 @@ export function StoreHeader({
   const [mobileCategory, setMobileCategory] = useState('')
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [categories, setCategories] = useState<MarketplaceCategory[]>([])
+
+  useEffect(() => {
+    marketplaceApi.categories().then(setCategories).catch(() => setCategories([]))
+  }, [])
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -134,7 +138,9 @@ export function StoreHeader({
                 value={mobileCategory}
               >
                 <option value="">All categories</option>
-                {categories.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+                {flattenCategories(categories).map((category) => (
+                  <option key={category.id} value={category.name}>{category.name}</option>
+                ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted" size={14} />
             </label>
@@ -160,10 +166,10 @@ export function StoreHeader({
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
-          <button className="flex items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
-          <Link className="flex items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
-          {links.map((link) => <button className="transition-colors hover:text-primary" key={link} onClick={() => onCategoryOpen(link)}>{link}</button>)}
-          <a className="ml-auto rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
+          <button className="flex shrink-0 items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
+          <Link className="flex shrink-0 items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
+          <CategoryNav categories={categories} />
+          <a className="ml-auto shrink-0 rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
         </div>
       </nav>
     </header>

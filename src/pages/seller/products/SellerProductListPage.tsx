@@ -1,8 +1,9 @@
-import { Edit3, Eye, Plus, Trash2 } from 'lucide-react'
+import { Edit3, Eye, ImageIcon, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Feedback, PageTitle, StatusBadge, errorMessage } from '../../../components/seller/products/ProductPageUi'
+import { Feedback, PageTitle, StatusBadge, errorMessage, mediaUrl } from '../../../components/seller/products/ProductPageUi'
 import { ActionMenu } from '../../../components/ui/ActionMenu'
+import { useConfirm } from '../../../components/ui/ConfirmDialog'
 import { DataTable } from '../../../components/ui/DataTable'
 import { Select } from '../../../components/ui/Select'
 import { formatPrice } from '../../../lib/formatPrice'
@@ -18,6 +19,7 @@ export function SellerProductListPage() {
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [meta, setMeta] = useState({ totalItems: 0, totalPages: 1 })
+  const confirm = useConfirm()
   const load = useCallback(async () => {
     try {
       const result = await sellerProductsApi.list({ categoryId, limit, page, search, sortBy: 'updatedAt', sortOrder: 'desc' })
@@ -27,13 +29,20 @@ export function SellerProductListPage() {
   useEffect(() => { void load() }, [load])
   useEffect(() => { sellerProductsApi.categories().then(setCategories).catch(() => undefined) }, [])
   async function remove(product: SellerProduct) {
-    if (!window.confirm(`Delete “${product.name}”?`)) return
+    const ok = await confirm({
+      body: <>“{product.name}” and its media will be removed from your catalogue. This cannot be undone.</>,
+      confirmLabel: 'Delete product',
+      danger: true,
+      title: 'Delete this product?',
+    })
+    if (!ok) return
     try { await sellerProductsApi.delete(product.id); await load() } catch (cause) { setError(errorMessage(cause)) }
   }
   return <div className="space-y-5 p-5">
+    {confirm.dialog}
     <PageTitle title="Products" subtitle="Manage your shop catalogue." actions={<Link className="seller-primary-button" to={appPaths.sellerProductCreate}><Plus size={14} /> New product</Link>} />
     <Feedback error={error} />
-    <DataTable columns={['Product', 'Category', 'Price', 'Stock', 'Quantity']} onSearchChange={(value) => { setPage(1); setSearch(value) }} searchPlaceholder="Search products"
+    <DataTable columns={['Product', 'Category', 'Tags', 'Price', 'Stock', 'Quantity']} onSearchChange={(value) => { setPage(1); setSearch(value) }} searchPlaceholder="Search products"
       filters={<Select
         className="w-52"
         onChange={(value) => { setPage(1); setCategoryId(value) }}
@@ -44,9 +53,10 @@ export function SellerProductListPage() {
       />}
       pagination={{ page, pageSize: limit, totalItems: meta.totalItems, totalPages: meta.totalPages, onPageChange: setPage, onPageSizeChange: (value) => { setLimit(value); setPage(1) } }}
       rows={products.map((product) => [
-        <strong>{product.name}</strong>,
+        <ProductCell product={product} />,
         product.category.name,
-        formatPrice(product.finalPrice),
+        <TagList values={product.variants} />,
+        <PriceCell product={product} />,
         <StatusBadge value={product.stockStatus} />,
         product.quantity,
       ])}
@@ -55,6 +65,53 @@ export function SellerProductListPage() {
         product={products[index]}
       />} />
   </div>
+}
+
+function ProductCell({ product }: { product: SellerProduct }) {
+  const cover = product.media.find((item) => item.isPrimary && item.mediaType === 'IMAGE')
+    ?? product.media.find((item) => item.mediaType === 'IMAGE')
+  return (
+    <Link className="flex items-center gap-2.5" to={appPaths.sellerProductDetails(product.id)}>
+      <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-soft">
+        {cover
+          ? <img alt="" className="size-full object-cover" loading="lazy" src={mediaUrl(cover.url)} />
+          : <ImageIcon className="text-muted" size={15} />}
+      </span>
+      <span className="min-w-0">
+        <strong className="block truncate text-ink">{product.name}</strong>
+        <span className="block truncate text-[10px] text-muted">{product.brand || 'No brand'}</span>
+      </span>
+    </Link>
+  )
+}
+
+function TagList({ values }: { values: Record<string, string> }) {
+  const tags = Object.entries(values)
+  if (!tags.length) return <span className="text-muted">—</span>
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      {tags.slice(0, 2).map(([key, value]) => (
+        <span className="inline-flex rounded-full border border-line bg-soft px-2 py-0.5 text-[9px] font-semibold text-muted" key={key}>
+          {key}: {value}
+        </span>
+      ))}
+      {tags.length > 2 && (
+        <span className="text-[9px] font-bold text-muted" title={tags.map(([key, value]) => `${key}: ${value}`).join(', ')}>
+          +{tags.length - 2}
+        </span>
+      )}
+    </span>
+  )
+}
+
+function PriceCell({ product }: { product: SellerProduct }) {
+  if (product.discount <= 0) return <span className="text-ink">{formatPrice(product.finalPrice)}</span>
+  return (
+    <span>
+      <strong className="block text-ink">{formatPrice(product.finalPrice)}</strong>
+      <span className="block text-[10px] text-muted"><s>{formatPrice(product.price)}</s> · {product.discount}% off</span>
+    </span>
+  )
 }
 
 function ProductActions({ onDelete, product }: {

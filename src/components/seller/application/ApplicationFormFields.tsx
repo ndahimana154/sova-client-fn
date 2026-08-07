@@ -20,8 +20,7 @@ export function FormField({ children, className = "", label }: { children: React
   const errors = useContext(ValidationErrorsContext);
   const field = isValidElement<{ name?: string; required?: boolean }>(children) ? children : undefined;
   const error = field?.props.name ? errors[field.props.name] : undefined;
-  // A custom control (Select) is a button plus a portalled popup, not a labelable
-  // element, so it gets a <div> + aria-labelledby instead of an implicit <label>.
+  // Select is a button plus a portalled popup, not labelable: use aria-labelledby.
   const custom = field?.type === Select;
   const labelId = `${field?.props.name ?? label}-label`;
   const Wrapper = custom ? "div" : "label";

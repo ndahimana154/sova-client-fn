@@ -6,6 +6,8 @@ export interface Category {
 
 export interface Product {
   badge?: string
+  /** Present only on products loaded from the API. */
+  slug?: string
   brand?: string
   category: string
   image: string

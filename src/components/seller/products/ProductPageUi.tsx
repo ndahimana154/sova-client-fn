@@ -1,7 +1,8 @@
 import { Plus, X } from 'lucide-react'
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { normalizeApiError } from '../../../api/errors'
-import { env } from '../../../config/env'
+import { formatPrice } from '../../../lib/formatPrice'
+export { mediaUrl } from '../../../lib/mediaUrl'
 
 export interface AttributeRow { id: string; property: string; value: string }
 
@@ -52,7 +53,73 @@ export function Field({ children, className = '', label }: { children: ReactNode
   return <label className={className}><span className="seller-field-label">{label}</span><span className="seller-form-control">{children}</span></label>
 }
 
-/** Titled card that groups related form controls. */
+
+export function PercentInput({ defaultValue = 0, name, onValueChange }: {
+  defaultValue?: number
+  name: string
+  onValueChange?: (value: number) => void
+}) {
+  return (
+    <input
+      defaultValue={defaultValue}
+      inputMode="numeric"
+      max="100"
+      min="0"
+      name={name}
+      onChange={(event) => {
+        event.currentTarget.value = clampPercent(event.currentTarget.value)
+        onValueChange?.(Number(event.currentTarget.value || 0))
+      }}
+      step="1"
+      type="number"
+    />
+  )
+}
+
+function clampPercent(raw: string) {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return ''
+  return String(Math.min(100, Number(digits)))
+}
+
+export const finalPriceOf = (price: number, discountPercent: number) => {
+  if (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) return Math.max(0, price)
+  return Math.max(0, Math.round(price - (price * discountPercent) / 100))
+}
+
+export function PricingFields({ defaultDiscount = 0, defaultPrice }: { defaultDiscount?: number; defaultPrice?: number }) {
+  const [price, setPrice] = useState(defaultPrice ?? 0)
+  const [discount, setDiscount] = useState(defaultDiscount)
+  const finalPrice = finalPriceOf(price, discount)
+  const savings = price - finalPrice
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Price (RWF)">
+          <input
+            defaultValue={defaultPrice}
+            min="0"
+            name="price"
+            onChange={(event) => setPrice(Number(event.currentTarget.value || 0))}
+            required
+            step="1"
+            type="number"
+          />
+        </Field>
+        <Field label="Discount (%)">
+          <PercentInput defaultValue={defaultDiscount} name="discount" onValueChange={setDiscount} />
+        </Field>
+      </div>
+      {savings > 0 && (
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl border border-primary/20 bg-primary-light/60 px-3.5 py-2.5 text-xs text-muted">
+          Buyers pay <strong className="text-sm font-black text-ink">{formatPrice(finalPrice)}</strong>
+          <span>— {discount}% off, saving {formatPrice(savings)}</span>
+        </p>
+      )}
+    </>
+  )
+}
+
 export function FormSection({ actions, children, subtitle, title }: {
   actions?: ReactNode
   children: ReactNode
@@ -88,8 +155,4 @@ export function PageTitle({ actions, subtitle, title }: { actions?: ReactNode; s
   return <div className="flex flex-wrap items-center gap-3"><div className="min-w-0 flex-1"><h1 className="truncate text-lg font-bold">{title}</h1><p className="mt-1 text-xs text-muted">{subtitle}</p></div>{actions && <div className="flex items-center gap-2">{actions}</div>}</div>
 }
 
-export function mediaUrl(url: string) {
-  if (/^https?:\/\//.test(url)) return url
-  return `${env.apiUrl?.replace(/\/$/, '') ?? ''}/${url.replace(/^\/+/, '')}`
-}
 export const errorMessage = (error: unknown) => normalizeApiError(error).message

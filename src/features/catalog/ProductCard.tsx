@@ -38,9 +38,11 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
         <h3 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-ink">
           <button className="text-left transition hover:text-primary-dark" onClick={() => onOpen(product)} type="button">{product.name}</button>
         </h3>
-        <div className="mt-2 flex items-center gap-1 text-[11px] text-muted">
-          <Star className="fill-primary text-primary" size={13} /><strong className="text-ink">{product.rating}</strong><span>({product.reviews})</span>
-        </div>
+        {product.reviews > 0 && (
+          <div className="mt-2 flex items-center gap-1 text-[11px] text-muted">
+            <Star className="fill-primary text-primary" size={13} /><strong className="text-ink">{product.rating}</strong><span>({product.reviews})</span>
+          </div>
+        )}
         <div className="mt-2 flex items-baseline gap-2">
           <strong className="text-base text-ink">{formatPrice(product.price)}</strong>
           {product.oldPrice && <span className="text-xs text-muted line-through">{formatPrice(product.oldPrice)}</span>}

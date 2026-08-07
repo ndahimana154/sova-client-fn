@@ -1,6 +1,5 @@
 import {
   Camera,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Heart,
@@ -12,10 +11,11 @@ import {
   Truck,
   X,
 } from 'lucide-react'
-import { useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { Product } from '../../data/catalog'
 import { ProductCard } from '../../features/catalog/ProductCard'
 import { formatPrice } from '../../lib/formatPrice'
+import { recordProductView } from '../../lib/productViews'
 
 interface Review {
   comment: string
@@ -70,14 +70,14 @@ export function ProductDetailPage({
   const [quantity, setQuantity] = useState(1)
   const gallery = galleryFor(product)
   const [selectedImage, setSelectedImage] = useState(gallery[0])
-  const [selectedSize, setSelectedSize] = useState(sizeOptions(product)[0])
-  const [guideOpen, setGuideOpen] = useState(false)
   const [reviewRating, setReviewRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [reviewImages, setReviewImages] = useState<string[]>([])
   const [reviewError, setReviewError] = useState('')
   const [reviews, setReviews] = useState<Review[]>(() => loadReviews(product))
   const reviewForm = useRef<HTMLFormElement>(null)
+
+  useEffect(() => { void recordProductView(product.slug) }, [product.slug])
   const isFavorite = favoriteProductNames.includes(product.name)
   const stock = stockFor(product)
   const customerRatingCount = product.reviews + reviews.filter((review) => !review.id.startsWith('sample-')).length
@@ -336,20 +336,6 @@ function fileToDataUrl(file: File) {
 
 function stockFor(product: Product) {
   return 3 + (product.name.length % 8)
-}
-
-function sizeOptions(product: Product) {
-  if (product.category === 'Fashion') return ['38', '39', '40', '41', '42', '43']
-  if (product.category === 'Home') return ['Small', 'Medium', 'Large']
-  if (product.category === 'Beauty') return ['Travel', 'Full size']
-  return ['Standard']
-}
-
-function fitGuide(product: Product) {
-  if (product.category === 'Fashion') return 'Choose your usual EU size. If you are between sizes, select the larger size for a more relaxed fit.'
-  if (product.category === 'Home') return 'Small suits shelves and side tables, Medium suits most rooms, and Large works best as a statement piece.'
-  if (product.category === 'Beauty') return 'Travel is ideal for trial and carry-on use. Full size is designed for a complete daily routine.'
-  return 'This product comes in a universal standard size. Check the product features below for compatibility information.'
 }
 
 function galleryFor(product: Product) {
