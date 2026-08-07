@@ -56,6 +56,7 @@ export function StoreHeader({
     <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur">
       <div className="bg-ink px-4 py-2 text-center text-[11px] font-medium text-white">
         Free delivery in Kigali <span className="mx-2 text-white/30">•</span> Easy returns within 3 days
+        Free delivery in Kigali <span className="mx-2 text-white/30">•</span> Easy returns within 3 days
       </div>
       <div className="page-container flex h-[72px] items-center gap-4">
         <Brand />
@@ -67,10 +68,10 @@ export function StoreHeader({
           {authenticated && !seller && (
             <button
               className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
-              onClick={onSellOnSova}
+              onClick={onAccountOpen}
               type="button"
             >
-              <Store size={16} /> Sell on SOVA
+              <UserRound size={16} /> Account
             </button>
           )}
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
@@ -82,19 +83,23 @@ export function StoreHeader({
                   Seller dashboard
                 </button>
               )}
-              <button
-                aria-current={accountActive ? 'page' : undefined}
-                aria-label="Account settings"
-                className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
-                onClick={onAccountOpen}
-              >
-                <UserRound size={19} />
-              </button>
+              {seller ? (
+                <button
+                  aria-current={accountActive ? 'page' : undefined}
+                  aria-label="Account settings"
+                  className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
+                  onClick={onAccountOpen}
+                >
+                  <UserRound size={19} />
+                </button>
+              ) : (
+                <button className="header-login-link" onClick={onSellOnSova}>Sell on SOVA</button>
+              )}
             </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
-              <button className="header-login-link" onClick={onLoginOpen}>Account</button>
-              <button className="header-signup-link" onClick={onSellOnSova}><Store size={14} /> Sell on SOVA</button>
+              <button className="header-login-link" onClick={onSellOnSova}>Sell on SOVA</button>
+              <button className="header-signup-link" onClick={onLoginOpen}><UserRound size={14} /> Account</button>
             </div>
           )}
         </div>
@@ -156,11 +161,11 @@ export function StoreHeader({
         )}
         {!seller && (
           <button
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark"
-            onClick={onSellOnSova}
+            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inlin-flex"
+            onClick={authenticated ? onAccountOpen : onLoginOpen}
             type="button"
           >
-            <Store size={14} /> Sell on SOVA
+            <UserRound size={14} /> Account
           </button>
         )}
       </div>
