@@ -29,6 +29,15 @@ export default function App() {
   }, [dispatch])
 
   useEffect(() => {
+    const slug = categorySlugFromPath()
+    setCategorySlug(slug)
+    if (slug) {
+      setPage('category')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [routerLocation.pathname])
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [location.pathname])
 

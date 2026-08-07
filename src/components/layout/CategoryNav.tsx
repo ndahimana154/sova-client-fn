@@ -100,9 +100,8 @@ function CategoryMenu({ depth = 0, items, onSelect, parent }: {
   const [activeId, setActiveId] = useState('')
   return (
     <div
-      className={`absolute z-50 min-w-56 rounded-xl border border-line bg-white py-1.5 shadow-[0_20px_50px_rgb(23_26_31/0.16)] ${
-        depth === 0 ? 'left-0 top-[calc(100%+10px)]' : 'left-full top-0 -mt-1.5 ml-0.5'
-      }`}
+      className={`absolute z-50 min-w-56 rounded-xl border border-line bg-white py-1.5 shadow-[0_20px_50px_rgb(23_26_31/0.16)] ${depth === 0 ? 'left-0 top-[calc(100%+10px)]' : 'left-full top-0 -mt-1.5 ml-0.5'
+        }`}
       role="menu"
     >
       {parent && (
