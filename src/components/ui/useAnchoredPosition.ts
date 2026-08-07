@@ -9,7 +9,6 @@ interface Options {
   align?: 'end' | 'start'
   anchorRef: RefObject<HTMLElement | null>
   floatingRef: RefObject<HTMLElement | null>
-  /** Force the floating element to the anchor's width (used by Select). */
   matchWidth?: boolean
   onDismiss: () => void
   open: boolean
@@ -17,12 +16,8 @@ interface Options {
 
 /**
  * Positions a portalled popup against its trigger with `position: fixed`, so no
- * `overflow-hidden` or scrolling ancestor can clip it. Flips above the trigger
- * only when the popup genuinely does not fit below, clamps to the viewport, and
- * follows the trigger while the page scrolls or resizes.
- *
- * Returns `null` until measured — render the popup hidden until then to avoid a
- * flash at the wrong coordinates.
+ * ancestor can clip it. Returns `null` until measured — keep the popup hidden
+ * until then to avoid a flash at the wrong coordinates.
  */
 export function useAnchoredPosition({ align = 'start', anchorRef, floatingRef, matchWidth = false, onDismiss, open }: Options) {
   const [position, setPosition] = useState<AnchoredPosition | null>(null)
@@ -34,7 +29,7 @@ export function useAnchoredPosition({ align = 'start', anchorRef, floatingRef, m
     const floating = floatingRef.current
     if (!anchor || !floating) return
     const rect = anchor.getBoundingClientRect()
-    // Apply the width before measuring: a narrower box wraps and changes height.
+    // Width must be applied before measuring: a narrower box wraps and grows taller.
     if (matchWidth) floating.style.width = `${rect.width}px`
     const { height, width } = floating.getBoundingClientRect()
 

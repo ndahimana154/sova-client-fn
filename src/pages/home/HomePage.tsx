@@ -1,8 +1,8 @@
 import type { Product } from '../../data/catalog'
-import { homeProducts, products } from '../../data/catalog'
 import { BrandStrip } from '../../features/catalog/BrandStrip'
 import { CategoryRail } from '../../features/catalog/CategoryRail'
-import { ProductSection } from '../../features/catalog/ProductSection'
+import { BestDealsSection } from '../../features/catalog/BestDealsSection'
+import { NewlyStockedSection } from '../../features/catalog/NewlyStockedSection'
 import { Hero } from './Hero'
 import { Newsletter } from './Newsletter'
 import { PromoGrid } from './PromoGrid'
@@ -19,28 +19,21 @@ interface HomePageProps {
 export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onCategoryOpen, onProductOpen, onToggleFavorite }: HomePageProps) {
   return (
     <main>
-      <ProductSection
-        eyebrow="Handpicked this week"
+      <BestDealsSection
         favoriteProductNames={favoriteProductNames}
-        id="deals"
         onAdd={onAddToCart}
         onFavorite={onToggleFavorite}
         onOpen={onProductOpen}
-        products={products}
-        title="Today’s best deals"
       />
       <CategoryRail onCategoryOpen={onCategoryOpen} />
       <Hero />
       <PromoGrid />
       <BrandStrip onBrandOpen={onBrandOpen} />
-      <ProductSection
-        eyebrow="Make room for good design"
+      <NewlyStockedSection
         favoriteProductNames={favoriteProductNames}
         onAdd={onAddToCart}
         onFavorite={onToggleFavorite}
         onOpen={onProductOpen}
-        products={homeProducts}
-        title="Home, thoughtfully chosen"
       />
       <Newsletter />
     </main>

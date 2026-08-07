@@ -28,10 +28,7 @@ function formatBytes(bytes: number) {
 
 const isVideoFile = (file: File) => file.type.startsWith('video/')
 
-/**
- * Multi-file picker with thumbnail previews. Files are appended (never replaced),
- * can be removed individually, and the first entry is uploaded as the cover.
- */
+/** Multi-file picker with previews. Files append rather than replace; the first is the cover. */
 export function ProductMediaPicker({ drafts, hint, label = 'Product media', onChange }: {
   drafts: MediaDraft[]
   hint?: string
@@ -143,7 +140,6 @@ export function ProductMediaPicker({ drafts, hint, label = 'Product media', onCh
   )
 }
 
-/** Grid of already-uploaded media with cover / delete controls. */
 export function ProductMediaGrid({ busy, media, onDelete, onMakePrimary }: {
   busy?: boolean
   media: ProductMedia[]

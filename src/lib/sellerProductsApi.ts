@@ -8,21 +8,6 @@ export interface SellerCategory {
   parentId: string | null
 }
 
-export interface ProductVariant {
-  attributes: Record<string, string>
-  availableQuantity: number
-  compareAtPrice: number | null
-  id: string
-  isDefault: boolean
-  name: string
-  price: number
-  productId: string
-  quantity: number
-  reservedQuantity: number
-  sku: string
-  stockStatus: StockStatus
-}
-
 export interface ProductMedia {
   altText: string | null
   durationSeconds: number | null
@@ -35,6 +20,31 @@ export interface ProductMedia {
   sizeBytes: number
   url: string
   variantId: string | null
+}
+
+export type InventoryMovementType = 'STOCK_IN' | 'STOCK_OUT'
+
+export interface InventoryMovement {
+  actorName: string | null
+  createdAt: string
+  id: string
+  movementType: InventoryMovementType
+  newQuantity: number
+  previousQuantity: number
+  quantityDifference: number
+  reason: string
+}
+
+export interface PaginatedInventoryMovements {
+  contents: InventoryMovement[]
+  meta: {
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+    limit: number
+    page: number
+    totalItems: number
+    totalPages: number
+  }
 }
 
 export interface SellerProduct {
@@ -53,16 +63,6 @@ export interface SellerProduct {
   stockStatus: StockStatus
   updatedAt: string
   variants: Record<string, string>
-}
-
-export interface VariantInput {
-  attributes: Record<string, string>
-  compareAtPrice?: number
-  isDefault?: boolean
-  name: string
-  price: number
-  quantity: number
-  sku: string
 }
 
 export interface ProductListQuery {
@@ -100,26 +100,46 @@ export const sellerProductsApi = {
     (await api.get<ApiEnvelope<PaginatedProducts>>('/seller/products', { params: query })).data,
   get: async (productId: string) =>
     (await api.get<ApiEnvelope<SellerProduct>>(`/seller/products/${productId}`)).data,
-  create: async (input: { brand?: string; categoryId: string; description: string; discount?: number; name: string; price: number; quantity?: number; variants: Record<string, string> }) =>
-    (await api.post<ApiEnvelope<SellerProduct>, typeof input>('/seller/products', input)).data,
+  /**
+   * Sends media in the same request as the product. The server creates both
+   * together and deletes the product if any upload fails, so a half-saved
+   * product with broken media is not possible.
+   */
+  create: async ({ media = [], ...fields }: {
+    brand?: string
+    categoryId: string
+    description: string
+    discount?: number
+    media?: File[]
+    name: string
+    price: number
+    quantity?: number
+    variants: Record<string, string>
+  }) => {
+    if (!media.length) {
+      return (await api.post<ApiEnvelope<SellerProduct>, typeof fields>('/seller/products', fields)).data
+    }
+    const body = new FormData()
+    body.set('name', fields.name)
+    body.set('description', fields.description)
+    body.set('categoryId', fields.categoryId)
+    body.set('price', String(fields.price))
+    body.set('variants', JSON.stringify(fields.variants))
+    if (fields.brand) body.set('brand', fields.brand)
+    if (fields.discount !== undefined) body.set('discount', String(fields.discount))
+    if (fields.quantity !== undefined) body.set('quantity', String(fields.quantity))
+    for (const file of media) body.append('media', file)
+    return (await api.post<ApiEnvelope<SellerProduct>, FormData>('/seller/products', body)).data
+  },
   update: async (productId: string, input: { brand?: string | null; categoryId?: string; description?: string; discount?: number; name?: string; price?: number; quantity?: number; variants?: Record<string, string> }) =>
     (await api.patch<ApiEnvelope<SellerProduct>, typeof input>(`/seller/products/${productId}`, input)).data,
   delete: (productId: string) => api.delete<ApiEnvelope<null>>(`/seller/products/${productId}`),
-  createVariant: async (productId: string, input: VariantInput) =>
-    (await api.post<ApiEnvelope<ProductVariant>, VariantInput>(`/seller/products/${productId}/variants`, input)).data,
-  updateVariant: async (productId: string, variantId: string, input: Partial<VariantInput>) =>
-    (await api.patch<ApiEnvelope<ProductVariant>, Partial<VariantInput>>(`/seller/products/${productId}/variants/${variantId}`, input)).data,
-  deleteVariant: (productId: string, variantId: string, newDefaultVariantId?: string) =>
-    api.delete<ApiEnvelope<null>>(`/seller/products/${productId}/variants/${variantId}`, { params: { newDefaultVariantId } }),
-  setDefault: async (productId: string, variantId: string) =>
-    (await api.patch<ApiEnvelope<ProductVariant>>(`/seller/products/${productId}/variants/${variantId}/default`)).data,
-  updateStock: async (productId: string, variantId: string, quantity: number, reason: string) =>
-    (await api.patch<ApiEnvelope<ProductVariant>, { quantity: number; reason: string }>(
-      `/seller/products/${productId}/variants/${variantId}/stock`,
-      { quantity, reason },
-    )).data,
   submit: async (productId: string) =>
     (await api.post<ApiEnvelope<SellerProduct>>(`/seller/products/${productId}/submit`)).data,
+  recordInventoryMovement: async (productId: string, input: { quantity: number; reason: string; type: InventoryMovementType }) =>
+    (await api.post<ApiEnvelope<SellerProduct>, typeof input>(`/seller/products/${productId}/inventory-movements`, input)).data,
+  inventoryMovements: async (productId: string, query: { limit?: number; page?: number } = {}) =>
+    (await api.get<ApiEnvelope<PaginatedInventoryMovements>>(`/seller/products/${productId}/inventory-movements`, { params: query })).data,
   listMedia: async (productId: string) =>
     (await api.get<ApiEnvelope<ProductMedia[]>>(`/seller/products/${productId}/media`)).data,
   uploadMedia: (productId: string, input: { altText?: string; file: File; isPrimary?: boolean; position?: number; variantId?: string }) => {

@@ -15,13 +15,14 @@ import { AccountPage } from './pages/account/AccountPage'
 import { AuthPage } from './pages/auth/AuthPage'
 import { CategoryPage } from './pages/category/CategoryPage'
 import { HomePage } from './pages/home/HomePage'
+import { MarketplaceCategoryPage } from './pages/category/MarketplaceCategoryPage'
 import { ProductDetailPage } from './pages/product/ProductDetailPage'
 import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
 import { SellerDashboardPage } from './pages/seller/SellerDashboardPage'
 import { SearchPage } from './pages/search/SearchPage'
 import { BrandStorePage } from './pages/shop/BrandStorePage'
 import { useAppDispatch, useAppSelector } from './store/hooks'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AppRoutes } from './router/routes'
 import { clearSession, setSession } from './store/authSlice'
 import {
@@ -57,6 +58,12 @@ function brandFromHash() {
   return decodeURIComponent(window.location.hash.slice('#shop/'.length))
 }
 
+/** Real path, so a reload lands back on the same category. */
+function categorySlugFromPath() {
+  const match = window.location.pathname.match(/^\/categories\/([^/?#]+)/)
+  return match ? decodeURIComponent(match[1]) : undefined
+}
+
 function categoryFromHash() {
   if (!window.location.hash.startsWith('#category/')) return undefined
   return decodeURIComponent(window.location.hash.slice('#category/'.length))
@@ -77,6 +84,7 @@ function pageFromLocation(session: ClientSession | null): Page {
     return session ? 'account' : 'login'
   }
   if (window.location.hash === '#sell') return 'seller'
+  if (categorySlugFromPath()) return 'category'
   if (productFromHash()) return 'product'
   if (brandFromHash()) return 'shop'
   if (categoryFromHash()) return 'category'
@@ -87,12 +95,14 @@ function pageFromLocation(session: ClientSession | null): Page {
 export default function App() {
   const dispatch = useAppDispatch()
   const routerNavigate = useNavigate()
+  const routerLocation = useLocation()
   const session = useAppSelector((state) => state.auth.session)
   const { cartItems, cartOpen, favoriteItems, favoritesOpen } = useAppSelector((state) => state.commerce)
   const [page, setPage] = useState<Page>(() => pageFromLocation(loadClientSession()))
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categoryFromHash)
+  const [categorySlug, setCategorySlug] = useState<string | undefined>(categorySlugFromPath)
   const [searchQuery, setSearchQuery] = useState<string | undefined>(searchFromHash)
   const [message, setMessage] = useState('')
 
@@ -105,6 +115,7 @@ export default function App() {
       setSelectedProduct(productFromHash())
       setSelectedBrand(brandFromHash())
       setSelectedCategory(categoryFromHash())
+      setCategorySlug(categorySlugFromPath())
       setSearchQuery(searchFromHash())
       setPage(pageFromLocation(currentSession))
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -117,6 +128,15 @@ export default function App() {
       window.removeEventListener('popstate', handleLocationChange)
     }
   }, [dispatch])
+
+  useEffect(() => {
+    const slug = categorySlugFromPath()
+    setCategorySlug(slug)
+    if (slug) {
+      setPage('category')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [routerLocation.pathname])
 
   useEffect(() => {
     if (window.location.pathname.startsWith('/seller/dashboard') && !isSeller(session)) {
@@ -286,6 +306,15 @@ export default function App() {
         />
       ) : page === 'seller' ? (
         <SellerApplicationPage onBack={() => { window.location.hash = '' }} />
+      ) : page === 'category' && categorySlug ? (
+        <MarketplaceCategoryPage
+          favoriteProductNames={favoriteItems.map((item) => item.name)}
+          key={categorySlug}
+          onAddToCart={addToCart}
+          onProductOpen={openProduct}
+          onToggleFavorite={toggleFavorite}
+          slug={categorySlug}
+        />
       ) : page === 'category' && selectedCategory ? (
         <CategoryPage
           allProducts={allProducts}

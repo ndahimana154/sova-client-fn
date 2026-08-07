@@ -5,7 +5,6 @@ import { SellerProductCreatePage } from '../pages/seller/products/SellerProductC
 import { SellerProductDetailsPage } from '../pages/seller/products/SellerProductDetailsPage'
 import { SellerProductEditPage } from '../pages/seller/products/SellerProductEditPage'
 import { SellerProductListPage } from '../pages/seller/products/SellerProductListPage'
-import { SellerProductMediaPage } from '../pages/seller/products/SellerProductMediaPage'
 import { VideoDiscoveryPage } from '../pages/videos/VideoDiscoveryPage'
 import { appPaths } from './paths'
 
@@ -18,7 +17,6 @@ export function AppRoutes({ sellerLayout, storefront }: { sellerLayout: ReactNod
         <Route path="products/new" element={<SellerProductCreatePage />} />
         <Route path="products/:productId" element={<SellerProductDetailsPage />} />
         <Route path="products/:productId/edit" element={<SellerProductEditPage />} />
-        <Route path="products/:productId/media" element={<SellerProductMediaPage />} />
         <Route path="product-categories" element={<SellerProductCategoriesPage />} />
         <Route path="*" element={<Navigate replace to={appPaths.sellerDashboard} />} />
       </Route>

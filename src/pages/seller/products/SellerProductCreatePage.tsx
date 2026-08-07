@@ -2,7 +2,7 @@ import { Save } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ProductMediaPicker, type MediaDraft } from '../../../components/seller/products/ProductMedia'
-import { AttributeEditor, Feedback, Field, FormSection, PageTitle, attributesObject, errorMessage, type AttributeRow } from '../../../components/seller/products/ProductPageUi'
+import { AttributeEditor, Feedback, Field, FormSection, PageTitle, PricingFields, attributesObject, errorMessage, type AttributeRow } from '../../../components/seller/products/ProductPageUi'
 import { Select } from '../../../components/ui/Select'
 import { sellerProductsApi, type SellerCategory } from '../../../lib/sellerProductsApi'
 import { appPaths } from '../../../router/paths'
@@ -21,7 +21,8 @@ export function SellerProductCreatePage() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSaving(true); setError(''); setStatus('Saving product…')
+    setSaving(true); setError('')
+    setStatus(drafts.length ? `Saving product and ${drafts.length} file(s)…` : 'Saving product…')
     const data = new FormData(event.currentTarget)
     try {
       const product = await sellerProductsApi.create({
@@ -30,12 +31,9 @@ export function SellerProductCreatePage() {
         variants: attributesObject(attributes),
         price: Number(data.get('price')),
         discount: Number(data.get('discount') || 0),
-        quantity: 0,
+        quantity: Number(data.get('quantity') || 0),
+        media: drafts.map((draft) => draft.file),
       })
-      for (const [index, draft] of drafts.entries()) {
-        setStatus(`Uploading media ${index + 1} of ${drafts.length}…`)
-        await sellerProductsApi.uploadMedia(product.id, { file: draft.file, position: index, isPrimary: index === 0 })
-      }
       navigate(appPaths.sellerProductDetails(product.id), { replace: true })
     } catch (cause) {
       setError(errorMessage(cause)); setStatus(''); setSaving(false)
@@ -45,9 +43,8 @@ export function SellerProductCreatePage() {
   return (
     <div className="space-y-5 p-5">
       <PageTitle subtitle="Add product information and media to your catalogue." title="Create product" />
-      <Feedback error={error} />
       <form className="space-y-5" onSubmit={submit}>
-        <FormSection subtitle="How this product is identified across your shop." title="Basics">
+        <FormSection subtitle="How this product is identified across your shop. Opening stock is logged as the product's first inventory movement." title="Basics">
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Product name"><input name="name" placeholder="e.g. Leather ankle boots" required /></Field>
             <Field label="Category">
@@ -61,6 +58,9 @@ export function SellerProductCreatePage() {
                 variant="bare"
               />
             </Field>
+            <Field label="Opening stock">
+              <input defaultValue="0" min="0" name="quantity" step="1" type="number" />
+            </Field>
             <Field className="md:col-span-2" label="Description">
               <textarea name="description" placeholder="Describe the material, fit and what makes it worth buying." required rows={5} />
             </Field>
@@ -68,10 +68,7 @@ export function SellerProductCreatePage() {
         </FormSection>
 
         <FormSection subtitle="Buyers see the final price after the discount is applied." title="Pricing">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Price (RWF)"><input min="0" name="price" required step="1" type="number" /></Field>
-            <Field label="Discount (%)"><input defaultValue="0" max="100" min="0" name="discount" step="1" type="number" /></Field>
-          </div>
+          <PricingFields />
         </FormSection>
 
         <FormSection subtitle="Photos and videos shown on the product page." title="Media">
@@ -82,12 +79,15 @@ export function SellerProductCreatePage() {
           <AttributeEditor hideHeading onChange={setAttributes} rows={attributes} />
         </FormSection>
 
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {saving && status && <span className="text-xs text-muted">{status}</span>}
-          <Link className="seller-outline-button" to={appPaths.sellerProducts}>Cancel</Link>
-          <button className="seller-primary-button" disabled={saving} type="submit">
-            <Save size={14} /> {saving ? 'Saving…' : 'Create product'}
-          </button>
+        <div className="space-y-3">
+          <Feedback error={error} />
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {saving && status && <span className="text-xs text-muted">{status}</span>}
+            <Link className="seller-outline-button" to={appPaths.sellerProducts}>Cancel</Link>
+            <button className="seller-primary-button" disabled={saving} type="submit">
+              <Save size={14} /> {saving ? 'Saving…' : 'Create product'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
