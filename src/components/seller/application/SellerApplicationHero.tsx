@@ -1,13 +1,10 @@
-import { ChevronLeft, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import type { FormEvent } from "react";
 
-export function SellerApplicationHero({ onBack, onTrack, renewing, tracking }: { onBack: () => void; onTrack: (event: FormEvent<HTMLFormElement>) => void; renewing: boolean; tracking: boolean }) {
+export function SellerApplicationHero({ onTrack, renewing, tracking }: { onTrack: (event: FormEvent<HTMLFormElement>) => void; renewing: boolean; tracking: boolean }) {
   return (
     <section className="border-b border-line bg-soft/60">
       <div className="page-container py-8 sm:py-12">
-        <button className="inline-flex items-center gap-2 text-xs font-bold text-cream transition hover:text-primary-dark" onClick={onBack} type="button">
-          <ChevronLeft size={16} /> Back to shopping
-        </button>
         <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="auth-eyebrow text-2xl">Sell on SOVA</h1>

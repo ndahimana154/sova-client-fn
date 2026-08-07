@@ -39,6 +39,10 @@ const commerceSlice = createSlice({
     resetCommerce() {
       return initialState
     },
+    /** Replaces the cart wholesale, used when syncing with the server. */
+    setCartItems(state, action: PayloadAction<CartItem[]>) {
+      state.cartItems = action.payload
+    },
     setCartOpen(state, action: PayloadAction<boolean>) {
       state.cartOpen = action.payload
     },
@@ -58,6 +62,7 @@ export const {
   changeCartQuantity,
   removeFromCart,
   resetCommerce,
+  setCartItems,
   setCartOpen,
   setFavoritesOpen,
   toggleFavorite,

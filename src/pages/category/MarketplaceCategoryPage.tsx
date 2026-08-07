@@ -1,26 +1,17 @@
 import { ChevronRight, ImageIcon, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import type { Product } from '../../data/catalog'
+import { Link, useParams } from 'react-router-dom'
 import { InfiniteProductGrid } from '../../features/catalog/InfiniteProductGrid'
+import { useCommerce } from '../../hooks/useCommerce'
+import { useProductNavigation } from '../../hooks/useProductNavigation'
 import { marketplaceApi, type MarketplaceCategory } from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
+import { appPaths } from '../../router/paths'
 
-interface MarketplaceCategoryPageProps {
-  favoriteProductNames: string[]
-  onAddToCart: (product: Product) => void
-  onProductOpen: (product: Product) => void
-  onToggleFavorite: (product: Product) => void
-  slug: string
-}
-
-export function MarketplaceCategoryPage({
-  favoriteProductNames,
-  onAddToCart,
-  onProductOpen,
-  onToggleFavorite,
-  slug,
-}: MarketplaceCategoryPageProps) {
+export function MarketplaceCategoryPage() {
+  const { slug = '' } = useParams()
+  const { addToCart, favoriteProductNames, toggleFavorite } = useCommerce()
+  const openProduct = useProductNavigation()
   const [category, setCategory] = useState<MarketplaceCategory | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -74,7 +65,7 @@ export function MarketplaceCategoryPage({
             <Link
               className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3.5 py-2 text-xs font-bold text-ink transition hover:border-primary hover:text-primary-dark"
               key={child.id}
-              to={`/categories/${child.slug}`}
+              to={appPaths.categoryDetails(child.slug)}
             >
               {child.name} <ChevronRight size={13} />
             </Link>
@@ -86,9 +77,9 @@ export function MarketplaceCategoryPage({
         <InfiniteProductGrid
           emptyMessage={`No products in ${category.name} yet.`}
           favoriteProductNames={favoriteProductNames}
-          onAdd={onAddToCart}
-          onFavorite={onToggleFavorite}
-          onOpen={onProductOpen}
+          onAdd={addToCart}
+          onFavorite={toggleFavorite}
+          onOpen={openProduct}
           query={{ categorySlug: category.slug }}
         />
       </div>

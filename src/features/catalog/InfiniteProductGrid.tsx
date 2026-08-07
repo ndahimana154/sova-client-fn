@@ -1,15 +1,11 @@
 import { Loader2 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Product } from '../../data/catalog'
-import {
-  marketplaceApi,
-  type MarketplaceProduct,
-  type MarketplaceProductQuery,
-} from '../../lib/marketplaceApi'
+import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
+import type { MarketplaceProduct, MarketplaceProductQuery } from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
 import { ProductCard } from './ProductCard'
 
-const PAGE_SIZE = 20
 const PLACEHOLDER = '/images/storefront-hero.png'
 
 export function toStorefrontProduct(item: MarketplaceProduct): Product {
@@ -47,76 +43,36 @@ export function InfiniteProductGrid({
   onOpen,
   query,
 }: InfiniteProductGridProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [page, setPage] = useState(0)
-  const [hasNextPage, setHasNextPage] = useState(true)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const { error, hasNextPage, loadNext, loading, products } = useInfiniteProducts(query ?? {})
   const sentinel = useRef<HTMLDivElement>(null)
-  const loadingRef = useRef(false)
-  const seen = useRef(new Set<string>())
-  const queryKey = JSON.stringify(query ?? {})
-
-  // A different query is a different list: reset rather than append to the old one.
-  useEffect(() => {
-    seen.current = new Set()
-    setProducts([])
-    setPage(0)
-    setHasNextPage(true)
-    setError('')
-  }, [queryKey])
-
-  const loadPage = useCallback(async (target: number) => {
-    if (loadingRef.current) return
-    loadingRef.current = true
-    setLoading(true)
-    setError('')
-    try {
-      const result = await marketplaceApi.products({
-        limit: PAGE_SIZE,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-        ...(JSON.parse(queryKey) as MarketplaceProductQuery),
-        page: target,
-      })
-      const fresh = result.contents.filter((item) => !seen.current.has(item.slug))
-      fresh.forEach((item) => seen.current.add(item.slug))
-      setProducts((current) => [...current, ...fresh.map(toStorefrontProduct)])
-      setHasNextPage(result.meta.hasNextPage)
-      setPage(result.meta.page)
-    } catch {
-      setError('Could not load more products.')
-      setHasNextPage(false)
-    } finally {
-      loadingRef.current = false
-      setLoading(false)
-    }
-  }, [queryKey])
 
   useEffect(() => {
     const node = sentinel.current
     if (!node || !hasNextPage) return
     const observer = new IntersectionObserver(
-      (entries) => { if (entries[0]?.isIntersecting) void loadPage(page + 1) },
+      (entries) => { if (entries[0]?.isIntersecting) loadNext() },
       { rootMargin: '400px' },
     )
     observer.observe(node)
     return () => observer.disconnect()
-  }, [hasNextPage, loadPage, page])
+  }, [hasNextPage, loadNext])
 
   return (
     <>
       <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
-        {products.map((product, index) => (
-          <ProductCard
-            isFavorite={favoriteProductNames.includes(product.name)}
-            key={product.slug ?? `${product.name}-${index}`}
-            onAdd={onAdd}
-            onFavorite={onFavorite}
-            onOpen={onOpen}
-            product={product}
-          />
-        ))}
+        {products.map((item) => {
+          const product = toStorefrontProduct(item)
+          return (
+            <ProductCard
+              isFavorite={favoriteProductNames.includes(product.name)}
+              key={item.slug}
+              onAdd={onAdd}
+              onFavorite={onFavorite}
+              onOpen={onOpen}
+              product={product}
+            />
+          )
+        })}
       </div>
 
       {!products.length && !loading && !error && (
@@ -132,7 +88,7 @@ export function InfiniteProductGrid({
           </p>
         )}
         {error && (
-          <button className="secondary-button" onClick={() => { setHasNextPage(true); void loadPage(page + 1) }} type="button">
+          <button className="secondary-button" onClick={loadNext} type="button">
             {error} Try again
           </button>
         )}

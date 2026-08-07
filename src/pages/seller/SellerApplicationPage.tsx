@@ -20,13 +20,9 @@ import {
   type ApplicationRecord,
 } from "../../components/seller/application";
 
-interface SellerApplicationPageProps {
-  onBack: () => void;
-}
-
 const locationOptions = (items: LocationOption[]) => items.map((item) => ({ label: item.name, value: item.id }));
 
-export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
+export function SellerApplicationPage() {
   const account = loadSellerAccount();
   const [provinces, setProvinces] = useState<LocationOption[]>([]);
   const [districts, setDistricts] = useState<LocationOption[]>([]);
@@ -285,7 +281,7 @@ export function SellerApplicationPage({ onBack }: SellerApplicationPageProps) {
 
   return (
     <main className="min-h-[75vh]">
-      <SellerApplicationHero onBack={onBack} onTrack={trackApplication} renewing={Boolean(renewalApplication)} tracking={tracking} />
+      <SellerApplicationHero onTrack={trackApplication} renewing={Boolean(renewalApplication)} tracking={tracking} />
 
       <section className="page-container py-10 sm:py-14">
         <ValidationErrorsContext.Provider value={validationErrors}>

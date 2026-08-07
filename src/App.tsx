@@ -1,132 +1,31 @@
-import { useEffect, useState } from 'react'
-import { Footer } from './components/layout/Footer'
-import { StoreHeader } from './components/layout/StoreHeader'
-import { CartDrawer } from './features/cart/CartDrawer'
-import { FavoritesDrawer } from './features/favorites/FavoritesDrawer'
-import { homeProducts, products, type Product } from './data/catalog'
-import {
-  isSeller,
-  loadClientSession,
-  loginClient,
-  logoutClient,
-  type ClientSession,
-} from './lib/clientAuth'
-import { AccountPage } from './pages/account/AccountPage'
-import { AuthPage } from './pages/auth/AuthPage'
-import { CategoryPage } from './pages/category/CategoryPage'
-import { HomePage } from './pages/home/HomePage'
-import { MarketplaceCategoryPage } from './pages/category/MarketplaceCategoryPage'
-import { ProductDetailPage } from './pages/product/ProductDetailPage'
-import { SellerApplicationPage } from './pages/seller/SellerApplicationPage'
-import { SellerDashboardPage } from './pages/seller/SellerDashboardPage'
-import { SearchPage } from './pages/search/SearchPage'
-import { BrandStorePage } from './pages/shop/BrandStorePage'
-import { useAppDispatch, useAppSelector } from './store/hooks'
+import { lazy, useEffect, type ReactNode } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useAuthActions } from './hooks/useAuthActions'
+import { isSeller, loadClientSession } from './lib/clientAuth'
+import { AuthPage } from './pages/auth/AuthPage'
+import { appPaths } from './router/paths'
 import { AppRoutes } from './router/routes'
-import { clearSession, setSession } from './store/authSlice'
-import {
-  addToCart as addCartItem,
-  changeCartQuantity,
-  removeFromCart as removeCartItem,
-  resetCommerce,
-  setCartOpen,
-  setFavoritesOpen,
-  toggleFavorite as toggleFavoriteItem,
-} from './store/commerceSlice'
+import { setSession } from './store/authSlice'
+import { useAppDispatch, useAppSelector } from './store/hooks'
+import { setToast } from './store/uiSlice'
 
-type Page =
-  | 'home'
-  | 'account'
-  | 'category'
-  | 'product'
-  | 'search'
-  | 'seller'
-  | 'seller-dashboard'
-  | 'shop'
-  | 'login'
-const allProducts = [...products, ...homeProducts]
-
-function productFromHash() {
-  if (!window.location.hash.startsWith('#product/')) return undefined
-  const productName = decodeURIComponent(window.location.hash.slice('#product/'.length))
-  return allProducts.find((product) => product.name === productName)
-}
-
-function brandFromHash() {
-  if (!window.location.hash.startsWith('#shop/')) return undefined
-  return decodeURIComponent(window.location.hash.slice('#shop/'.length))
-}
-
-/** Real path, so a reload lands back on the same category. */
-function categorySlugFromPath() {
-  const match = window.location.pathname.match(/^\/categories\/([^/?#]+)/)
-  return match ? decodeURIComponent(match[1]) : undefined
-}
-
-function categoryFromHash() {
-  if (!window.location.hash.startsWith('#category/')) return undefined
-  return decodeURIComponent(window.location.hash.slice('#category/'.length))
-}
-
-function searchFromHash() {
-  if (!window.location.hash.startsWith('#search/')) return undefined
-  return decodeURIComponent(window.location.hash.slice('#search/'.length))
-}
-
-function pageFromLocation(session: ClientSession | null): Page {
-  if (window.location.pathname.startsWith('/seller/dashboard')) {
-    return isSeller(session) ? 'seller-dashboard' : session ? 'home' : 'login'
-  }
-  if (window.location.hash === '#login') return 'login'
-  if (window.location.hash === '#signup') return 'login'
-  if (window.location.hash === '#account') {
-    return session ? 'account' : 'login'
-  }
-  if (window.location.hash === '#sell') return 'seller'
-  if (categorySlugFromPath()) return 'category'
-  if (productFromHash()) return 'product'
-  if (brandFromHash()) return 'shop'
-  if (categoryFromHash()) return 'category'
-  if (searchFromHash()) return 'search'
-  return 'home'
-}
+// Seller screens load on demand, so shoppers never download the dashboard.
+const SellerApplicationPage = lazy(() => import('./pages/seller/SellerApplicationPage').then((module) => ({ default: module.SellerApplicationPage })))
+const SellerDashboardPage = lazy(() => import('./pages/seller/SellerDashboardPage').then((module) => ({ default: module.SellerDashboardPage })))
 
 export default function App() {
   const dispatch = useAppDispatch()
-  const routerNavigate = useNavigate()
-  const routerLocation = useLocation()
+  const navigate = useNavigate()
+  const location = useLocation()
   const session = useAppSelector((state) => state.auth.session)
-  const { cartItems, cartOpen, favoriteItems, favoritesOpen } = useAppSelector((state) => state.commerce)
-  const [page, setPage] = useState<Page>(() => pageFromLocation(loadClientSession()))
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(productFromHash)
-  const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brandFromHash)
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(categoryFromHash)
-  const [categorySlug, setCategorySlug] = useState<string | undefined>(categorySlugFromPath)
-  const [searchQuery, setSearchQuery] = useState<string | undefined>(searchFromHash)
-  const [message, setMessage] = useState('')
+  const { authenticate, logout } = useAuthActions()
 
-  const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0)
-
+  // Keep Redux in step with the stored session on load and on browser navigation.
   useEffect(() => {
-    function handleLocationChange() {
-      const currentSession = loadClientSession()
-      dispatch(setSession(currentSession))
-      setSelectedProduct(productFromHash())
-      setSelectedBrand(brandFromHash())
-      setSelectedCategory(categoryFromHash())
-      setCategorySlug(categorySlugFromPath())
-      setSearchQuery(searchFromHash())
-      setPage(pageFromLocation(currentSession))
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-
-    window.addEventListener('hashchange', handleLocationChange)
-    window.addEventListener('popstate', handleLocationChange)
-    return () => {
-      window.removeEventListener('hashchange', handleLocationChange)
-      window.removeEventListener('popstate', handleLocationChange)
-    }
+    const sync = () => dispatch(setSession(loadClientSession()))
+    sync()
+    window.addEventListener('popstate', sync)
+    return () => window.removeEventListener('popstate', sync)
   }, [dispatch])
 
   useEffect(() => {
@@ -139,236 +38,36 @@ export default function App() {
   }, [routerLocation.pathname])
 
   useEffect(() => {
-    if (window.location.pathname.startsWith('/seller/dashboard') && !isSeller(session)) {
-      window.history.replaceState(null, '', session ? '/' : '/#login')
-      setPage(session ? 'home' : 'login')
-      if (session) showMessage('Seller access is required for that page')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [location.pathname])
+
+  // A non-seller landing on the dashboard is sent home with an explanation.
+  useEffect(() => {
+    if (location.pathname.startsWith(appPaths.sellerDashboard) && !isSeller(session)) {
+      navigate(session ? appPaths.home : appPaths.login, { replace: true })
+      if (session) {
+        dispatch(setToast('Seller access is required for that page'))
+        window.setTimeout(() => dispatch(setToast('')), 1800)
+      }
     }
-  }, [session])
+  }, [dispatch, location.pathname, navigate, session])
 
-  function showMessage(text: string) {
-    setMessage(text)
-    window.setTimeout(() => setMessage(''), 1800)
-  }
-
-  function addToCart(product: Product, quantity = 1) {
-    dispatch(addCartItem({ product, quantity }))
-    showMessage(`${quantity > 1 ? `${quantity} × ` : ''}${product.name} added to your cart`)
-  }
-
-  function toggleFavorite(product: Product) {
-    const isFavorite = favoriteItems.some((item) => item.name === product.name)
-    dispatch(toggleFavoriteItem(product))
-    showMessage(isFavorite ? 'Removed from your favorites' : `${product.name} saved to your favorites`)
-  }
-
-  function changeQuantity(productName: string, quantity: number) {
-    dispatch(changeCartQuantity({ productName, quantity }))
-  }
-
-  function removeFromCart(productName: string) {
-    dispatch(removeCartItem(productName))
-  }
-
-  async function authenticate(email: string, otp: string) {
-    const nextSession = await loginClient(email, otp)
-    dispatch(setSession(nextSession))
-
-    if (isSeller(nextSession)) {
-      setPage('seller-dashboard')
-      routerNavigate('/seller/dashboard')
-      showMessage('Welcome to your seller workspace')
-      return
-    }
-
-    setPage('home')
-    routerNavigate('/')
-    showMessage('Welcome to SOVA')
-  }
-
-  async function logout() {
-    try {
-      await logoutClient()
-    } finally {
-      dispatch(clearSession())
-      dispatch(resetCommerce())
-      setSelectedProduct(undefined)
-      setSelectedBrand(undefined)
-      setSelectedCategory(undefined)
-      setSearchQuery(undefined)
-      setPage('home')
-      routerNavigate('/')
-      showMessage('You have been logged out')
-    }
-  }
-
-  function openProduct(product: Product) {
-    setSelectedProduct(product)
-    setPage('product')
-    window.location.hash = `product/${encodeURIComponent(product.name)}`
-  }
-
-  function openBrand(brand: string) {
-    setSelectedBrand(brand)
-    setPage('shop')
-    window.location.hash = `shop/${encodeURIComponent(brand)}`
-  }
-
-  function openCategory(category: string) {
-    setSelectedCategory(category)
-    setPage('category')
-    window.location.hash = `category/${encodeURIComponent(category)}`
-  }
-
-  function searchProducts(query: string) {
-    setSearchQuery(query)
-    setPage('search')
-    window.location.hash = `search/${encodeURIComponent(query)}`
-  }
-
-  function openSellerApplication() {
-    window.location.hash = 'sell'
-  }
-
-  if (page === 'login') {
-    return (
-      <AppRoutes
-        sellerLayout={<Navigate replace to="/" />}
-        storefront={<AuthPage
-          onAuthenticate={authenticate}
-        />}
-      />
-    )
-  }
-
-  if (page === 'seller-dashboard' && session && isSeller(session)) {
-    return (
-      <AppRoutes
-        sellerLayout={<SellerDashboardPage
-          onLogout={logout}
-          onStorefrontOpen={() => {
-            routerNavigate('/')
-            setPage('home')
-          }}
-          user={session.user}
-        />}
-        storefront={<Navigate replace to="/seller/dashboard" />}
-      />
-    )
-  }
-
-  const storefront = (
-    <div className="min-h-screen bg-white text-ink">
-      <StoreHeader
-        accountActive={page === 'account'}
-        authenticated={Boolean(session)}
-        cartCount={cartCount}
-        favoriteCount={favoriteItems.length}
-        onAccountOpen={() => {
-          window.location.hash = 'account'
-        }}
-        onCartOpen={() => dispatch(setCartOpen(true))}
-        onCategoryOpen={openCategory}
-        onFavoritesOpen={() => dispatch(setFavoritesOpen(true))}
-        onLoginOpen={() => {
-          window.location.hash = 'login'
-        }}
-        onSearch={searchProducts}
-        onSellOnSova={openSellerApplication}
-        onSellerDashboardOpen={() => {
-          routerNavigate('/seller/dashboard')
-          setPage('seller-dashboard')
-        }}
-        seller={isSeller(session)}
-      />
-      {page === 'account' ? (
-        <AccountPage onLogout={logout} onSaved={() => showMessage('Your settings have been saved')} />
-      ) : page === 'product' && selectedProduct ? (
-        <ProductDetailPage
-          allProducts={allProducts}
-          favoriteProductNames={favoriteItems.map((item) => item.name)}
-          key={selectedProduct.name}
-          onAddToCart={addToCart}
-          onBrandOpen={openBrand}
-          onProductOpen={openProduct}
-          onToggleFavorite={toggleFavorite}
-          product={selectedProduct}
-        />
-      ) : page === 'shop' && selectedBrand ? (
-        <BrandStorePage
-          allProducts={allProducts}
-          brand={selectedBrand}
-          favoriteProductNames={favoriteItems.map((item) => item.name)}
-          key={selectedBrand}
-          onAddToCart={addToCart}
-          onProductOpen={openProduct}
-          onToggleFavorite={toggleFavorite}
-        />
-      ) : page === 'seller' ? (
-        <SellerApplicationPage onBack={() => { window.location.hash = '' }} />
-      ) : page === 'category' && categorySlug ? (
-        <MarketplaceCategoryPage
-          favoriteProductNames={favoriteItems.map((item) => item.name)}
-          key={categorySlug}
-          onAddToCart={addToCart}
-          onProductOpen={openProduct}
-          onToggleFavorite={toggleFavorite}
-          slug={categorySlug}
-        />
-      ) : page === 'category' && selectedCategory ? (
-        <CategoryPage
-          allProducts={allProducts}
-          category={selectedCategory}
-          favoriteProductNames={favoriteItems.map((item) => item.name)}
-          key={selectedCategory}
-          onAddToCart={addToCart}
-          onCategoryOpen={openCategory}
-          onProductOpen={openProduct}
-          onToggleFavorite={toggleFavorite}
-        />
-      ) : page === 'search' && searchQuery ? (
-        <SearchPage
-          favoriteProductNames={favoriteItems.map((item) => item.name)}
-          key={searchQuery}
-          onAddToCart={addToCart}
-          onProductOpen={openProduct}
-          onToggleFavorite={toggleFavorite}
-          products={allProducts}
-          query={searchQuery}
-        />
-      ) : (
-        <HomePage
-          favoriteProductNames={favoriteItems.map((item) => item.name)}
-          onAddToCart={addToCart}
-          onBrandOpen={openBrand}
-          onCategoryOpen={openCategory}
-          onProductOpen={openProduct}
-          onToggleFavorite={toggleFavorite}
-        />
-      )}
-      <Footer />
-      {cartOpen && (
-        <CartDrawer
-          items={cartItems}
-          onClose={() => dispatch(setCartOpen(false))}
-          onQuantityChange={changeQuantity}
-          onRemove={removeFromCart}
-        />
-      )}
-      {favoritesOpen && (
-        <FavoritesDrawer
-          items={favoriteItems}
-          onAddToCart={addToCart}
-          onClose={() => dispatch(setFavoritesOpen(false))}
-          onRemove={toggleFavorite}
-        />
-      )}
-      {message && (
-        <div className="fixed bottom-5 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-xs font-bold text-white shadow-xl">
-          {message}
-        </div>
-      )}
-    </div>
+  return (
+    <AppRoutes
+      authScreen={session ? <Navigate replace to={appPaths.home} /> : <AuthPage onAuthenticate={authenticate} />}
+      requireSeller={requireSession(session, location.pathname)}
+      sellerApplication={<SellerApplicationPage />}
+      sellerLayout={
+        session && isSeller(session)
+          ? <SellerDashboardPage onLogout={() => void logout()} onStorefrontOpen={() => navigate(appPaths.home)} user={session.user} />
+          : <Navigate replace to={session ? appPaths.home : appPaths.login} />
+      }
+    />
   )
-  return <AppRoutes sellerLayout={<Navigate replace to="/" />} storefront={storefront} />
+}
+
+/** Screens that need an account redirect guests to the login page. */
+function requireSession(session: unknown, pathname: string) {
+  return (screen: ReactNode): ReactNode =>
+    session ? screen : <Navigate replace state={{ from: pathname }} to={appPaths.login} />
 }

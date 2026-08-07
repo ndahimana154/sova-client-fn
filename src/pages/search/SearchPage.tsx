@@ -1,17 +1,19 @@
 import { ChevronLeft, SearchX } from 'lucide-react'
 import type { Product } from '../../data/catalog'
 import { ProductCard } from '../../features/catalog/ProductCard'
+import { useSearchParams } from 'react-router-dom'
+import { homeProducts, products as catalogProducts } from '../../data/catalog'
+import { useCommerce } from '../../hooks/useCommerce'
+import { useProductNavigation } from '../../hooks/useProductNavigation'
 
-interface SearchPageProps {
-  favoriteProductNames: string[]
-  onAddToCart: (product: Product) => void
-  onProductOpen: (product: Product) => void
-  onToggleFavorite: (product: Product) => void
-  products: Product[]
-  query: string
-}
+const allCatalogProducts = [...catalogProducts, ...homeProducts]
 
-export function SearchPage({ favoriteProductNames, onAddToCart, onProductOpen, onToggleFavorite, products, query }: SearchPageProps) {
+export function SearchPage() {
+  const [params] = useSearchParams()
+  const query = params.get('q') ?? ''
+  const products = allCatalogProducts
+  const { addToCart, favoriteProductNames, toggleFavorite } = useCommerce()
+  const openProduct = useProductNavigation()
   const results = searchProducts(products, query)
 
   return (
@@ -28,7 +30,7 @@ export function SearchPage({ favoriteProductNames, onAddToCart, onProductOpen, o
         {results.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
             {results.map((product) => (
-              <ProductCard isFavorite={favoriteProductNames.includes(product.name)} key={product.name} onAdd={onAddToCart} onFavorite={onToggleFavorite} onOpen={onProductOpen} product={product} />
+              <ProductCard isFavorite={favoriteProductNames.includes(product.name)} key={product.name} onAdd={addToCart} onFavorite={toggleFavorite} onOpen={openProduct} product={product} />
             ))}
           </div>
         ) : (
