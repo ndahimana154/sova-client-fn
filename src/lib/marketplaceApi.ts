@@ -19,8 +19,9 @@ export interface MarketplaceMedia {
 
 export interface MarketplaceProduct {
   brand: string | null
-  category: { id: string; name: string; parentId: string | null }
+  category: { id: string; name: string; parentId: string | null; slug: string }
   createdAt: string
+  description: string
   discount: number
   finalPrice: number
   media: MarketplaceMedia[]
@@ -31,6 +32,81 @@ export interface MarketplaceProduct {
   slug: string
   stockStatus: 'IN_STOCK' | 'OUT_OF_STOCK'
   variants: Record<string, string>
+}
+
+/** Product summary carried by every video, so a card renders without a second call. */
+export interface MarketplaceVideoProduct {
+  brand: string | null
+  category: { id: string; name: string; slug: string }
+  discount: number
+  finalPrice: number
+  id: string
+  imageUrl: string | null
+  name: string
+  price: number
+  quantity: number
+  shop: { id: string; name: string; slug: string }
+  slug: string
+  stockStatus: 'IN_STOCK' | 'OUT_OF_STOCK'
+}
+
+export interface MarketplaceVideo {
+  altText: string | null
+  likeCount: number
+  liked: boolean
+  durationSeconds: number | null
+  id: string
+  isPrimary: boolean
+  mediaType: 'IMAGE' | 'VIDEO'
+  position: number
+  product: MarketplaceVideoProduct
+  productSlug: string
+  url: string
+}
+
+export interface PaginatedVideos {
+  contents: MarketplaceVideo[]
+  meta: {
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+    limit: number
+    page: number
+    totalItems: number
+    totalPages: number
+  }
+}
+
+export interface VideoLikeState {
+  likeCount: number
+  liked: boolean
+}
+
+export interface VideoCommentAuthor {
+  id: string
+  name: string
+  profile: string | null
+}
+
+export interface VideoComment {
+  author: VideoCommentAuthor
+  content: string
+  createdAt: string
+  id: string
+  mediaId: string
+  parentId: string | null
+  replyCount: number
+}
+
+export interface PaginatedComments {
+  contents: VideoComment[]
+  meta: {
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+    limit: number
+    page: number
+    totalItems: number
+    totalPages: number
+  }
 }
 
 export interface MarketplaceProductQuery {
@@ -80,6 +156,21 @@ export const marketplaceApi = {
     (await api.get<ApiEnvelope<MarketplaceCategory[]>>('/buyer/product-categories')).data,
   category: async (slug: string) =>
     (await api.get<ApiEnvelope<MarketplaceCategory>>(`/buyer/product-categories/${slug}`)).data,
+  videos: async (query: { limit?: number; page?: number } = {}) =>
+    (await api.get<ApiEnvelope<PaginatedVideos>>('/buyer/product-videos', { params: query })).data,
+  setVideoLike: async (mediaId: string, liked: boolean) => {
+    const url = `/buyer/product-videos/${mediaId}/like`
+    const response = liked
+      ? await api.put<ApiEnvelope<VideoLikeState>>(url)
+      : await api.delete<ApiEnvelope<VideoLikeState>>(url)
+    return response.data
+  },
+  videoComments: async (mediaId: string, query: { limit?: number; page?: number; parentId?: string } = {}) =>
+    (await api.get<ApiEnvelope<PaginatedComments>>(`/buyer/product-videos/${mediaId}/comments`, { params: query })).data,
+  postVideoComment: async (mediaId: string, input: { content: string; parentId?: string }) =>
+    (await api.post<ApiEnvelope<VideoComment>, typeof input>(`/buyer/product-videos/${mediaId}/comments`, input)).data,
+  product: async (slug: string) =>
+    (await api.get<ApiEnvelope<MarketplaceProduct>>(`/buyer/products/${slug}`)).data,
   products: async (query: MarketplaceProductQuery = {}) =>
     (await api.get<ApiEnvelope<PaginatedMarketplaceProducts>>('/buyer/products', { params: query })).data,
 }

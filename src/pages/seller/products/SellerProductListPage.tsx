@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Feedback, PageTitle, StatusBadge, errorMessage, mediaUrl } from '../../../components/seller/products/ProductPageUi'
 import { ActionMenu } from '../../../components/ui/ActionMenu'
+import { AttributeTags } from '../../../components/ui/AttributeTags'
 import { useConfirm } from '../../../components/ui/ConfirmDialog'
 import { DataTable } from '../../../components/ui/DataTable'
 import { Select } from '../../../components/ui/Select'
@@ -55,7 +56,7 @@ export function SellerProductListPage() {
       rows={products.map((product) => [
         <ProductCell product={product} />,
         product.category.name,
-        <TagList values={product.variants} />,
+        <AttributeTags attributes={product.variants} limit={2} size="sm" />,
         <PriceCell product={product} />,
         <StatusBadge value={product.stockStatus} />,
         product.quantity,
@@ -82,25 +83,6 @@ function ProductCell({ product }: { product: SellerProduct }) {
         <span className="block truncate text-[10px] text-muted">{product.brand || 'No brand'}</span>
       </span>
     </Link>
-  )
-}
-
-function TagList({ values }: { values: Record<string, string> }) {
-  const tags = Object.entries(values)
-  if (!tags.length) return <span className="text-muted">—</span>
-  return (
-    <span className="flex flex-wrap items-center gap-1">
-      {tags.slice(0, 2).map(([key, value]) => (
-        <span className="inline-flex rounded-full border border-line bg-soft px-2 py-0.5 text-[9px] font-semibold text-muted" key={key}>
-          {key}: {value}
-        </span>
-      ))}
-      {tags.length > 2 && (
-        <span className="text-[9px] font-bold text-muted" title={tags.map(([key, value]) => `${key}: ${value}`).join(', ')}>
-          +{tags.length - 2}
-        </span>
-      )}
-    </span>
   )
 }
 

@@ -2,6 +2,7 @@ import { Edit3, ImageIcon, Play } from 'lucide-react'
 import { useCallback, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ProductInventory } from '../../../components/seller/products/ProductInventory'
+import { AttributeTags } from '../../../components/ui/AttributeTags'
 import { Feedback, PageTitle, StatusBadge, mediaUrl } from '../../../components/seller/products/ProductPageUi'
 import { useSellerProduct } from '../../../components/seller/products/useSellerProduct'
 import { formatPrice } from '../../../lib/formatPrice'
@@ -88,7 +89,7 @@ export function SellerProductDetailsPage() {
               )}
               {tab === 'attributes' && (
                 attributes.length
-                  ? <dl className="divide-y divide-line text-sm">{attributes.map(([key, value]) => <Row key={key} label={key} value={value} />)}</dl>
+                  ? <AttributeTags attributes={product.variants} />
                   : <EmptyNote>No attributes added for this product.</EmptyNote>
               )}
               {tab === 'inventory' && <ProductInventory onRecorded={applyProductUpdate} product={product} />}

@@ -1,6 +1,9 @@
 import { Heart, ShoppingBag, Star } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import type { Product } from '../../data/catalog'
 import { formatPrice } from '../../lib/formatPrice'
+import { appPaths } from '../../router/paths'
 
 interface ProductCardProps {
   isFavorite: boolean
@@ -14,14 +17,9 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
   return (
     <article className="product-card group">
       <div className="relative aspect-[1/1.02] overflow-hidden rounded-2xl bg-soft">
-        <button
-          aria-label={`View ${product.name}`}
-          className="block size-full cursor-pointer"
-          onClick={() => onOpen(product)}
-          type="button"
-        >
+        <ProductLink className="block size-full cursor-pointer" label={`View ${product.name}`} onOpen={onOpen} product={product}>
           <img alt={product.name} className="size-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" src={product.image} />
-        </button>
+        </ProductLink>
         {product.badge && <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-[10px] font-bold text-white">{product.badge}</span>}
         <button
           aria-label={isFavorite ? `Remove ${product.name} from favorites` : `Save ${product.name} to favorites`}
@@ -36,7 +34,7 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
       <div className="pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
         <h3 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-ink">
-          <button className="text-left transition hover:text-primary-dark" onClick={() => onOpen(product)} type="button">{product.name}</button>
+          <ProductLink className="text-left transition hover:text-primary-dark" onOpen={onOpen} product={product}>{product.name}</ProductLink>
         </h3>
         {product.reviews > 0 && (
           <div className="mt-2 flex items-center gap-1 text-[11px] text-muted">
@@ -51,4 +49,21 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
       </div>
     </article>
   )
+}
+
+/**
+ * Real anchor for products that have a URL, so crawlers and middle-click work.
+ * Catalogue entries without a slug fall back to the click handler.
+ */
+function ProductLink({ children, className, label, onOpen, product }: {
+  children: ReactNode
+  className: string
+  label?: string
+  onOpen: (product: Product) => void
+  product: Product
+}) {
+  if (product.slug) {
+    return <Link aria-label={label} className={className} to={appPaths.productDetails(product.slug)}>{children}</Link>
+  }
+  return <button aria-label={label} className={className} onClick={() => onOpen(product)} type="button">{children}</button>
 }

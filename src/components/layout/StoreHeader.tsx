@@ -1,6 +1,6 @@
-import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, Store, UserRound, X } from 'lucide-react'
+import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { flattenCategories, marketplaceApi, type MarketplaceCategory } from '../../lib/marketplaceApi'
 import { appPaths } from '../../router/paths'
 import { Brand } from '../ui/Brand'
@@ -11,14 +11,9 @@ interface StoreHeaderProps {
   authenticated: boolean
   cartCount: number
   favoriteCount: number
-  onAccountOpen: () => void
   onCartOpen: () => void
-  onCategoryOpen: (category: string) => void
   onFavoritesOpen: () => void
-  onLoginOpen: () => void
   onSearch: (query: string) => void
-  onSellOnSova: () => void
-  onSellerDashboardOpen?: () => void
   seller: boolean
 }
 
@@ -27,19 +22,15 @@ export function StoreHeader({
   authenticated,
   cartCount,
   favoriteCount,
-  onAccountOpen,
   onCartOpen,
-  onCategoryOpen,
   onFavoritesOpen,
-  onLoginOpen,
   onSearch,
-  onSellOnSova,
-  onSellerDashboardOpen,
   seller,
 }: StoreHeaderProps) {
   const [mobileCategory, setMobileCategory] = useState('')
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const navigate = useNavigate()
   const [categories, setCategories] = useState<MarketplaceCategory[]>([])
 
   useEffect(() => {
@@ -66,40 +57,39 @@ export function StoreHeader({
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
           {authenticated && !seller && (
-            <button
+            <Link
               className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
-              onClick={onAccountOpen}
-              type="button"
+              to={appPaths.account}
             >
               <UserRound size={16} /> Account
-            </button>
+            </Link>
           )}
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
           {authenticated ? (
             <>
               {seller && (
-                <button className="header-login-link hidden sm:block" onClick={onSellerDashboardOpen}>
+                <Link className="header-login-link hidden sm:block" to={appPaths.sellerDashboard}>
                   Seller dashboard
-                </button>
+                </Link>
               )}
               {seller ? (
-                <button
+                <Link
                   aria-current={accountActive ? 'page' : undefined}
                   aria-label="Account settings"
                   className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
-                  onClick={onAccountOpen}
+                  to={appPaths.account}
                 >
                   <UserRound size={19} />
-                </button>
+                </Link>
               ) : (
-                <button className="header-login-link" onClick={onSellOnSova}>Sell on SOVA</button>
+                <Link className="header-login-link" to={appPaths.sell}>Sell on SOVA</Link>
               )}
             </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
-              <button className="header-login-link" onClick={onSellOnSova}>Sell on SOVA</button>
-              <button className="header-signup-link" onClick={onLoginOpen}><UserRound size={14} /> Account</button>
+              <Link className="header-login-link" to={appPaths.sell}>Sell on SOVA</Link>
+              <Link className="header-signup-link" to={appPaths.login}><UserRound size={14} /> Account</Link>
             </div>
           )}
         </div>
@@ -136,15 +126,15 @@ export function StoreHeader({
                 aria-label="Browse categories"
                 className="h-10 w-full appearance-none rounded-full border border-line bg-white pl-3 pr-8 text-xs font-bold text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 onChange={(event) => {
-                  const category = event.target.value
-                  setMobileCategory(category)
-                  if (category) onCategoryOpen(category)
+                  const slug = event.target.value
+                  setMobileCategory(slug)
+                  if (slug) navigate(appPaths.categoryDetails(slug))
                 }}
                 value={mobileCategory}
               >
                 <option value="">All categories</option>
                 {flattenCategories(categories).map((category) => (
-                  <option key={category.id} value={category.name}>{category.name}</option>
+                  <option key={category.id} value={category.slug}>{category.name}</option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted" size={14} />
@@ -160,18 +150,17 @@ export function StoreHeader({
           </>
         )}
         {!seller && (
-          <button
-            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inlin-flex"
-            onClick={authenticated ? onAccountOpen : onLoginOpen}
-            type="button"
+          <Link
+            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inline-flex"
+            to={authenticated ? appPaths.account : appPaths.login}
           >
             <UserRound size={14} /> Account
-          </button>
+          </Link>
         )}
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
-          <button className="flex shrink-0 items-center gap-2 text-primary" onClick={() => onCategoryOpen('All products')}><Menu size={16} /> All categories <ChevronDown size={13} /></button>
+          <Link className="flex shrink-0 items-center gap-2 text-primary" to={appPaths.home}><Menu size={16} /> All categories <ChevronDown size={13} /></Link>
           <Link className="flex shrink-0 items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
           <CategoryNav categories={categories} />
           <a className="ml-auto shrink-0 rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>

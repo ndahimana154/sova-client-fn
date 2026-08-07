@@ -1,39 +1,34 @@
-import type { Product } from '../../data/catalog'
+import { useNavigate } from 'react-router-dom'
 import { BrandStrip } from '../../features/catalog/BrandStrip'
-import { CategoryRail } from '../../features/catalog/CategoryRail'
 import { BestDealsSection } from '../../features/catalog/BestDealsSection'
 import { NewlyStockedSection } from '../../features/catalog/NewlyStockedSection'
+import { useCommerce } from '../../hooks/useCommerce'
+import { useProductNavigation } from '../../hooks/useProductNavigation'
+import { appPaths } from '../../router/paths'
 import { Hero } from './Hero'
 import { Newsletter } from './Newsletter'
 import { PromoGrid } from './PromoGrid'
 
-interface HomePageProps {
-  favoriteProductNames: string[]
-  onAddToCart: (product: Product) => void
-  onBrandOpen: (brand: string) => void
-  onCategoryOpen: (category: string) => void
-  onProductOpen: (product: Product) => void
-  onToggleFavorite: (product: Product) => void
-}
-
-export function HomePage({ favoriteProductNames, onAddToCart, onBrandOpen, onCategoryOpen, onProductOpen, onToggleFavorite }: HomePageProps) {
+export function HomePage() {
+  const navigate = useNavigate()
+  const { addToCart, favoriteProductNames, toggleFavorite } = useCommerce()
+  const openProduct = useProductNavigation()
   return (
     <main>
       <BestDealsSection
         favoriteProductNames={favoriteProductNames}
-        onAdd={onAddToCart}
-        onFavorite={onToggleFavorite}
-        onOpen={onProductOpen}
+        onAdd={addToCart}
+        onFavorite={toggleFavorite}
+        onOpen={openProduct}
       />
-      <CategoryRail onCategoryOpen={onCategoryOpen} />
       <Hero />
       <PromoGrid />
-      <BrandStrip onBrandOpen={onBrandOpen} />
+      <BrandStrip onBrandOpen={(brand) => navigate(appPaths.shopDetails(brand))} />
       <NewlyStockedSection
         favoriteProductNames={favoriteProductNames}
-        onAdd={onAddToCart}
-        onFavorite={onToggleFavorite}
-        onOpen={onProductOpen}
+        onAdd={addToCart}
+        onFavorite={toggleFavorite}
+        onOpen={openProduct}
       />
       <Newsletter />
     </main>

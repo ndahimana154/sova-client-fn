@@ -22,9 +22,9 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
     const normalized = normalizeApiError(error)
-    if (normalized.status === 401 && !location.hash.includes('login')) {
+    if (normalized.status === 401 && !location.pathname.startsWith('/login')) {
       clearClientSession()
-      location.assign('/#login')
+      location.assign('/login')
     }
     return Promise.reject(error)
   },

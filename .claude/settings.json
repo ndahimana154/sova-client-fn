@@ -5,7 +5,8 @@
       "Bash(npx jest *)",
       "Bash(npx mikro-orm *)",
       "Bash(npx prettier *)",
-      "Bash(grep -oE \"\\\\{[^}]*\\\\}, \\(GET|POST|PATCH|DELETE\\)\" /private/tmp/claude-501/-Users-mac-Documents-Codebase-Kickside-sova-client-fn/883ee21b-dea8-478d-b67b-528c149b73e5/scratchpad/boot2.log)"
+      "Bash(grep -oE \"\\\\{[^}]*\\\\}, \\(GET|POST|PATCH|DELETE\\)\" /private/tmp/claude-501/-Users-mac-Documents-Codebase-Kickside-sova-client-fn/883ee21b-dea8-478d-b67b-528c149b73e5/scratchpad/boot2.log)",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Codebase/Kickside/sova/bn/src/repositories/seller",

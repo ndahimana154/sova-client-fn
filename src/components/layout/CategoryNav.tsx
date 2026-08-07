@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { MarketplaceCategory } from '../../lib/marketplaceApi'
+import { appPaths } from '../../router/paths'
 
 const MAX_INLINE = 5
 
@@ -33,7 +34,7 @@ export function CategoryNav({ categories }: {
 
   function select(category: MarketplaceCategory) {
     setOpenId('')
-    navigate(`/categories/${category.slug}`)
+    navigate(appPaths.categoryDetails(category.slug))
   }
 
   return (

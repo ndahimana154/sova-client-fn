@@ -1,30 +1,22 @@
 import {
-  BadgeCheck,
-  ChevronLeft,
   Clock3,
   Mail,
   MapPin,
   MessageCircle,
-  PackageCheck,
   Phone,
   ShieldCheck,
   Star,
   Store,
-  Truck,
 } from 'lucide-react'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { VerifiedShopLogo } from '../../components/shop/VerifiedShopLogo'
-import type { Product } from '../../data/catalog'
 import { ProductCard } from '../../features/catalog/ProductCard'
+import { useParams } from 'react-router-dom'
+import { homeProducts, products as catalogProducts } from '../../data/catalog'
+import { useCommerce } from '../../hooks/useCommerce'
+import { useProductNavigation } from '../../hooks/useProductNavigation'
 
-interface BrandStorePageProps {
-  allProducts: Product[]
-  brand: string
-  favoriteProductNames: string[]
-  onAddToCart: (product: Product) => void
-  onProductOpen: (product: Product) => void
-  onToggleFavorite: (product: Product) => void
-}
+const allCatalogProducts = [...catalogProducts, ...homeProducts]
 
 interface StoreFeedback {
   comment: string
@@ -56,15 +48,12 @@ const sampleFeedback: StoreFeedback[] = [
   },
 ]
 
-export function BrandStorePage({
-  allProducts,
-  brand,
-  favoriteProductNames,
-  onAddToCart,
-  onProductOpen,
-  onToggleFavorite,
-}: BrandStorePageProps) {
-  const brandProducts = allProducts.filter((product) => (product.brand ?? 'SOVA Select') === brand)
+export function BrandStorePage() {
+  const { slug = '' } = useParams()
+  const brand = decodeURIComponent(slug)
+  const { addToCart, favoriteProductNames, toggleFavorite } = useCommerce()
+  const openProduct = useProductNavigation()
+  const brandProducts = allCatalogProducts.filter((product) => (product.brand ?? 'SOVA Select') === brand)
   const categories = [...new Set(brandProducts.map((product) => product.category))]
   const [selectedCategory, setSelectedCategory] = useState('All products')
   const [feedback, setFeedback] = useState<StoreFeedback[]>(() => loadStoreFeedback(brand))
@@ -114,9 +103,7 @@ export function BrandStorePage({
     <main>
       <section className="border-b border-line bg-[#fbf3e8]">
         <div className="page-container py-8 sm:py-12">
-          <a className="inline-flex items-center gap-2 text-xs font-bold text-muted transition hover:text-primary-dark" href="#">
-            <ChevronLeft size={16} /> Back to shopping
-          </a>
+
           <div className="mt-8 flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-center gap-5">
               <VerifiedShopLogo
@@ -192,9 +179,9 @@ export function BrandStorePage({
                 <ProductCard
                   isFavorite={favoriteProductNames.includes(product.name)}
                   key={product.name}
-                  onAdd={onAddToCart}
-                  onFavorite={onToggleFavorite}
-                  onOpen={onProductOpen}
+                  onAdd={addToCart}
+                  onFavorite={toggleFavorite}
+                  onOpen={openProduct}
                   product={product}
                 />
               ))}
@@ -278,13 +265,6 @@ export function BrandStorePage({
   )
 }
 
-function StorePromise({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <span className="flex items-center gap-3 rounded-xl bg-soft px-4 py-3 text-xs font-bold text-ink">
-      <span className="text-primary-dark">{icon}</span>{label}
-    </span>
-  )
-}
 
 function StoreStat({ label, value }: { label: string; value: string }) {
   return (

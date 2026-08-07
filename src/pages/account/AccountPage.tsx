@@ -1,5 +1,6 @@
 import { Bell, ChevronLeft, LogOut, Mail, MapPin, ShieldCheck, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { useAuthActions } from '../../hooks/useAuthActions'
 
 interface AccountSettings {
   deals: boolean
@@ -7,11 +8,6 @@ interface AccountSettings {
   name: string
   orderUpdates: boolean
   productNews: boolean
-}
-
-interface AccountPageProps {
-  onLogout: () => void
-  onSaved: () => void
 }
 
 const defaultSettings: AccountSettings = {
@@ -31,7 +27,10 @@ function loadSettings(): AccountSettings {
   }
 }
 
-export function AccountPage({ onLogout, onSaved }: AccountPageProps) {
+export function AccountPage() {
+  const { logout, notify } = useAuthActions()
+  const onLogout = () => void logout()
+  const onSaved = () => notify('Your settings have been saved')
   const [settings, setSettings] = useState<AccountSettings>(loadSettings)
 
   function updateSetting<Key extends keyof AccountSettings>(key: Key, value: AccountSettings[Key]) {
@@ -63,9 +62,9 @@ export function AccountPage({ onLogout, onSaved }: AccountPageProps) {
               </div>
             </div>
             <nav aria-label="Account navigation" className="mt-4 space-y-1">
-              <a aria-current="page" className="flex items-center gap-3 rounded-xl bg-primary-light px-3 py-3 text-xs font-bold text-primary-dark" href="#account">
+              <span aria-current="page" className="flex items-center gap-3 rounded-xl bg-primary-light px-3 py-3 text-xs font-bold text-primary-dark">
                 <UserRound size={17} /> Account settings
-              </a>
+              </span>
               <span className="flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold text-muted">
                 <MapPin size={17} /> Delivery addresses
               </span>
