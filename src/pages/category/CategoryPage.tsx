@@ -5,7 +5,7 @@ import { ProductCard } from '../../features/catalog/ProductCard'
 interface CategoryPageProps {
   allProducts: Product[]
   category: string
-  favoriteProductNames: string[]
+  isFavorite: (product: Product) => boolean
   onAddToCart: (product: Product) => void
   onCategoryOpen: (category: string) => void
   onProductOpen: (product: Product) => void
@@ -15,7 +15,7 @@ interface CategoryPageProps {
 export function CategoryPage({
   allProducts,
   category,
-  favoriteProductNames,
+  isFavorite,
   onAddToCart,
   onCategoryOpen,
   onProductOpen,
@@ -47,7 +47,7 @@ export function CategoryPage({
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
             {matchingProducts.map((product) => (
               <ProductCard
-                isFavorite={favoriteProductNames.includes(product.name)}
+                isFavorite={isFavorite(product)}
                 key={product.name}
                 onAdd={onAddToCart}
                 onFavorite={onToggleFavorite}

@@ -4,7 +4,7 @@ import { ProductCard } from './ProductCard'
 
 interface ProductSectionProps {
   eyebrow?: string
-  favoriteProductNames: string[]
+  isFavorite: (product: Product) => boolean
   id?: string
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
@@ -13,14 +13,14 @@ interface ProductSectionProps {
   title: string
 }
 
-export function ProductSection({ eyebrow, favoriteProductNames, id, onAdd, onFavorite, onOpen, products, title }: ProductSectionProps) {
+export function ProductSection({ eyebrow, isFavorite, id, onAdd, onFavorite, onOpen, products, title }: ProductSectionProps) {
   return (
     <section className="page-container section-space" id={id}>
       <SectionHeader eyebrow={eyebrow} title={title} />
       <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
         {products.map((product) => (
           <ProductCard
-            isFavorite={favoriteProductNames.includes(product.name)}
+            isFavorite={isFavorite(product)}
             key={product.name}
             onAdd={onAdd}
             onFavorite={onFavorite}

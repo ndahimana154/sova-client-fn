@@ -96,7 +96,20 @@ export function AuthPage({ onAuthenticate }: AuthPageProps) {
             </form>
           </div>
         </div>
-        <aside className="auth-visual"><div className="auth-visual-shade" /><div className="auth-visual-copy"><span className="grid size-11 place-items-center rounded-full bg-white/15 backdrop-blur"><Check size={21} /></span><p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/75">Secure passwordless access</p><h2 className="mt-3 max-w-md text-3xl font-black leading-tight tracking-[-0.04em] text-white">One email. One short code. You’re in.</h2></div></aside>
+        <aside className="auth-visual">
+          <div className="auth-visual-shade" />
+          <div className="auth-visual-copy">
+            <span className="grid size-11 place-items-center rounded-full bg-white/15 backdrop-blur">
+              <Check size={21} />
+            </span>
+            <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/75">
+              Login to access your account
+            </p>
+            <h2 className="mt-3 max-w-md text-3xl font-black leading-tight tracking-[-0.04em] text-white">
+              One email. One short code. You’re in.
+            </h2>
+          </div>
+        </aside>
       </section>
     </main>
   )

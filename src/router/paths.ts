@@ -1,9 +1,12 @@
+import { env } from '../config/env'
+
 export const appPaths = {
   // Storefront
   home: '/',
   videos: '/videos',
   login: '/login',
   account: '/account',
+  deals: '/deals',
   sell: '/sell',
   search: '/search',
   searchFor: (query: string) => `/search?q=${encodeURIComponent(query)}`,
@@ -11,11 +14,6 @@ export const appPaths = {
   categoryDetails: (slug: string) => `/categories/${encodeURIComponent(slug)}`,
   shopDetails: (slug: string) => `/shops/${encodeURIComponent(slug)}`,
 
-  // Seller dashboard
-  sellerDashboard: '/seller/dashboard',
-  sellerCategories: '/seller/dashboard/product-categories',
-  sellerProductCreate: '/seller/dashboard/products/new',
-  sellerProductDetails: (id: string) => `/seller/dashboard/products/${id}`,
-  sellerProductEdit: (id: string) => `/seller/dashboard/products/${id}/edit`,
-  sellerProducts: '/seller/dashboard/products',
+  /** The seller portal is a separate app. */
+  sellerPortal: () => env.sellerPortalUrl,
 } as const

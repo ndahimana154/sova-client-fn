@@ -2,13 +2,13 @@ import type { Product } from '../../data/catalog'
 import { InfiniteProductGrid } from './InfiniteProductGrid'
 
 interface NewlyStockedSectionProps {
-  favoriteProductNames: string[]
+  isFavorite: (product: Product) => boolean
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
   onOpen: (product: Product) => void
 }
 
-export function NewlyStockedSection({ favoriteProductNames, onAdd, onFavorite, onOpen }: NewlyStockedSectionProps) {
+export function NewlyStockedSection({ isFavorite, onAdd, onFavorite, onOpen }: NewlyStockedSectionProps) {
   return (
     <section className="page-container section-space" id="newly-stocked">
       <div className="mb-5">
@@ -17,7 +17,7 @@ export function NewlyStockedSection({ favoriteProductNames, onAdd, onFavorite, o
       </div>
       <InfiniteProductGrid
         emptyMessage="No products have been stocked yet."
-        favoriteProductNames={favoriteProductNames}
+        isFavorite={isFavorite}
         onAdd={onAdd}
         onFavorite={onFavorite}
         onOpen={onOpen}

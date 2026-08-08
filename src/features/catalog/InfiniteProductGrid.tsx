@@ -2,7 +2,11 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import type { Product } from '../../data/catalog'
 import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
-import type { MarketplaceProduct, MarketplaceProductQuery } from '../../lib/marketplaceApi'
+import type {
+  MarketplaceProduct,
+  MarketplaceProductQuery,
+  PaginatedMarketplaceProducts,
+} from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
 import { ProductCard } from './ProductCard'
 
@@ -26,24 +30,49 @@ export function toStorefrontProduct(item: MarketplaceProduct): Product {
 }
 
 interface InfiniteProductGridProps {
+  className?: string
   emptyMessage?: string
-  favoriteProductNames: string[]
+  isFavorite: (product: Product) => boolean
+  /** First page the caller already loaded, so it is not fetched twice. */
+  initial?: PaginatedMarketplaceProducts
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
   onOpen: (product: Product) => void
   query?: MarketplaceProductQuery
+  /** Pulls the pages from this shop's endpoint instead of the global product list. */
+  shopSlug?: string
 }
 
 /** Product grid that pulls the next page as the visitor nears the bottom. */
 export function InfiniteProductGrid({
+  initial,
+  query,
+  shopSlug,
+  ...rest
+}: InfiniteProductGridProps) {
+  const feed = useInfiniteProducts(query ?? {}, { initial, shopSlug })
+  return <ProductFeed feed={feed} {...rest} />
+}
+
+type ProductFeedState = ReturnType<typeof useInfiniteProducts>
+
+interface ProductFeedProps extends Omit<InfiniteProductGridProps, 'initial' | 'query' | 'shopSlug'> {
+  feed: ProductFeedState
+}
+
+/**
+ * Renders a feed the caller already owns. Search keeps the feed itself so it can
+ * read the facet counts that come back with each page.
+ */
+export function ProductFeed({
+  className = 'grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5',
   emptyMessage = 'No products here yet.',
-  favoriteProductNames,
+  isFavorite,
+  feed: { error, hasNextPage, loadNext, loading, products },
   onAdd,
   onFavorite,
   onOpen,
-  query,
-}: InfiniteProductGridProps) {
-  const { error, hasNextPage, loadNext, loading, products } = useInfiniteProducts(query ?? {})
+}: ProductFeedProps) {
   const sentinel = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -59,12 +88,12 @@ export function InfiniteProductGrid({
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
+      <div className={className}>
         {products.map((item) => {
           const product = toStorefrontProduct(item)
           return (
             <ProductCard
-              isFavorite={favoriteProductNames.includes(product.name)}
+              isFavorite={isFavorite(product)}
               key={item.slug}
               onAdd={onAdd}
               onFavorite={onFavorite}
