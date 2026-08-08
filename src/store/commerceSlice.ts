@@ -46,13 +46,12 @@ const commerceSlice = createSlice({
     setCartOpen(state, action: PayloadAction<boolean>) {
       state.cartOpen = action.payload
     },
+    /** Replaces the favorites wholesale, used when syncing with the server. */
+    setFavoriteItems(state, action: PayloadAction<Product[]>) {
+      state.favoriteItems = action.payload
+    },
     setFavoritesOpen(state, action: PayloadAction<boolean>) {
       state.favoritesOpen = action.payload
-    },
-    toggleFavorite(state, action: PayloadAction<Product>) {
-      const index = state.favoriteItems.findIndex((item) => item.name === action.payload.name)
-      if (index >= 0) state.favoriteItems.splice(index, 1)
-      else state.favoriteItems.push(action.payload)
     },
   },
 })
@@ -64,7 +63,7 @@ export const {
   resetCommerce,
   setCartItems,
   setCartOpen,
+  setFavoriteItems,
   setFavoritesOpen,
-  toggleFavorite,
 } = commerceSlice.actions
 export const commerceReducer = commerceSlice.reducer

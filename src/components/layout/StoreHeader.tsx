@@ -1,9 +1,10 @@
-import { ChevronDown, Clapperboard, Heart, MapPin, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Clapperboard, Heart, MapPin, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { useEffect, useId, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { flattenCategories, marketplaceApi, type MarketplaceCategory } from '../../lib/marketplaceApi'
 import { appPaths } from '../../router/paths'
 import { Brand } from '../ui/Brand'
+import { Select } from '../ui/Select'
 import { CategoryNav } from './CategoryNav'
 
 interface StoreHeaderProps {
@@ -27,9 +28,13 @@ export function StoreHeader({
   onSearch,
   seller,
 }: StoreHeaderProps) {
+  const [params] = useSearchParams()
+  const activeQuery = params.get('q') ?? ''
+  const categoryLabelId = useId()
   const [mobileCategory, setMobileCategory] = useState('')
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  // On a result page the term matters more than the category picker it replaces.
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(Boolean(activeQuery))
+  const [searchQuery, setSearchQuery] = useState(activeQuery)
   const navigate = useNavigate()
   const [categories, setCategories] = useState<MarketplaceCategory[]>([])
 
@@ -37,10 +42,20 @@ export function StoreHeader({
     marketplaceApi.categories().then(setCategories).catch(() => setCategories([]))
   }, [])
 
+  // Landing on a result page — from a link, a suggestion or the back button —
+  // should leave the term the results are for sitting in the field.
+  useEffect(() => { setSearchQuery(activeQuery) }, [activeQuery])
+
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const query = searchQuery.trim()
     if (query) onSearch(query)
+  }
+
+  function clearSearch() {
+    setSearchQuery('')
+    setMobileSearchOpen(false)
+    if (activeQuery) navigate(appPaths.home)
   }
 
   return (
@@ -51,7 +66,7 @@ export function StoreHeader({
       </div>
       <div className="page-container flex h-[72px] items-center gap-4">
         <Brand />
-        <SearchForm onChange={setSearchQuery} onSubmit={submitSearch} query={searchQuery} />
+        <SearchForm onChange={setSearchQuery} onClear={clearSearch} onSubmit={submitSearch} query={searchQuery} />
         <div className="ml-auto flex items-center gap-1">
           <button className="header-location">
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
@@ -69,7 +84,7 @@ export function StoreHeader({
           {authenticated ? (
             <>
               {seller && (
-                <Link className="header-login-link hidden sm:block" to={appPaths.sellerDashboard}>
+                <Link className="header-login-link hidden sm:block" to={appPaths.sellerPortal()} target="_blank">
                   Seller dashboard
                 </Link>
               )}
@@ -83,12 +98,16 @@ export function StoreHeader({
                   <UserRound size={19} />
                 </Link>
               ) : (
-                <Link className="header-login-link" to={appPaths.sell}>Sell on SOVA</Link>
+                <Link className="header-login-link" to={appPaths.sellerPortal()}
+                  target="_blank">Sell on SOVA
+                </Link>
               )}
             </>
           ) : (
             <div className="ml-1 flex items-center gap-1 sm:gap-2">
-              <Link className="header-login-link" to={appPaths.sell}>Sell on SOVA</Link>
+              <Link className="header-login-link" to={appPaths.sellerPortal()}
+                target="_blank">Sell on SOVA
+              </Link>
               <Link className="header-signup-link" to={appPaths.login}><UserRound size={14} /> Account</Link>
             </div>
           )}
@@ -109,10 +128,7 @@ export function StoreHeader({
             <button
               aria-label="Close search"
               className="shrink-0"
-              onClick={() => {
-                setSearchQuery('')
-                setMobileSearchOpen(false)
-              }}
+              onClick={clearSearch}
               type="button"
             >
               <X size={16} />
@@ -120,25 +136,24 @@ export function StoreHeader({
           </form>
         ) : (
           <>
-            <label className="relative min-w-0 flex-1">
-              <span className="sr-only">Browse categories</span>
-              <select
-                aria-label="Browse categories"
-                className="h-10 w-full appearance-none rounded-full border border-line bg-white pl-3 pr-8 text-xs font-bold text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                onChange={(event) => {
-                  const slug = event.target.value
-                  setMobileCategory(slug)
-                  if (slug) navigate(appPaths.categoryDetails(slug))
-                }}
-                value={mobileCategory}
-              >
-                <option value="">All categories</option>
-                {flattenCategories(categories).map((category) => (
-                  <option key={category.id} value={category.slug}>{category.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted" size={14} />
-            </label>
+            <span className="sr-only" id={categoryLabelId}>Browse categories</span>
+            <Select
+              aria-labelledby={categoryLabelId}
+              className="min-w-0 flex-1 [&>button]:h-10 [&>button]:rounded-full [&>button]:font-bold"
+              onChange={(slug) => {
+                setMobileCategory(slug)
+                if (slug) navigate(appPaths.categoryDetails(slug))
+              }}
+              options={[
+                { label: 'All categories', value: '' },
+                ...flattenCategories(categories).map((category) => ({
+                  label: category.name,
+                  value: category.slug,
+                })),
+              ]}
+              placeholder="All categories"
+              value={mobileCategory}
+            />
             <button
               aria-label="Open search"
               className="icon-control shrink-0"
@@ -160,22 +175,29 @@ export function StoreHeader({
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">
-          <Link className="flex shrink-0 items-center gap-2 text-primary" to={appPaths.home}><Menu size={16} /> All categories <ChevronDown size={13} /></Link>
-          <Link className="flex shrink-0 items-center gap-1.5 transition-colors hover:text-primary" to={appPaths.videos}><Clapperboard size={15} /> Shop videos</Link>
+          <Link className="flex shrink-0 items-center gap-1.5 transition-colors hover:text-primary"
+            to={appPaths.videos}>
+            <Clapperboard size={15} />
+            The FLOW
+          </Link>
           <CategoryNav categories={categories} />
-          <a className="ml-auto shrink-0 rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" href="#deals">Today&apos;s deals</a>
+          <Link className="ml-auto shrink-0 rounded-full bg-primary-light px-3 py-1.5 text-primary-dark" to={appPaths.deals}>Today&apos;s deals</Link>
         </div>
       </nav>
     </header>
   )
 }
 
-function SearchForm({ onChange, onSubmit, query }: { onChange: (query: string) => void; onSubmit: (event: FormEvent<HTMLFormElement>) => void; query: string }) {
+function SearchForm({ onChange, onClear, onSubmit, query }: { onChange: (query: string) => void; onClear: () => void; onSubmit: (event: FormEvent<HTMLFormElement>) => void; query: string }) {
   return (
     <form className="mx-auto hidden max-w-xl flex-1 items-center rounded-full bg-soft px-4 py-3 text-muted focus-within:ring-2 focus-within:ring-primary/20 md:flex" onSubmit={onSubmit} role="search">
       <button aria-label="Search" className="shrink-0 transition hover:text-primary-dark" type="submit"><Search size={18} /></button>
-      <input aria-label="Search products" className="min-w-0 flex-1 bg-transparent px-3 text-sm text-ink outline-none" onChange={(event) => onChange(event.target.value)} placeholder="Search products, categories or brands" value={query} />
-      <span className="rounded-md bg-white px-2 py-1 text-[10px] shadow-sm">Enter</span>
+      <input aria-label="Search products" className="min-w-0 flex-1 bg-transparent px-3 text-sm text-ink outline-none" onChange={(event) => onChange(event.target.value)} placeholder="Search products, categories, shops or brands" value={query} />
+      {query ? (
+        <button aria-label="Clear search" className="shrink-0 transition hover:text-ink" onClick={onClear} type="button"><X size={16} /></button>
+      ) : (
+        <span className="rounded-md bg-white px-2 py-1 text-[10px] shadow-sm">Enter</span>
+      )}
     </form>
   )
 }

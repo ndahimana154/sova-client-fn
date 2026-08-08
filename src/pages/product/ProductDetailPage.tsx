@@ -11,11 +11,13 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { FeedbackSection, StarRow } from '../../components/feedback/FeedbackSection'
 import { AttributeTags } from '../../components/ui/AttributeTags'
 import { toStorefrontProduct } from '../../features/catalog/InfiniteProductGrid'
 import { ProductCard } from '../../features/catalog/ProductCard'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
+import { useLocalFeedback } from '../../hooks/useLocalFeedback'
 import { useProductNavigation } from '../../hooks/useProductNavigation'
 import { useMarketplaceProduct } from '../../hooks/useMarketplaceProduct'
 import { formatPrice } from '../../lib/formatPrice'
@@ -25,9 +27,10 @@ import { appPaths } from '../../router/paths'
 
 export function ProductDetailPage() {
   const { slug = '' } = useParams()
-  const { addToCart, favoriteProductNames, toggleFavorite } = useCommerce()
+  const { addToCart, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   const { error, loading, product } = useMarketplaceProduct(slug)
+  const { average, feedback, submit } = useLocalFeedback(`product-${slug}`)
   const [quantity, setQuantity] = useState(1)
   const [activeMediaId, setActiveMediaId] = useState('')
 
@@ -68,7 +71,7 @@ export function ProductDetailPage() {
   }
 
   const card = toStorefrontProduct(product)
-  const isFavorite = favoriteProductNames.includes(product.name)
+  const saved = isFavorite(card)
   const inStock = product.stockStatus === 'IN_STOCK' && product.quantity > 0
   const attributes = Object.entries(product.variants)
   const relatedProducts = related.products.filter((item) => item.slug !== product.slug).slice(0, 4)
@@ -118,9 +121,19 @@ export function ProductDetailPage() {
               {product.category.name}
             </Link>
             <h1 className="mt-3 text-3xl font-black leading-tight tracking-[-0.045em] text-ink sm:text-4xl">{product.name}</h1>
-            <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-muted">
+            <Link
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-muted transition hover:text-primary-dark"
+              to={appPaths.shopDetails(product.shop.slug)}
+            >
               Sold by {product.shop.name} <ChevronRight size={14} />
-            </p>
+            </Link>
+            {feedback.length > 0 && (
+              <a className="mt-3 flex items-center gap-2 text-xs text-muted" href="#product-feedback">
+                <StarRow rating={Math.round(average)} size={14} />
+                <strong className="text-ink">{average.toFixed(1)}</strong>
+                <span>({feedback.length} {feedback.length === 1 ? 'review' : 'reviews'})</span>
+              </a>
+            )}
 
             <div className="mt-6 flex items-baseline gap-3">
               <strong className="text-2xl text-ink">{formatPrice(product.finalPrice)}</strong>
@@ -142,12 +155,12 @@ export function ProductDetailPage() {
                 <ShoppingBag size={17} /> {inStock ? 'Add to cart' : 'Out of stock'}
               </button>
               <button
-                aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
-                className={`grid size-12 shrink-0 place-items-center rounded-xl border border-line transition hover:border-primary ${isFavorite ? 'bg-primary-light text-primary' : 'text-ink'}`}
+                aria-label={saved ? 'Remove from favorites' : 'Save to favorites'}
+                className={`grid size-12 shrink-0 place-items-center rounded-xl border border-line transition hover:border-primary ${saved ? 'bg-primary-light text-primary' : 'text-ink'}`}
                 onClick={() => toggleFavorite(card)}
                 type="button"
               >
-                <Heart className={isFavorite ? 'fill-current' : ''} size={19} />
+                <Heart className={saved ? 'fill-current' : ''} size={19} />
               </button>
             </div>
 
@@ -172,6 +185,21 @@ export function ProductDetailPage() {
         </div>
       </div>
 
+      <div className="border-b border-line bg-soft/40">
+        <FeedbackSection
+          average={average}
+          emptyMessage="No reviews for this product yet. Share your experience to help other buyers."
+          eyebrow="What buyers say"
+          feedback={feedback}
+          formTitle="Review this product"
+          id="product-feedback"
+          intro="Reviews here are about the product itself — quality, sizing, and whether it matched the description."
+          onSubmit={submit}
+          placeholder="How is the product working out for you?"
+          title="Product reviews"
+        />
+      </div>
+
       {relatedProducts.length > 0 && (
         <section className="page-container py-12 sm:py-16">
           <p className="auth-eyebrow">You may also like</p>
@@ -181,7 +209,7 @@ export function ProductDetailPage() {
               const relatedCard = toStorefrontProduct(item)
               return (
                 <ProductCard
-                  isFavorite={favoriteProductNames.includes(relatedCard.name)}
+                  isFavorite={isFavorite(relatedCard)}
                   key={item.slug}
                   onAdd={addToCart}
                   onFavorite={toggleFavorite}

@@ -10,7 +10,7 @@ import { appPaths } from '../../router/paths'
 
 export function MarketplaceCategoryPage() {
   const { slug = '' } = useParams()
-  const { addToCart, favoriteProductNames, toggleFavorite } = useCommerce()
+  const { addToCart, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   const [category, setCategory] = useState<MarketplaceCategory | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,7 +76,7 @@ export function MarketplaceCategoryPage() {
       <div className="mt-8">
         <InfiniteProductGrid
           emptyMessage={`No products in ${category.name} yet.`}
-          favoriteProductNames={favoriteProductNames}
+          isFavorite={isFavorite}
           onAdd={addToCart}
           onFavorite={toggleFavorite}
           onOpen={openProduct}

@@ -22,6 +22,8 @@ export function StorefrontLayout() {
     cartCount,
     cartItems,
     changeQuantity,
+    clearFavorites,
+    favoriteCount,
     favoriteItems,
     removeFromCart,
     toggleFavorite,
@@ -33,7 +35,7 @@ export function StorefrontLayout() {
         accountActive={location.pathname === appPaths.account}
         authenticated={Boolean(session)}
         cartCount={cartCount}
-        favoriteCount={favoriteItems.length}
+        favoriteCount={favoriteCount}
         onCartOpen={() => dispatch(setCartOpen(true))}
         onFavoritesOpen={() => dispatch(setFavoritesOpen(true))}
         onSearch={(query) => navigate(appPaths.searchFor(query))}
@@ -56,6 +58,7 @@ export function StorefrontLayout() {
         <FavoritesDrawer
           items={favoriteItems}
           onAddToCart={addToCart}
+          onClear={clearFavorites}
           onClose={() => dispatch(setFavoritesOpen(false))}
           onRemove={toggleFavorite}
         />

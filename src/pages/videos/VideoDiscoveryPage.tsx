@@ -152,7 +152,7 @@ export function VideoDiscoveryPage() {
     <main className="relative h-[100dvh] overflow-hidden bg-[#090909] text-white">
       <header className={`pointer-events-none fixed left-0 top-0 z-40 flex items-center justify-between bg-gradient-to-b from-black/65 to-transparent p-4 transition-[right] sm:p-6 ${commentsOpen ? 'right-0 sm:right-96' : 'right-0'}`}>
         <Link className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 px-3 py-2 text-xs font-bold text-ink shadow-sm" to={appPaths.home}><img alt="SOVA" className="h-5 w-auto" src="/sova-logo-horizontal.png" /></Link>
-        <strong className="text-sm tracking-tight">Shop videos</strong>
+        <strong className="text-sm tracking-tight">The FLOW</strong>
         <Link aria-label="Close video viewer" className="pointer-events-auto grid size-9 place-items-center rounded-full bg-black/40 backdrop-blur hover:bg-black/60" to={appPaths.home}><X size={18} /></Link>
       </header>
 

@@ -8,13 +8,13 @@ import { ProductCard } from './ProductCard'
 const PLACEHOLDER = '/images/storefront-hero.png'
 
 interface BestDealsSectionProps {
-  favoriteProductNames: string[]
+  isFavorite: (product: Product) => boolean
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
   onOpen: (product: Product) => void
 }
 
-export function BestDealsSection({ favoriteProductNames, onAdd, onFavorite, onOpen }: BestDealsSectionProps) {
+export function BestDealsSection({ isFavorite, onAdd, onFavorite, onOpen }: BestDealsSectionProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -43,7 +43,7 @@ export function BestDealsSection({ favoriteProductNames, onAdd, onFavorite, onOp
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
             {products.map((product, index) => (
               <ProductCard
-                isFavorite={favoriteProductNames.includes(product.name)}
+                isFavorite={isFavorite(product)}
                 key={product.slug ?? `${product.name}-${index}`}
                 onAdd={onAdd}
                 onFavorite={onFavorite}

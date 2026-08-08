@@ -13,42 +13,23 @@ const SearchPage = lazy(() => import('../pages/search/SearchPage').then((m) => (
 const BrandStorePage = lazy(() => import('../pages/shop/BrandStorePage').then((m) => ({ default: m.BrandStorePage })))
 const VideoDiscoveryPage = lazy(() => import('../pages/videos/VideoDiscoveryPage').then((m) => ({ default: m.VideoDiscoveryPage })))
 
-// Seller dashboard screens.
-const SellerProductCategoriesPage = lazy(() => import('../pages/seller/products/SellerProductCategoriesPage').then((m) => ({ default: m.SellerProductCategoriesPage })))
-const SellerProductCreatePage = lazy(() => import('../pages/seller/products/SellerProductCreatePage').then((m) => ({ default: m.SellerProductCreatePage })))
-const SellerProductDetailsPage = lazy(() => import('../pages/seller/products/SellerProductDetailsPage').then((m) => ({ default: m.SellerProductDetailsPage })))
-const SellerProductEditPage = lazy(() => import('../pages/seller/products/SellerProductEditPage').then((m) => ({ default: m.SellerProductEditPage })))
-const SellerProductListPage = lazy(() => import('../pages/seller/products/SellerProductListPage').then((m) => ({ default: m.SellerProductListPage })))
 
 interface AppRoutesProps {
   /** Login screen — rendered without the storefront chrome. */
   authScreen: ReactNode
-  requireSeller: (screen: ReactNode) => ReactNode
-  sellerApplication: ReactNode
-  sellerLayout: ReactNode
+  requireSession: (screen: ReactNode) => ReactNode
 }
 
-export function AppRoutes({ authScreen, requireSeller, sellerApplication, sellerLayout }: AppRoutesProps) {
+export function AppRoutes({ authScreen, requireSession }: AppRoutesProps) {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
-        <Route element={sellerLayout} path="seller/dashboard">
-          <Route element={<SellerDashboardHome />} index />
-          <Route element={<SellerProductListPage />} path="products" />
-          <Route element={<SellerProductCreatePage />} path="products/new" />
-          <Route element={<SellerProductDetailsPage />} path="products/:productId" />
-          <Route element={<SellerProductEditPage />} path="products/:productId/edit" />
-          <Route element={<SellerProductCategoriesPage />} path="product-categories" />
-          <Route element={<Navigate replace to={appPaths.sellerDashboard} />} path="*" />
-        </Route>
-
         <Route element={authScreen} path="login" />
         <Route element={<VideoDiscoveryPage />} path="videos" />
 
         <Route element={<StorefrontLayout />}>
           <Route element={<HomePage />} index />
-          <Route element={requireSeller(<AccountPage />)} path="account" />
-          <Route element={sellerApplication} path="sell" />
+          <Route element={requireSession(<AccountPage />)} path="account" />
           <Route element={<SearchPage />} path="search" />
           <Route element={<ProductDetailPage />} path="products/:slug" />
           <Route element={<MarketplaceCategoryPage />} path="categories/:slug" />
@@ -66,8 +47,4 @@ function RouteFallback() {
       <span className="size-8 animate-spin rounded-full border-2 border-line border-t-primary" />
     </div>
   )
-}
-
-function SellerDashboardHome() {
-  return <div className="grid min-h-[calc(100vh-101px)] place-items-center bg-[#fffaf3] p-6"><h1 className="text-center text-3xl font-bold tracking-[-0.04em] text-ink">Seller Dashboard</h1></div>
 }

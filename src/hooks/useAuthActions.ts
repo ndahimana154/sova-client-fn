@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isSeller, loginClient, logoutClient } from '../lib/clientAuth'
+import { loginClient, logoutClient } from '../lib/clientAuth'
 import { appPaths } from '../router/paths'
 import { clearSession, setSession } from '../store/authSlice'
 import { resetCommerce } from '../store/commerceSlice'
@@ -20,11 +20,6 @@ export function useAuthActions() {
   const authenticate = useCallback(async (email: string, otp: string) => {
     const session = await loginClient(email, otp)
     dispatch(setSession(session))
-    if (isSeller(session)) {
-      navigate(appPaths.sellerDashboard)
-      notify('Welcome to your seller workspace')
-      return
-    }
     navigate(appPaths.home)
     notify('Welcome to SOVA')
   }, [dispatch, navigate, notify])

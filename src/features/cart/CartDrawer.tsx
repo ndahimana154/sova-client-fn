@@ -2,6 +2,8 @@ import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Drawer } from '../../components/ui/Drawer'
 import { formatPrice } from '../../lib/formatPrice'
 import type { CartItem } from './types'
+import { Link } from 'react-router-dom'
+import { appPaths } from '../../router/paths'
 
 interface CartDrawerProps {
   items: CartItem[]
@@ -27,7 +29,11 @@ export function CartDrawer({ items, onClose, onQuantityChange, onRemove }: CartD
             <span className="mx-auto grid size-16 place-items-center rounded-full bg-primary-light text-primary-dark"><ShoppingBag size={26} /></span>
             <h3 className="mt-5 font-bold text-ink">Your cart is empty</h3>
             <p className="mt-2 text-sm text-muted">Add something you love and it will appear here.</p>
-            <button className="primary-button mt-6" onClick={onClose}>Continue shopping</button>
+            <Link className="primary-button mt-6"
+              onClick={onClose}
+              to={appPaths.home}>
+              Continue shopping
+            </Link>
           </div>
         </div>
       ) : (
