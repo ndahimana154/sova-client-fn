@@ -227,6 +227,7 @@ export function ProductDetailPage() {
                 type="button"
               >
                 <ShoppingBag size={17} /> {inStock ? 'Add to cart' : 'Out of stock'}
+
               </button>
               <button
                 aria-label={saved ? 'Remove from favorites' : 'Save to favorites'}
@@ -269,6 +270,21 @@ export function ProductDetailPage() {
             </dl>
           </div>
         )}
+      </div>
+
+      <div className="border-b border-line bg-soft/40">
+        <FeedbackSection
+          average={average}
+          emptyMessage="No reviews for this product yet. Share your experience to help other buyers."
+          eyebrow="What buyers say"
+          feedback={feedback}
+          formTitle="Review this product"
+          id="product-feedback"
+          intro="Reviews here are about the product itself — quality, sizing, and whether it matched the description."
+          onSubmit={submit}
+          placeholder="How is the product working out for you?"
+          title="Product reviews"
+        />
       </div>
 
       <div className="border-b border-line bg-soft/40">

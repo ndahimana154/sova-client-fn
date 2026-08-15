@@ -234,6 +234,13 @@ export interface MarketplaceProductFacets {
   totalMatches: number
 }
 
+export interface MarketplaceFacetValue {
+  count: number
+  id: string
+  name: string
+  slug: string
+}
+
 export interface PaginatedMarketplaceProducts {
   contents: MarketplaceProduct[]
   facets: MarketplaceProductFacets
