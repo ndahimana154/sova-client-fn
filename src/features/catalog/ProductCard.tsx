@@ -51,11 +51,6 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
   )
 }
 
-/**
- * A product that sells in more than one version cannot go straight in the cart —
- * there is no way to know which SKU was meant — so it sends the shopper to the
- * page where the options live instead.
- */
 function AddControl({ className, onAdd, product }: {
   className: string
   onAdd: (product: Product) => void
@@ -75,10 +70,6 @@ function AddControl({ className, onAdd, product }: {
   )
 }
 
-/**
- * Real anchor for products that have a URL, so crawlers and middle-click work.
- * Catalogue entries without a slug fall back to the click handler.
- */
 function ProductLink({ children, className, label, onOpen, product }: {
   children: ReactNode
   className: string

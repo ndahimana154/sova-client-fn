@@ -1,15 +1,8 @@
 import type { Product } from '../data/catalog'
 import type { MarketplaceProduct } from './marketplaceApi'
+import { PRODUCT_PLACEHOLDER } from './constants'
 import { mediaUrl } from './mediaUrl'
 
-export const PRODUCT_PLACEHOLDER = '/images/storefront-hero.png'
-
-/**
- * The one place the API's product shape becomes a card. Every grid, the
- * homepage picks and the detail page go through it, so a listing never has to
- * know that the quoted price is the cheapest variant's or that the struck-through
- * price is that same variant's pre-discount one.
- */
 export function toStorefrontProduct(item: MarketplaceProduct): Product {
   const images = item.media.filter((media) => media.mediaType === 'IMAGE')
   const cover = images.find((media) => media.isPrimary) ?? images[0]

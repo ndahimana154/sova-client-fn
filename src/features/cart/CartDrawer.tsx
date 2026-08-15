@@ -1,14 +1,14 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Drawer } from '../../components/ui/Drawer'
 import { formatPrice } from '../../lib/formatPrice'
-import { cartLineKey, type CartItem } from './types'
+import { cartLineKey } from '../../lib/cartLine'
+import type { CartItem } from './types'
 import { Link } from 'react-router-dom'
 import { appPaths } from '../../router/paths'
 
 interface CartDrawerProps {
   items: CartItem[]
   onClose: () => void
-  /** Both take the line key, since one product can be in the cart as several SKUs. */
   onQuantityChange: (lineKey: string, quantity: number) => void
   onRemove: (lineKey: string) => void
 }

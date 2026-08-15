@@ -23,14 +23,12 @@ const commerceSlice = createSlice({
     resetCommerce() {
       return initialState
     },
-    /** Replaces the cart wholesale, used when syncing with the server. */
     setCartItems(state, action: PayloadAction<CartItem[]>) {
       state.cartItems = action.payload
     },
     setCartOpen(state, action: PayloadAction<boolean>) {
       state.cartOpen = action.payload
     },
-    /** Replaces the favorites wholesale, used when syncing with the server. */
     setFavoriteItems(state, action: PayloadAction<Product[]>) {
       state.favoriteItems = action.payload
     },

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { Product } from '../data/catalog'
-import { cartLineKey, type CartItem } from '../features/cart/types'
+import type { CartItem } from '../features/cart/types'
+import { cartLineKey } from '../lib/cartLine'
 import { cartApi, type ServerCart } from '../lib/cartApi'
 import { clearGuestCart, loadGuestCart, mergeableItems, saveGuestCart } from '../lib/guestCart'
 import { mediaUrl } from '../lib/mediaUrl'
-import { PRODUCT_PLACEHOLDER } from '../lib/storefrontProduct'
+import { PRODUCT_PLACEHOLDER } from '../lib/constants'
 import { setCartItems } from '../store/commerceSlice'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setToast } from '../store/uiSlice'
@@ -28,16 +29,11 @@ function toCartItems(cart: ServerCart): CartItem[] {
   }))
 }
 
-/** What the API needs to add this product, or null when it has no page-level slug. */
 function lineInput(product: Product, quantity: number) {
   if (!product.slug) return null
   return { productSlug: product.slug, quantity, variantId: product.variantId }
 }
 
-/**
- * One cart, two backing stores: the API when signed in, localStorage when not.
- * Signing in moves the guest cart to the server and empties local storage.
- */
 export function useCart() {
   const dispatch = useAppDispatch()
   const session = useAppSelector((state) => state.auth.session)
@@ -54,7 +50,6 @@ export function useCart() {
     dispatch(setCartItems(toCartItems(cart)))
   }, [dispatch])
 
-  // Load from the right place, merging any guest cart on the way in.
   useEffect(() => {
     if (!authenticated) {
       mergedFor.current = null
@@ -78,7 +73,6 @@ export function useCart() {
       .catch(() => undefined)
   }, [applyServerCart, authenticated, dispatch, notify, session?.user?.id])
 
-  // Guests keep their cart in localStorage on every change.
   useEffect(() => {
     if (!authenticated) saveGuestCart(cartItems)
   }, [authenticated, cartItems])
@@ -140,7 +134,6 @@ export function useCart() {
       try {
         if (delta > 0) applyServerCart(await cartApi.add({ ...input, quantity: delta }))
         else {
-          // The API only adds, so step down by clearing the line and re-adding.
           await cartApi.remove(item.product.variantId)
           applyServerCart(await cartApi.add(input))
         }

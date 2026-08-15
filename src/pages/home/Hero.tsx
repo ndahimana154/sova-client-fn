@@ -40,9 +40,10 @@ export function Hero() {
 function VideoPin({ index, video }: { index: number; video: MarketplaceVideo }) {
   const previewTimer = useRef<number | null>(null)
   const shape = ['aspect-[4/5]', 'aspect-[3/4]', 'aspect-square', 'aspect-[4/6]'][index % 4]
+  const [headline, ...rest] = video.products
   return (
     <Link
-      aria-label={`Watch video for ${video.product.name}`}
+      aria-label={headline ? `Watch video for ${headline.name}` : 'Watch video'}
       className="video-pin group mb-3 block break-inside-avoid overflow-hidden rounded-2xl bg-ink sm:mb-4"
       onMouseEnter={(event) => {
         const player = event.currentTarget.querySelector('video')
@@ -61,13 +62,20 @@ function VideoPin({ index, video }: { index: number; video: MarketplaceVideo }) 
         <span className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-white/90 text-ink shadow-sm backdrop-blur"><Play fill="currentColor" size={13} /></span>
         <div className="absolute inset-x-0 bottom-0 p-4 text-left text-white">
           {video.altText && <h2 className="text-sm font-bold leading-tight sm:text-base">{video.altText}</h2>}
-          <p className="mt-1 truncate text-xs font-bold leading-tight text-white/85">{video.product.name}</p>
-          <p className="mt-0.5 flex items-baseline gap-1.5 text-xs">
-            <strong className="font-black">{formatPrice(video.product.price)}</strong>
-            {video.product.discountPercent > 0 && (
-              <s className="text-[10px] text-white/60">{formatPrice(video.product.listPrice)}</s>
-            )}
-          </p>
+          {headline && (
+            <>
+              <p className="mt-1 truncate text-xs font-bold leading-tight text-white/85">
+                {headline.name}
+                {rest.length > 0 && <span className="text-white/60"> +{rest.length} more</span>}
+              </p>
+              <p className="mt-0.5 flex items-baseline gap-1.5 text-xs">
+                <strong className="font-black">{formatPrice(headline.price)}</strong>
+                {headline.discountPercent > 0 && (
+                  <s className="text-[10px] text-white/60">{formatPrice(headline.listPrice)}</s>
+                )}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </Link>

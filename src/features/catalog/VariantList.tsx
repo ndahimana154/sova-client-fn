@@ -10,12 +10,6 @@ interface VariantListProps {
   variants: MarketplaceVariant[]
 }
 
-/**
- * Every version of the product on one list, so a shopper can compare what the
- * option chips only show one at a time. Each row carries its own options, price
- * and stock, because that is exactly what differs between SKUs — and it stays a
- * list rather than a table so a product with four options still reads on a phone.
- */
 export function VariantList({ onSelect, selectedId, variants }: VariantListProps) {
   const sellable = sellableVariants(variants)
   if (sellable.length < 2) return null

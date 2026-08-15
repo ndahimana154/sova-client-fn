@@ -14,7 +14,6 @@ import { Link, useParams } from 'react-router-dom'
 import { FeedbackSection, StarRow } from '../../components/feedback/FeedbackSection'
 import { AttributeTags } from '../../components/ui/AttributeTags'
 import { ProductCard } from '../../features/catalog/ProductCard'
-import { VariantList } from '../../features/catalog/VariantList'
 import { VariantSelect } from '../../features/catalog/VariantSelect'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
@@ -49,31 +48,20 @@ export function ProductDetailPage() {
 
   useEffect(() => { void recordProductView(product?.slug) }, [product?.slug])
 
-  // A new product starts over on the version the seller nominated as default.
   useEffect(() => {
     setQuantity(1)
     setActiveMediaId('')
     setChosenId(product ? defaultVariant(product.variants)?.id ?? '' : '')
   }, [product])
 
-  /**
-   * Always a real SKU when the product has any, so the page quotes that SKU's
-   * own price, stock, photos and specifications rather than a product-wide guess.
-   */
   const variant = useMemo(
     () => (product ? resolveVariant(product.variants, chosenId) : null),
     [chosenId, product],
   )
   const variantId = variant?.id
 
-  // Switching version jumps the gallery to that version's own shot.
   useEffect(() => { setActiveMediaId('') }, [variantId])
 
-  /**
-   * The chosen SKU's own shots lead, then the ones shared by the whole product,
-   * then its videos. Shots belonging to a SKU the shopper did not pick are left
-   * out, so choosing "Red" never shows the blue one.
-   */
   const gallery: MarketplaceMedia[] = useMemo(() => {
     const images = [...(product?.media ?? [])].sort(
       (left, right) =>
@@ -81,7 +69,6 @@ export function ProductDetailPage() {
     )
     const own = images.filter((item) => item.variantId && item.variantId === variantId)
     const shared = images.filter((item) => !item.variantId)
-    // With nothing chosen yet, every version's shots are fair game.
     const others = variantId ? [] : images.filter((item) => item.variantId)
     return [...own, ...shared, ...others, ...videos]
   }, [product, variantId, videos])
@@ -114,8 +101,6 @@ export function ProductDetailPage() {
 
   const category = product.categories[0]
   const versions = sellableVariants(product.variants)
-  // The chosen SKU quotes itself; a product with no SKUs at all falls back to
-  // its own summary, which is the only thing left to show.
   const price = variant ? variant.salePrice : product.price
   const listPrice = variant ? variant.price : product.listPrice
   const discountPercent = variant ? (variant.discountPercent ?? 0) : product.discountPercent
@@ -264,8 +249,6 @@ export function ProductDetailPage() {
           <h2 className="text-sm font-black text-ink">Product details</h2>
           <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>
         </div>
-
-
 
         {Object.keys(specs).length > 0 && (
           <div className="border-y border-line py-6">

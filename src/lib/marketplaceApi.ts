@@ -20,7 +20,6 @@ export interface MarketplaceMedia {
   position: number
   sizeBytes: number
   url: string
-  /** The SKU this shot belongs to; null when it shows them all. */
   variantId: string | null
 }
 
@@ -31,21 +30,18 @@ export interface MarketplaceCategoryRef {
   slug: string
 }
 
-/** One option axis of a product, e.g. Colour with ["Blue", "Red"]. */
 export interface MarketplaceAttribute {
   id: string
   name: string
   values: string[]
 }
 
-/** What one SKU carries on each of the product's option axes. */
 export interface MarketplaceVariantAttribute {
   attributeId: string
   name: string
   value: string
 }
 
-/** A sellable SKU. Only the product detail endpoint ships these. */
 export interface MarketplaceVariant {
   attributes: MarketplaceVariantAttribute[]
   barcode: string | null
@@ -63,35 +59,27 @@ export interface MarketplaceVariant {
 }
 
 export interface MarketplaceProduct {
-  /** Option axes. Empty on list endpoints. */
   attributes: MarketplaceAttribute[]
   brand: string | null
   brandSlug: string | null
   categories: MarketplaceCategoryRef[]
   createdAt: string
   description: string
-  /** Percentage off `listPrice`, 0 when the quoted price is not discounted. */
   discountPercent: number
-  /** Pre-discount price behind `price`, for a "was" line. */
   listPrice: number
-  /** Highest sale price across variants; equals `price` on a one-SKU product. */
   maxPrice: number
   media: MarketplaceMedia[]
   name: string
-  /** Lowest sale price across variants — what a listing quotes. */
   price: number
   quantity: number
   shop: { id: string; name: string; slug: string }
   slug: string
   stockStatus: StockStatus
   updatedAt: string
-  /** 1 means a simple product with nothing to choose. */
   variantCount: number
-  /** Sellable SKUs. Empty on list endpoints. */
   variants: MarketplaceVariant[]
 }
 
-/** Product summary carried by every video, so a card renders without a second call. */
 export interface MarketplaceVideoProduct {
   brand: string | null
   discountPercent: number
@@ -109,8 +97,7 @@ export interface MarketplaceVideoProduct {
 export interface MarketplaceVideo extends MarketplaceMedia {
   likeCount: number
   liked: boolean
-  product: MarketplaceVideoProduct
-  productSlug: string
+  products: MarketplaceVideoProduct[]
 }
 
 export interface PaginatedVideos {
@@ -190,7 +177,6 @@ export interface MarketplaceShop {
   zip: string | null
 }
 
-/** Shop endpoint response, which ships the first page of the shop's products. */
 export interface MarketplaceShopDetails extends MarketplaceShop {
   products: PaginatedMarketplaceProducts
 }
@@ -215,10 +201,8 @@ export interface PaginatedMarketplaceShops {
 }
 
 export interface MarketplaceProductQuery {
-  /** Comma-separated brand names. */
   brands?: string
   categoryId?: string
-  /** Comma-separated category IDs; each also matches its sub-categories. */
   categoryIds?: string
   categorySlug?: string
   limit?: number
@@ -228,7 +212,6 @@ export interface MarketplaceProductQuery {
   page?: number
   search?: string
   shopSlug?: string
-  /** Comma-separated shop slugs. */
   shopSlugs?: string
   sortBy?: 'relevance' | 'name' | 'price' | 'createdAt' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
@@ -242,11 +225,6 @@ export interface MarketplaceFacetValue {
   slug: string
 }
 
-/**
- * Counts behind the filter sidebar. Every dimension is counted with the other
- * filters applied but its own ignored, so picking one option never hides the
- * rest of that list.
- */
 export interface MarketplaceProductFacets {
   brands: { count: number; name: string }[]
   categories: MarketplaceFacetValue[]
@@ -267,7 +245,6 @@ export interface PaginatedMarketplaceProducts {
     totalItems: number
     totalPages: number
   }
-  /** Alternative spellings to offer when a search returns little or nothing. */
   suggestions: string[]
 }
 

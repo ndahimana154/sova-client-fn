@@ -33,11 +33,9 @@ export interface ServerCart {
   updatedAt: string
 }
 
-/** What the API needs to put one SKU in a cart. */
 export interface CartLineInput {
   productSlug: string
   quantity: number
-  /** Optional only for a product that sells as exactly one version. */
   variantId?: string
 }
 
