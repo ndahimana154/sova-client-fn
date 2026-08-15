@@ -45,9 +45,19 @@ export function FavoritesDrawer({ items, onAddToCart, onClear, onClose, onRemove
                   <h3 className="mt-1 text-sm font-bold leading-5 text-ink">{product.name}</h3>
                   <strong className="mt-1 block text-sm text-ink">{formatPrice(product.price)}</strong>
                   <div className="mt-3 flex items-center gap-2">
-                    <button className="primary-button !px-4 !py-2" onClick={() => onAddToCart(product)}>
-                      <ShoppingBag size={14} /> Add to cart
-                    </button>
+                    {product.slug && (product.variantCount ?? 1) > 1 ? (
+                      <Link
+                        className="primary-button !px-4 !py-2"
+                        onClick={onClose}
+                        to={appPaths.productDetails(product.slug)}
+                      >
+                        <ShoppingBag size={14} /> Choose options
+                      </Link>
+                    ) : (
+                      <button className="primary-button !px-4 !py-2" onClick={() => onAddToCart(product)}>
+                        <ShoppingBag size={14} /> Add to cart
+                      </button>
+                    )}
                     <button
                       aria-label={`Remove ${product.name} from favorites`}
                       className="grid size-8 place-items-center rounded-full text-muted hover:bg-soft hover:text-red-600"

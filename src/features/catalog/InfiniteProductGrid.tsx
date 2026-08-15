@@ -3,31 +3,11 @@ import { useEffect, useRef } from 'react'
 import type { Product } from '../../data/catalog'
 import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
 import type {
-  MarketplaceProduct,
   MarketplaceProductQuery,
   PaginatedMarketplaceProducts,
 } from '../../lib/marketplaceApi'
-import { mediaUrl } from '../../lib/mediaUrl'
+import { toStorefrontProduct } from '../../lib/storefrontProduct'
 import { ProductCard } from './ProductCard'
-
-const PLACEHOLDER = '/images/storefront-hero.png'
-
-export function toStorefrontProduct(item: MarketplaceProduct): Product {
-  const cover = item.media.find((media) => media.isPrimary && media.mediaType === 'IMAGE')
-    ?? item.media.find((media) => media.mediaType === 'IMAGE')
-  return {
-    badge: item.discount > 0 ? `${item.discount}% off` : undefined,
-    brand: item.brand ?? undefined,
-    category: item.category.name,
-    image: cover ? mediaUrl(cover.url) : PLACEHOLDER,
-    name: item.name,
-    oldPrice: item.discount > 0 ? item.price : undefined,
-    price: item.finalPrice,
-    rating: 0,
-    reviews: 0,
-    slug: item.slug,
-  }
-}
 
 interface InfiniteProductGridProps {
   className?: string

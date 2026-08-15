@@ -16,6 +16,13 @@ export interface Product {
   price: number
   rating: number
   reviews: number
+  /**
+   * How many SKUs the product sells as. More than one means the shopper has to
+   * choose on the product page before it can go in a cart.
+   */
+  variantCount?: number
+  /** The SKU this entry stands for, once one has been chosen. */
+  variantId?: string
 }
 
 export const categories: Category[] = [

@@ -4,15 +4,16 @@ export interface ServerFavoriteItem {
   product: {
     availableQuantity: number
     brand: string | null
-    category: { id: string; name: string; slug: string }
-    discount: number
-    finalPrice: number
+    categories: Array<{ id: string; name: string; slug: string }>
+    discountPercent: number
     image: { url: string } | null
+    listPrice: number
     name: string
     price: number
     shop: { id: string; name: string; slug: string }
     slug: string
     stockStatus: 'IN_STOCK' | 'OUT_OF_STOCK'
+    variantCount: number
   }
   savedAt: string
 }

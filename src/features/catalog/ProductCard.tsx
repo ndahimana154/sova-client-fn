@@ -29,7 +29,7 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
         >
           <Heart className={isFavorite ? 'fill-current' : ''} size={17} />
         </button>
-        <button className="quick-add quick-add-desktop" onClick={() => onAdd(product)} type="button"><ShoppingBag size={15} /> Add to cart</button>
+        <AddControl className="quick-add quick-add-desktop" onAdd={onAdd} product={product} />
       </div>
       <div className="pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
@@ -45,9 +45,33 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
           <strong className="text-base text-ink">{formatPrice(product.price)}</strong>
           {product.oldPrice && <span className="text-xs text-muted line-through">{formatPrice(product.oldPrice)}</span>}
         </div>
-        <button className="quick-add quick-add-touch" onClick={() => onAdd(product)} type="button"><ShoppingBag size={15} /> Add to cart</button>
+        <AddControl className="quick-add quick-add-touch" onAdd={onAdd} product={product} />
       </div>
     </article>
+  )
+}
+
+/**
+ * A product that sells in more than one version cannot go straight in the cart —
+ * there is no way to know which SKU was meant — so it sends the shopper to the
+ * page where the options live instead.
+ */
+function AddControl({ className, onAdd, product }: {
+  className: string
+  onAdd: (product: Product) => void
+  product: Product
+}) {
+  if (product.slug && (product.variantCount ?? 1) > 1) {
+    return (
+      <Link className={className} to={appPaths.productDetails(product.slug)}>
+        <ShoppingBag size={15} /> Choose options
+      </Link>
+    )
+  }
+  return (
+    <button className={className} onClick={() => onAdd(product)} type="button">
+      <ShoppingBag size={15} /> Add to cart
+    </button>
   )
 }
 

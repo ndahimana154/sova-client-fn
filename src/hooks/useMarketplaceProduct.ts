@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { marketplaceApi, type MarketplaceProduct } from '../lib/marketplaceApi'
+import { marketplaceApi, type MarketplaceProduct, type MarketplaceVideo } from '../lib/marketplaceApi'
 
 interface State {
   error: string
@@ -27,4 +27,28 @@ export function useMarketplaceProduct(slug: string | undefined): State {
   }, [slug])
 
   return state
+}
+
+/**
+ * A product's videos, which the product endpoint no longer carries — its media
+ * is images only — so the gallery asks for them separately.
+ */
+export function useProductVideos(slug: string | undefined): MarketplaceVideo[] {
+  const [videos, setVideos] = useState<MarketplaceVideo[]>([])
+
+  useEffect(() => {
+    if (!slug) {
+      setVideos([])
+      return
+    }
+    let active = true
+    setVideos([])
+    marketplaceApi.productVideos(slug, { limit: 20 })
+      .then((result) => { if (active) setVideos(result.contents) })
+      // A missing reel must never take the product page down with it.
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [slug])
+
+  return videos
 }

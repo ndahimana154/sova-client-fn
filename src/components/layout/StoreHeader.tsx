@@ -62,7 +62,6 @@ export function StoreHeader({
     <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur">
       <div className="bg-ink px-4 py-2 text-center text-[11px] font-medium text-white">
         Free delivery in Kigali <span className="mx-2 text-white/30">•</span> Easy returns within 3 days
-        Free delivery in Kigali <span className="mx-2 text-white/30">•</span> Easy returns within 3 days
       </div>
       <div className="page-container flex h-[72px] items-center gap-4">
         <Brand />

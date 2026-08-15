@@ -1,11 +1,9 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { Product } from '../../data/catalog'
-import { marketplaceApi, type HomepageProduct } from '../../lib/marketplaceApi'
-import { mediaUrl } from '../../lib/mediaUrl'
+import { marketplaceApi } from '../../lib/marketplaceApi'
+import { toStorefrontProduct } from '../../lib/storefrontProduct'
 import { ProductCard } from './ProductCard'
-
-const PLACEHOLDER = '/images/storefront-hero.png'
 
 interface BestDealsSectionProps {
   isFavorite: (product: Product) => boolean
@@ -19,10 +17,12 @@ export function BestDealsSection({ isFavorite, onAdd, onFavorite, onOpen }: Best
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let active = true
     marketplaceApi.homepageProducts()
-      .then((result) => setProducts(result.contents.map(toProduct)))
-      .catch(() => setProducts([]))
-      .finally(() => setLoading(false))
+      .then((result) => { if (active) setProducts(result.contents.map(toStorefrontProduct)) })
+      .catch(() => { if (active) setProducts([]) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [])
 
   if (!loading && !products.length) return null
@@ -55,21 +55,4 @@ export function BestDealsSection({ isFavorite, onAdd, onFavorite, onOpen }: Best
         )}
     </section>
   )
-}
-
-function toProduct(item: HomepageProduct): Product {
-  const cover = item.media.find((media) => media.isPrimary && media.mediaType === 'IMAGE')
-    ?? item.media.find((media) => media.mediaType === 'IMAGE')
-  return {
-    badge: item.discount > 0 ? `${item.discount}% off` : undefined,
-    brand: item.brand ?? undefined,
-    category: item.category.name,
-    image: cover ? mediaUrl(cover.url) : PLACEHOLDER,
-    name: item.name,
-    oldPrice: item.discount > 0 ? item.price : undefined,
-    price: item.finalPrice,
-    rating: 0,
-    reviews: 0,
-    slug: item.slug,
-  }
 }

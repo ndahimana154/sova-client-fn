@@ -219,9 +219,9 @@ function ProductCard({ product }: { product: MarketplaceVideoProduct }) {
         <strong className="block truncate text-xs leading-tight">{product.name}</strong>
         <small className="mt-0.5 block truncate text-[10px] font-bold text-muted">{product.shop.name}</small>
         <span className="mt-1 flex flex-wrap items-baseline gap-1.5">
-          <strong className="text-xs font-black text-primary-dark">{formatPrice(product.finalPrice)}</strong>
-          {product.discount > 0 && <s className="text-[10px] text-muted">{formatPrice(product.price)}</s>}
-          {product.discount > 0 && <span className="rounded-full bg-primary-dark/10 px-1.5 py-px text-[9px] font-black text-primary-dark">-{product.discount}%</span>}
+          <strong className="text-xs font-black text-primary-dark">{formatPrice(product.price)}</strong>
+          {product.discountPercent > 0 && <s className="text-[10px] text-muted">{formatPrice(product.listPrice)}</s>}
+          {product.discountPercent > 0 && <span className="rounded-full bg-primary-dark/10 px-1.5 py-px text-[9px] font-black text-primary-dark">-{product.discountPercent}%</span>}
           {!inStock && <span className="text-[9px] font-black uppercase tracking-wide text-red-600">Out of stock</span>}
         </span>
       </span>

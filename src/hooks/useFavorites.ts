@@ -8,11 +8,10 @@ import {
   saveGuestFavorites,
 } from '../lib/guestFavorites'
 import { mediaUrl } from '../lib/mediaUrl'
+import { PRODUCT_PLACEHOLDER } from '../lib/storefrontProduct'
 import { setFavoriteItems } from '../store/commerceSlice'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setToast } from '../store/uiSlice'
-
-const PLACEHOLDER = '/images/storefront-hero.png'
 
 /**
  * What makes two products the same saved product. Names repeat across the
@@ -28,19 +27,20 @@ const favoriteKey = (product: Product) => product.slug ?? product.name
 const loadInFlight = new Map<string, Promise<ServerFavorites>>()
 
 function toProducts(favorites: ServerFavorites): Product[] {
-  return favorites.items.map((item) => ({
-    badge: item.product.stockStatus === 'OUT_OF_STOCK'
+  return favorites.items.map(({ product }) => ({
+    badge: product.stockStatus === 'OUT_OF_STOCK'
       ? 'Out of stock'
-      : item.product.discount > 0 ? `${item.product.discount}% off` : undefined,
-    brand: item.product.brand ?? undefined,
-    category: item.product.category.name,
-    image: item.product.image ? mediaUrl(item.product.image.url) : PLACEHOLDER,
-    name: item.product.name,
-    oldPrice: item.product.discount > 0 ? item.product.price : undefined,
-    price: item.product.finalPrice,
+      : product.discountPercent > 0 ? `${product.discountPercent}% off` : undefined,
+    brand: product.brand ?? undefined,
+    category: product.categories[0]?.name ?? '',
+    image: product.image ? mediaUrl(product.image.url) : PRODUCT_PLACEHOLDER,
+    name: product.name,
+    oldPrice: product.discountPercent > 0 ? product.listPrice : undefined,
+    price: product.price,
     rating: 0,
     reviews: 0,
-    slug: item.product.slug,
+    slug: product.slug,
+    variantCount: product.variantCount,
   }))
 }
 

@@ -17,7 +17,7 @@ export function Hero() {
       <div className="page-container">
         <div className="mb-5">
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary-dark">Watch. Discover. Shop.</p>
-          <h1 className="text-2xl font-black tracking-[-0.04em] text-ink sm:text-3xl">Explore shops through video</h1>
+          <h1 className="text-2xl font-black tracking-[-0.04em] text-ink sm:text-3xl">The SOVA FLOW</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted">See products in motion and discover stories from shops across SOVA.</p>
         </div>
       </div>
@@ -63,8 +63,10 @@ function VideoPin({ index, video }: { index: number; video: MarketplaceVideo }) 
           {video.altText && <h2 className="text-sm font-bold leading-tight sm:text-base">{video.altText}</h2>}
           <p className="mt-1 truncate text-xs font-bold leading-tight text-white/85">{video.product.name}</p>
           <p className="mt-0.5 flex items-baseline gap-1.5 text-xs">
-            <strong className="font-black">{formatPrice(video.product.finalPrice)}</strong>
-            {video.product.discount > 0 && <s className="text-[10px] text-white/60">{formatPrice(video.product.price)}</s>}
+            <strong className="font-black">{formatPrice(video.product.price)}</strong>
+            {video.product.discountPercent > 0 && (
+              <s className="text-[10px] text-white/60">{formatPrice(video.product.listPrice)}</s>
+            )}
           </p>
         </div>
       </div>
