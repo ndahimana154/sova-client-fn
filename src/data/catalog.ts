@@ -6,7 +6,6 @@ export interface Category {
 
 export interface Product {
   badge?: string
-  /** Present only on products loaded from the API. */
   slug?: string
   brand?: string
   category: string
@@ -16,6 +15,8 @@ export interface Product {
   price: number
   rating: number
   reviews: number
+  variantCount?: number
+  variantId?: string
 }
 
 export const categories: Category[] = [

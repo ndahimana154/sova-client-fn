@@ -3,47 +3,24 @@ import { useEffect, useRef } from 'react'
 import type { Product } from '../../data/catalog'
 import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
 import type {
-  MarketplaceProduct,
   MarketplaceProductQuery,
   PaginatedMarketplaceProducts,
 } from '../../lib/marketplaceApi'
-import { mediaUrl } from '../../lib/mediaUrl'
+import { toStorefrontProduct } from '../../lib/storefrontProduct'
 import { ProductCard } from './ProductCard'
-
-const PLACEHOLDER = '/images/storefront-hero.png'
-
-export function toStorefrontProduct(item: MarketplaceProduct): Product {
-  const cover = item.media.find((media) => media.isPrimary && media.mediaType === 'IMAGE')
-    ?? item.media.find((media) => media.mediaType === 'IMAGE')
-  return {
-    badge: item.discount > 0 ? `${item.discount}% off` : undefined,
-    brand: item.brand ?? undefined,
-    category: item.category.name,
-    image: cover ? mediaUrl(cover.url) : PLACEHOLDER,
-    name: item.name,
-    oldPrice: item.discount > 0 ? item.price : undefined,
-    price: item.finalPrice,
-    rating: 0,
-    reviews: 0,
-    slug: item.slug,
-  }
-}
 
 interface InfiniteProductGridProps {
   className?: string
   emptyMessage?: string
   isFavorite: (product: Product) => boolean
-  /** First page the caller already loaded, so it is not fetched twice. */
   initial?: PaginatedMarketplaceProducts
   onAdd: (product: Product) => void
   onFavorite: (product: Product) => void
   onOpen: (product: Product) => void
   query?: MarketplaceProductQuery
-  /** Pulls the pages from this shop's endpoint instead of the global product list. */
   shopSlug?: string
 }
 
-/** Product grid that pulls the next page as the visitor nears the bottom. */
 export function InfiniteProductGrid({
   initial,
   query,
@@ -60,10 +37,6 @@ interface ProductFeedProps extends Omit<InfiniteProductGridProps, 'initial' | 'q
   feed: ProductFeedState
 }
 
-/**
- * Renders a feed the caller already owns. Search keeps the feed itself so it can
- * read the facet counts that come back with each page.
- */
 export function ProductFeed({
   className = 'grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5',
   emptyMessage = 'No products here yet.',

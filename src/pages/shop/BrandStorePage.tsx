@@ -96,48 +96,12 @@ export function BrandStorePage() {
             <div className="min-w-0 flex-1">
               <h1 className="text-3xl font-black tracking-[-0.045em] sm:text-4xl">{shop.name}</h1>
 
-              {/* Everything a visitor needs to size up the seller, in one block. */}
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {average > 0 && (
-                  <Chip onCover={onCover}>
-                    <Star className="fill-primary text-primary" size={13} />
-                    <strong>{average.toFixed(1)}</strong> store rating
-                  </Chip>
-                )}
-                <Chip onCover={onCover}>
-                  <Package size={13} />
-                  {shop.productCount} {shop.productCount === 1 ? 'product' : 'products'}
-                </Chip>
-                {address && <Chip onCover={onCover}><MapPin size={13} /> {address}</Chip>}
-                <Chip onCover={onCover}><ShieldCheck size={13} /> Verified seller</Chip>
-                <Chip onCover={onCover}><Truck size={13} /> 14-day returns</Chip>
-              </div>
-
               {shop.description && (
                 <p className={`mt-4 max-w-2xl text-sm leading-6 ${onCover ? 'text-white/85' : 'text-muted'}`}>
                   {shop.description}
                 </p>
               )}
 
-              {(shop.phone || shop.email || shop.googleMapsLocationLink) && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {shop.phone && (
-                    <ContactLink href={`tel:${shop.phone.replaceAll(' ', '')}`} onCover={onCover}>
-                      <Phone size={14} /> {shop.phone}
-                    </ContactLink>
-                  )}
-                  {shop.email && (
-                    <ContactLink href={`mailto:${shop.email}`} onCover={onCover}>
-                      <Mail size={14} /> {shop.email}
-                    </ContactLink>
-                  )}
-                  {shop.googleMapsLocationLink && (
-                    <ContactLink external href={shop.googleMapsLocationLink} onCover={onCover}>
-                      <MapPin size={14} /> Open in Maps <ExternalLink size={12} />
-                    </ContactLink>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -150,9 +114,7 @@ export function BrandStorePage() {
               <p className="auth-eyebrow">Browse this store</p>
               <h2 className="mt-2 text-2xl font-black tracking-[-0.035em] text-ink">Products from {shop.name}</h2>
             </div>
-            <span className="text-xs text-muted">
-              {shop.productCount} {shop.productCount === 1 ? 'product' : 'products'}
-            </span>
+
           </div>
 
           <div className="mt-7">
@@ -212,11 +174,10 @@ export function BrandStorePage() {
 function Chip({ children, onCover }: { children: ReactNode; onCover: boolean }) {
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-3 py-1.5 text-xs font-semibold ${
-        onCover
-          ? 'border-white/25 bg-white/15 text-white backdrop-blur'
-          : 'border-line bg-white text-muted'
-      }`}
+      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-3 py-1.5 text-xs font-semibold ${onCover
+        ? 'border-white/25 bg-white/15 text-white backdrop-blur'
+        : 'border-line bg-white text-muted'
+        }`}
     >
       {children}
     </span>
@@ -231,11 +192,10 @@ function ContactLink({ children, external, href, onCover }: {
 }) {
   return (
     <a
-      className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition ${
-        onCover
-          ? 'border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20'
-          : 'border-line bg-white text-ink hover:border-primary hover:text-primary-dark'
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition ${onCover
+        ? 'border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20'
+        : 'border-line bg-white text-ink hover:border-primary hover:text-primary-dark'
+        }`}
       href={href}
       {...(external ? { rel: 'noreferrer', target: '_blank' } : {})}
     >

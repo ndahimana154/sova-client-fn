@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { marketplaceApi, type MarketplaceProduct } from '../lib/marketplaceApi'
+import { marketplaceApi, type MarketplaceProduct, type MarketplaceVideo } from '../lib/marketplaceApi'
 
 interface State {
   error: string
@@ -7,7 +7,6 @@ interface State {
   product: MarketplaceProduct | null
 }
 
-/** Loads one storefront product by slug. */
 export function useMarketplaceProduct(slug: string | undefined): State {
   const [state, setState] = useState<State>({ error: '', loading: Boolean(slug), product: null })
 
@@ -27,4 +26,23 @@ export function useMarketplaceProduct(slug: string | undefined): State {
   }, [slug])
 
   return state
+}
+
+export function useProductVideos(slug: string | undefined): MarketplaceVideo[] {
+  const [videos, setVideos] = useState<MarketplaceVideo[]>([])
+
+  useEffect(() => {
+    if (!slug) {
+      setVideos([])
+      return
+    }
+    let active = true
+    setVideos([])
+    marketplaceApi.productVideos(slug, { limit: 20 })
+      .then((result) => { if (active) setVideos(result.contents) })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [slug])
+
+  return videos
 }

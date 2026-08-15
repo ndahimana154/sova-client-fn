@@ -8,60 +8,96 @@ export interface MarketplaceCategory {
   slug: string
 }
 
+export type StockStatus = 'IN_STOCK' | 'OUT_OF_STOCK'
+
 export interface MarketplaceMedia {
   altText: string | null
+  durationSeconds: number | null
   id: string
   isPrimary: boolean
   mediaType: 'IMAGE' | 'VIDEO'
+  mimeType: string
   position: number
+  sizeBytes: number
   url: string
+  variantId: string | null
+}
+
+export interface MarketplaceCategoryRef {
+  id: string
+  name: string
+  parentId: string | null
+  slug: string
+}
+
+export interface MarketplaceAttribute {
+  id: string
+  name: string
+  values: string[]
+}
+
+export interface MarketplaceVariantAttribute {
+  attributeId: string
+  name: string
+  value: string
+}
+
+export interface MarketplaceVariant {
+  attributes: MarketplaceVariantAttribute[]
+  barcode: string | null
+  discountPercent: number | null
+  id: string
+  isActive: boolean
+  isDefault: boolean
+  isPlaceholder: boolean
+  name: string | null
+  price: number
+  salePrice: number
+  sku: string
+  stockQuantity: number
+  stockStatus: StockStatus
 }
 
 export interface MarketplaceProduct {
+  attributes: MarketplaceAttribute[]
   brand: string | null
-  category: { id: string; name: string; parentId: string | null; slug: string }
+  brandSlug: string | null
+  categories: MarketplaceCategoryRef[]
   createdAt: string
   description: string
-  discount: number
-  finalPrice: number
+  discountPercent: number
+  listPrice: number
+  maxPrice: number
   media: MarketplaceMedia[]
   name: string
   price: number
   quantity: number
   shop: { id: string; name: string; slug: string }
   slug: string
-  stockStatus: 'IN_STOCK' | 'OUT_OF_STOCK'
-  variants: Record<string, string>
+  stockStatus: StockStatus
+  updatedAt: string
+  variantCount: number
+  variants: MarketplaceVariant[]
 }
 
-/** Product summary carried by every video, so a card renders without a second call. */
 export interface MarketplaceVideoProduct {
   brand: string | null
-  category: { id: string; name: string; slug: string }
-  discount: number
-  finalPrice: number
+  discountPercent: number
   id: string
   imageUrl: string | null
+  listPrice: number
   name: string
   price: number
   quantity: number
   shop: { id: string; name: string; slug: string }
   slug: string
-  stockStatus: 'IN_STOCK' | 'OUT_OF_STOCK'
+  stockStatus: StockStatus
 }
 
-export interface MarketplaceVideo {
-  altText: string | null
+export interface MarketplaceVideo extends MarketplaceMedia {
   likeCount: number
   liked: boolean
-  durationSeconds: number | null
-  id: string
-  isPrimary: boolean
-  mediaType: 'IMAGE' | 'VIDEO'
-  position: number
-  product: MarketplaceVideoProduct
-  productSlug: string
-  url: string
+  products: MarketplaceVideoProduct[]
 }
 
 export interface PaginatedVideos {
@@ -141,7 +177,6 @@ export interface MarketplaceShop {
   zip: string | null
 }
 
-/** Shop endpoint response, which ships the first page of the shop's products. */
 export interface MarketplaceShopDetails extends MarketplaceShop {
   products: PaginatedMarketplaceProducts
 }
@@ -166,10 +201,8 @@ export interface PaginatedMarketplaceShops {
 }
 
 export interface MarketplaceProductQuery {
-  /** Comma-separated brand names. */
   brands?: string
   categoryId?: string
-  /** Comma-separated category IDs; each also matches its sub-categories. */
   categoryIds?: string
   categorySlug?: string
   limit?: number
@@ -179,10 +212,10 @@ export interface MarketplaceProductQuery {
   page?: number
   search?: string
   shopSlug?: string
-  /** Comma-separated shop slugs. */
   shopSlugs?: string
   sortBy?: 'relevance' | 'name' | 'price' | 'createdAt' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
+  stockStatus?: StockStatus
 }
 
 export interface MarketplaceFacetValue {
@@ -192,11 +225,6 @@ export interface MarketplaceFacetValue {
   slug: string
 }
 
-/**
- * Counts behind the filter sidebar. Every dimension is counted with the other
- * filters applied but its own ignored, so picking one option never hides the
- * rest of that list.
- */
 export interface MarketplaceProductFacets {
   brands: { count: number; name: string }[]
   categories: MarketplaceFacetValue[]
@@ -204,6 +232,13 @@ export interface MarketplaceProductFacets {
   price: { max: number; min: number } | null
   shops: MarketplaceFacetValue[]
   totalMatches: number
+}
+
+export interface MarketplaceFacetValue {
+  count: number
+  id: string
+  name: string
+  slug: string
 }
 
 export interface PaginatedMarketplaceProducts {
@@ -217,7 +252,6 @@ export interface PaginatedMarketplaceProducts {
     totalItems: number
     totalPages: number
   }
-  /** Alternative spellings to offer when a search returns little or nothing. */
   suggestions: string[]
 }
 
@@ -259,7 +293,12 @@ export const marketplaceApi = {
   postVideoComment: async (mediaId: string, input: { content: string; parentId?: string }) =>
     (await api.post<ApiEnvelope<VideoComment>, typeof input>(`/buyer/product-videos/${mediaId}/comments`, input)).data,
   product: async (slug: string) =>
-    (await api.get<ApiEnvelope<MarketplaceProduct>>(`/buyer/products/${slug}`)).data,
+    (await api.get<ApiEnvelope<MarketplaceProduct>>(`/buyer/products/${encodeURIComponent(slug)}`)).data,
+  productVideos: async (slug: string, query: { limit?: number; page?: number } = {}) =>
+    (await api.get<ApiEnvelope<PaginatedVideos>>(
+      `/buyer/products/${encodeURIComponent(slug)}/videos`,
+      { params: query },
+    )).data,
   products: async (query: MarketplaceProductQuery = {}) =>
     (await api.get<ApiEnvelope<PaginatedMarketplaceProducts>>('/buyer/products', { params: query })).data,
   shops: async (query: MarketplaceShopQuery = {}) =>

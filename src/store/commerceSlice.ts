@@ -20,33 +20,15 @@ const commerceSlice = createSlice({
   initialState,
   name: 'commerce',
   reducers: {
-    addToCart(state, action: PayloadAction<{ product: Product; quantity: number }>) {
-      const existing = state.cartItems.find((item) => item.product.name === action.payload.product.name)
-      if (existing) existing.quantity += action.payload.quantity
-      else state.cartItems.push(action.payload)
-    },
-    changeCartQuantity(state, action: PayloadAction<{ productName: string; quantity: number }>) {
-      if (action.payload.quantity < 1) {
-        state.cartItems = state.cartItems.filter((item) => item.product.name !== action.payload.productName)
-        return
-      }
-      const item = state.cartItems.find((candidate) => candidate.product.name === action.payload.productName)
-      if (item) item.quantity = action.payload.quantity
-    },
-    removeFromCart(state, action: PayloadAction<string>) {
-      state.cartItems = state.cartItems.filter((item) => item.product.name !== action.payload)
-    },
     resetCommerce() {
       return initialState
     },
-    /** Replaces the cart wholesale, used when syncing with the server. */
     setCartItems(state, action: PayloadAction<CartItem[]>) {
       state.cartItems = action.payload
     },
     setCartOpen(state, action: PayloadAction<boolean>) {
       state.cartOpen = action.payload
     },
-    /** Replaces the favorites wholesale, used when syncing with the server. */
     setFavoriteItems(state, action: PayloadAction<Product[]>) {
       state.favoriteItems = action.payload
     },
@@ -57,9 +39,6 @@ const commerceSlice = createSlice({
 })
 
 export const {
-  addToCart,
-  changeCartQuantity,
-  removeFromCart,
   resetCommerce,
   setCartItems,
   setCartOpen,

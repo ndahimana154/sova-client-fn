@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { SignInPrompt } from '../../components/ui/SignInPrompt'
 import { VideoComments } from '../../features/videos/VideoComments'
+import { VideoControls } from '../../features/videos/VideoControls'
+import { SKIP_SECONDS, seekBy } from '../../lib/videoSeek'
 import { useInfiniteVideos } from '../../hooks/useInfiniteVideos'
 import { marketplaceApi } from '../../lib/marketplaceApi'
 import { useAppSelector } from '../../store/hooks'
@@ -24,6 +26,7 @@ export function VideoDiscoveryPage() {
   const [commentCount, setCommentCount] = useState(0)
   const [signInFor, setSignInFor] = useState('')
   const [likes, setLikes] = useState<Record<string, { count: number; liked: boolean }>>({})
+  const [player, setPlayer] = useState<HTMLVideoElement | null>(null)
   const session = useAppSelector((state) => state.auth.session)
   const authenticated = Boolean(session)
 
@@ -32,7 +35,6 @@ export function VideoDiscoveryPage() {
     if (!authenticated) { setSignInFor('like this video'); return }
     const current = likes[video.id] ?? { count: video.likeCount, liked: video.liked }
     const next = !current.liked
-    // Optimistic: the tap should feel instant, and we reconcile on the response.
     setLikes((state) => ({
       ...state,
       [video.id]: { count: current.count + (next ? 1 : -1), liked: next },
@@ -53,7 +55,8 @@ export function VideoDiscoveryPage() {
     setActive(next)
   }, [active, videos.length])
 
-  // Jump to the video the visitor clicked, once it has arrived.
+  useEffect(() => { setPlayer(players.current[active] ?? null) }, [active, videos.length])
+
   useEffect(() => {
     if (jumped || !requestedId || !videos.length) return
     const index = videos.findIndex((video) => video.id === requestedId)
@@ -63,21 +66,16 @@ export function VideoDiscoveryPage() {
     setJumped(true)
   }, [jumped, requestedId, videos])
 
-  // Pull the next page as the viewer nears the end of the loaded reel.
   useEffect(() => {
     if (videos.length && active >= videos.length - 3) loadNext()
   }, [active, loadNext, videos.length])
 
-  // Play the video in view with sound. `videos.length` matters: the first page
-  // arrives after mount, so without it the opening video would never start.
   useEffect(() => {
     players.current.forEach((player, index) => {
       if (!player) return
       if (index !== active) { player.pause(); return }
       player.muted = muted
       void player.play().catch(() => {
-        // Browsers refuse unmuted autoplay until the visitor interacts with the
-        // page, so drop to silent playback rather than showing a frozen frame.
         player.muted = true
         setMuted(true)
         setSoundBlocked(true)
@@ -86,16 +84,13 @@ export function VideoDiscoveryPage() {
     })
   }, [active, muted, videos.length])
 
-  // Once that first interaction happens, give the sound back.
   useEffect(() => {
     if (!soundBlocked) return
     function restoreSound(event: Event) {
-      // Typing is not the "first interaction" that should unmute the video.
       if (event.type === 'keydown' && isTypingTarget(event.target)) return
       setMuted(false)
       setSoundBlocked(false)
     }
-    // Not `once`: a keystroke in a text field must not consume the listener.
     window.addEventListener('pointerdown', restoreSound)
     window.addEventListener('keydown', restoreSound)
     return () => {
@@ -106,11 +101,11 @@ export function VideoDiscoveryPage() {
 
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
-      // Never steal keys from a field: space, j/k, m and the arrows all belong
-      // to whoever is typing.
       if (isTypingTarget(event.target)) return
       if (event.key === 'ArrowDown' || event.key === 'j') { event.preventDefault(); move(1) }
       if (event.key === 'ArrowUp' || event.key === 'k') { event.preventDefault(); move(-1) }
+      if (event.key === 'ArrowLeft') { event.preventDefault(); seekBy(players.current[active], -SKIP_SECONDS) }
+      if (event.key === 'ArrowRight') { event.preventDefault(); seekBy(players.current[active], SKIP_SECONDS) }
       if (event.key === ' ') {
         event.preventDefault()
         const player = players.current[active]
@@ -165,8 +160,9 @@ export function VideoDiscoveryPage() {
                 {index !== active && <span className="grid size-14 place-items-center rounded-full bg-black/35 backdrop-blur"><Play fill="white" size={22} /></span>}
               </button>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent px-5 pb-6 pt-24">
-                <ProductCard product={item.product} />
+                <ProductStrip products={item.products} />
                 {item.altText && <h1 className="mt-3 max-w-sm text-lg font-bold">{item.altText}</h1>}
+                {index === active && <div className="mt-3"><VideoControls player={player} /></div>}
               </div>
             </div>
           </section>
@@ -207,7 +203,28 @@ export function VideoDiscoveryPage() {
   )
 }
 
-/** The shoppable card under each video: cover image, name, shop and live pricing. */
+function ProductStrip({ products }: { products: MarketplaceVideoProduct[] }) {
+  if (!products.length) return null
+  if (products.length === 1) return <ProductCard product={products[0]} />
+
+  return (
+    <div className="pointer-events-auto">
+      {products.length > 0 && (
+        <p className="mb-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/70">
+          {products.length} products in this video
+        </p>
+      )}
+      <div className="video-products">
+        {products.map((product) => (
+          <span className="w-[min(20rem,78%)] shrink-0 snap-start" key={product.id}>
+            <ProductCard product={product} />
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function ProductCard({ product }: { product: MarketplaceVideoProduct }) {
   const inStock = product.stockStatus === 'IN_STOCK'
   return (
@@ -219,9 +236,9 @@ function ProductCard({ product }: { product: MarketplaceVideoProduct }) {
         <strong className="block truncate text-xs leading-tight">{product.name}</strong>
         <small className="mt-0.5 block truncate text-[10px] font-bold text-muted">{product.shop.name}</small>
         <span className="mt-1 flex flex-wrap items-baseline gap-1.5">
-          <strong className="text-xs font-black text-primary-dark">{formatPrice(product.finalPrice)}</strong>
-          {product.discount > 0 && <s className="text-[10px] text-muted">{formatPrice(product.price)}</s>}
-          {product.discount > 0 && <span className="rounded-full bg-primary-dark/10 px-1.5 py-px text-[9px] font-black text-primary-dark">-{product.discount}%</span>}
+          <strong className="text-xs font-black text-primary-dark">{formatPrice(product.price)}</strong>
+          {product.discountPercent > 0 && <s className="text-[10px] text-muted">{formatPrice(product.listPrice)}</s>}
+          {product.discountPercent > 0 && <span className="rounded-full bg-primary-dark/10 px-1.5 py-px text-[9px] font-black text-primary-dark">-{product.discountPercent}%</span>}
           {!inStock && <span className="text-[9px] font-black uppercase tracking-wide text-red-600">Out of stock</span>}
         </span>
       </span>
@@ -238,7 +255,6 @@ function ArrowButton({ children, disabled, label, onClick }: { children: ReactNo
   return <button aria-label={label} className="grid size-10 place-items-center rounded-full bg-white/15 backdrop-blur hover:bg-white/25 disabled:opacity-25" disabled={disabled} onClick={onClick} type="button">{children}</button>
 }
 
-/** True when the key belongs to a text field rather than a page shortcut. */
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   const tag = target.tagName

@@ -9,20 +9,29 @@ import {
   ShoppingBag,
   Truck,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { FeedbackSection, StarRow } from '../../components/feedback/FeedbackSection'
 import { AttributeTags } from '../../components/ui/AttributeTags'
-import { toStorefrontProduct } from '../../features/catalog/InfiniteProductGrid'
 import { ProductCard } from '../../features/catalog/ProductCard'
+import { VariantSelect } from '../../features/catalog/VariantSelect'
 import { useCommerce } from '../../hooks/useCommerce'
 import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
 import { useLocalFeedback } from '../../hooks/useLocalFeedback'
 import { useProductNavigation } from '../../hooks/useProductNavigation'
-import { useMarketplaceProduct } from '../../hooks/useMarketplaceProduct'
+import { useMarketplaceProduct, useProductVideos } from '../../hooks/useMarketplaceProduct'
 import { formatPrice } from '../../lib/formatPrice'
+import type { MarketplaceMedia } from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
 import { recordProductView } from '../../lib/productViews'
+import { toStorefrontProduct } from '../../lib/storefrontProduct'
+import {
+  defaultVariant,
+  resolveVariant,
+  sellableVariants,
+  variantLabel,
+  variantOptions,
+} from '../../lib/variants'
 import { appPaths } from '../../router/paths'
 
 export function ProductDetailPage() {
@@ -30,24 +39,44 @@ export function ProductDetailPage() {
   const { addToCart, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   const { error, loading, product } = useMarketplaceProduct(slug)
+  const videos = useProductVideos(slug)
   const { average, feedback, submit } = useLocalFeedback(`product-${slug}`)
   const [quantity, setQuantity] = useState(1)
   const [activeMediaId, setActiveMediaId] = useState('')
+  const [chosenId, setChosenId] = useState('')
+  const versionLabelId = useId()
 
   useEffect(() => { void recordProductView(product?.slug) }, [product?.slug])
-  useEffect(() => { setQuantity(1); setActiveMediaId('') }, [slug])
 
-  const gallery = useMemo(
-    () => [...(product?.media ?? [])].sort(
+  useEffect(() => {
+    setQuantity(1)
+    setActiveMediaId('')
+    setChosenId(product ? defaultVariant(product.variants)?.id ?? '' : '')
+  }, [product])
+
+  const variant = useMemo(
+    () => (product ? resolveVariant(product.variants, chosenId) : null),
+    [chosenId, product],
+  )
+  const variantId = variant?.id
+
+  useEffect(() => { setActiveMediaId('') }, [variantId])
+
+  const gallery: MarketplaceMedia[] = useMemo(() => {
+    const images = [...(product?.media ?? [])].sort(
       (left, right) =>
         Number(right.isPrimary) - Number(left.isPrimary) || left.position - right.position,
-    ),
-    [product],
-  )
+    )
+    const own = images.filter((item) => item.variantId && item.variantId === variantId)
+    const shared = images.filter((item) => !item.variantId)
+    const others = variantId ? [] : images.filter((item) => item.variantId)
+    return [...own, ...shared, ...others, ...videos]
+  }, [product, variantId, videos])
   const active = gallery.find((item) => item.id === activeMediaId) ?? gallery[0]
 
+  const categorySlug = product?.categories[0]?.slug
   const related = useInfiniteProducts(
-    useMemo(() => ({ categorySlug: product?.category.slug }), [product?.category.slug]),
+    useMemo(() => ({ categorySlug }), [categorySlug]),
   )
 
   if (loading) {
@@ -70,10 +99,22 @@ export function ProductDetailPage() {
     )
   }
 
-  const card = toStorefrontProduct(product)
+  const category = product.categories[0]
+  const versions = sellableVariants(product.variants)
+  const price = variant ? variant.salePrice : product.price
+  const listPrice = variant ? variant.price : product.listPrice
+  const discountPercent = variant ? (variant.discountPercent ?? 0) : product.discountPercent
+  const available = variant ? variant.stockQuantity : product.quantity
+  const inStock = available > 0
+  const specs = variant ? variantOptions(variant) : {}
+
+  const card = {
+    ...toStorefrontProduct(product),
+    oldPrice: discountPercent > 0 ? listPrice : undefined,
+    price,
+    variantId,
+  }
   const saved = isFavorite(card)
-  const inStock = product.stockStatus === 'IN_STOCK' && product.quantity > 0
-  const attributes = Object.entries(product.variants)
   const relatedProducts = related.products.filter((item) => item.slug !== product.slug).slice(0, 4)
 
   return (
@@ -87,9 +128,9 @@ export function ProductDetailPage() {
                   ? <img alt={active.altText ?? product.name} className="size-full object-cover" src={mediaUrl(active.url)} />
                   : <video className="size-full object-cover" controls src={mediaUrl(active.url)} />
                 : <span className="grid size-full place-items-center text-muted"><ImageIcon size={44} /></span>}
-              {product.discount > 0 && (
+              {discountPercent > 0 && (
                 <span className="absolute left-5 top-5 rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-white">
-                  {product.discount}% off
+                  {discountPercent}% off
                 </span>
               )}
             </div>
@@ -114,12 +155,14 @@ export function ProductDetailPage() {
           </section>
 
           <section className="lg:py-2">
-            <Link
-              className="text-[10px] font-black uppercase tracking-[0.18em] text-primary-dark"
-              to={appPaths.categoryDetails(product.category.slug)}
-            >
-              {product.category.name}
-            </Link>
+            {category && (
+              <Link
+                className="text-[10px] font-black uppercase tracking-[0.18em] text-primary-dark"
+                to={appPaths.categoryDetails(category.slug)}
+              >
+                {category.name}
+              </Link>
+            )}
             <h1 className="mt-3 text-3xl font-black leading-tight tracking-[-0.045em] text-ink sm:text-4xl">{product.name}</h1>
             <Link
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-muted transition hover:text-primary-dark"
@@ -136,23 +179,55 @@ export function ProductDetailPage() {
             )}
 
             <div className="mt-6 flex items-baseline gap-3">
-              <strong className="text-2xl text-ink">{formatPrice(product.finalPrice)}</strong>
-              {product.discount > 0 && (
-                <span className="text-sm text-muted line-through">{formatPrice(product.price)}</span>
+              <strong className="text-2xl text-ink">{formatPrice(price)}</strong>
+              {discountPercent > 0 && (
+                <span className="text-sm text-muted line-through">{formatPrice(listPrice)}</span>
               )}
             </div>
             <p className={`mt-2 text-xs font-bold ${inStock ? 'text-green-700' : 'text-red-600'}`}>
-              {inStock ? `In stock` : 'Out of stock'}
+              {inStock ? `In stock · ${available} available` : 'Out of stock'}
             </p>
+
+            {versions.length > 1 && (
+              <div className="mt-6 border-t border-line pt-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-muted" id={versionLabelId}>
+                  Version
+                  {variant && <span className="ml-2 normal-case tracking-normal text-ink">{variantLabel(variant)}</span>}
+                </p>
+                <VariantSelect
+                  labelId={versionLabelId}
+                  onSelect={setChosenId}
+                  selectedId={variantId ?? ''}
+                  variants={product.variants}
+                />
+              </div>
+            )}
+
+            {Object.keys(specs).length > 0 && (
+              <div className="mt-6 border-t border-line pt-5">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">
+                  Specifications
+                </h2>
+                <div className="mt-3">
+                  <AttributeTags attributes={specs} />
+                </div>
+              </div>
+            )}
 
             <div className="mt-7 flex gap-3">
               <div className="flex h-12 items-center rounded-xl border border-line">
                 <button aria-label="Decrease quantity" className="grid size-11 place-items-center text-muted hover:text-ink" onClick={() => setQuantity((value) => Math.max(1, value - 1))} type="button"><Minus size={16} /></button>
                 <span className="w-7 text-center text-sm font-black">{quantity}</span>
-                <button aria-label="Increase quantity" className="grid size-11 place-items-center text-muted hover:text-ink" onClick={() => setQuantity((value) => Math.min(product.quantity || 1, value + 1))} type="button"><Plus size={16} /></button>
+                <button aria-label="Increase quantity" className="grid size-11 place-items-center text-muted hover:text-ink" onClick={() => setQuantity((value) => Math.min(available || 1, value + 1))} type="button"><Plus size={16} /></button>
               </div>
-              <button className="auth-submit flex-1" disabled={!inStock} onClick={() => addToCart(card, quantity)} type="button">
+              <button
+                className="auth-submit flex-1"
+                disabled={!inStock}
+                onClick={() => addToCart(card, quantity)}
+                type="button"
+              >
                 <ShoppingBag size={17} /> {inStock ? 'Add to cart' : 'Out of stock'}
+
               </button>
               <button
                 aria-label={saved ? 'Remove from favorites' : 'Save to favorites'}
@@ -168,21 +243,48 @@ export function ProductDetailPage() {
               <span className="flex items-center gap-2"><Truck className="text-primary-dark" size={18} /> Fast local delivery</span>
               <span className="flex items-center gap-2"><ShieldCheck className="text-primary-dark" size={18} /> Secure checkout</span>
             </div>
-            {attributes.length > 0 && (
-              <div className="mt-6 border-t border-line pt-5">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.14em] text-muted">Specifications</h2>
-                <div className="mt-3">
-                  <AttributeTags attributes={product.variants} />
-                </div>
-              </div>
-            )}
           </section>
         </div>
 
-        <div className="mt-8 border-y border-line py-6">
+        <div className="mt-8 border-t border-line py-6">
           <h2 className="text-sm font-black text-ink">Product details</h2>
           <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>
         </div>
+
+        {Object.keys(specs).length > 0 && (
+          <div className="border-y border-line py-6">
+            <h2 className="text-sm font-black text-ink">Specifications</h2>
+            {versions.length > 1 && variant && (
+              <p className="mt-1 text-xs text-muted">For {variantLabel(variant)}.</p>
+            )}
+            <dl className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {Object.entries(specs).map(([name, value]) => (
+                <div
+                  className="flex items-baseline justify-between gap-4 border-b border-line/70 pb-2"
+                  key={name}
+                >
+                  <dt className="text-xs font-bold text-muted">{name}</dt>
+                  <dd className="text-right text-xs font-bold text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+      </div>
+
+      <div className="border-b border-line bg-soft/40">
+        <FeedbackSection
+          average={average}
+          emptyMessage="No reviews for this product yet. Share your experience to help other buyers."
+          eyebrow="What buyers say"
+          feedback={feedback}
+          formTitle="Review this product"
+          id="product-feedback"
+          intro="Reviews here are about the product itself — quality, sizing, and whether it matched the description."
+          onSubmit={submit}
+          placeholder="How is the product working out for you?"
+          title="Product reviews"
+        />
       </div>
 
       <div className="border-b border-line bg-soft/40">

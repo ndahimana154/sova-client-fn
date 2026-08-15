@@ -8,47 +8,33 @@ import {
   saveGuestFavorites,
 } from '../lib/guestFavorites'
 import { mediaUrl } from '../lib/mediaUrl'
+import { PRODUCT_PLACEHOLDER } from '../lib/constants'
 import { setFavoriteItems } from '../store/commerceSlice'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { setToast } from '../store/uiSlice'
 
-const PLACEHOLDER = '/images/storefront-hero.png'
-
-/**
- * What makes two products the same saved product. Names repeat across the
- * catalog — two shops list the same watch — so the slug decides wherever there
- * is one, and only the demo products without a slug fall back to the name.
- */
 const favoriteKey = (product: Product) => product.slug ?? product.name
 
-/**
- * Shared across every copy of this hook. Each page holds its own, so without
- * this they would all sync on sign-in at once and race each other's writes.
- */
 const loadInFlight = new Map<string, Promise<ServerFavorites>>()
 
 function toProducts(favorites: ServerFavorites): Product[] {
-  return favorites.items.map((item) => ({
-    badge: item.product.stockStatus === 'OUT_OF_STOCK'
+  return favorites.items.map(({ product }) => ({
+    badge: product.stockStatus === 'OUT_OF_STOCK'
       ? 'Out of stock'
-      : item.product.discount > 0 ? `${item.product.discount}% off` : undefined,
-    brand: item.product.brand ?? undefined,
-    category: item.product.category.name,
-    image: item.product.image ? mediaUrl(item.product.image.url) : PLACEHOLDER,
-    name: item.product.name,
-    oldPrice: item.product.discount > 0 ? item.product.price : undefined,
-    price: item.product.finalPrice,
+      : product.discountPercent > 0 ? `${product.discountPercent}% off` : undefined,
+    brand: product.brand ?? undefined,
+    category: product.categories[0]?.name ?? '',
+    image: product.image ? mediaUrl(product.image.url) : PRODUCT_PLACEHOLDER,
+    name: product.name,
+    oldPrice: product.discountPercent > 0 ? product.listPrice : undefined,
+    price: product.price,
     rating: 0,
     reviews: 0,
-    slug: item.product.slug,
+    slug: product.slug,
+    variantCount: product.variantCount,
   }))
 }
 
-/**
- * One favorites list, two backing stores: the API when signed in, localStorage
- * when not. Signing in moves the guest list to the server and empties local
- * storage — the same arrangement the cart uses.
- */
 export function useFavorites() {
   const dispatch = useAppDispatch()
   const session = useAppSelector((state) => state.auth.session)
@@ -65,7 +51,6 @@ export function useFavorites() {
     dispatch(setFavoriteItems(toProducts(favorites)))
   }, [dispatch])
 
-  // Load from the right place, merging anything saved while signed out.
   useEffect(() => {
     if (!authenticated) {
       mergedFor.current = null
@@ -77,8 +62,6 @@ export function useFavorites() {
     mergedFor.current = userId
 
     const pending = mergeableFavorites(loadGuestFavorites())
-    // One request per sign-in, however many pages are asking: the first copy of
-    // the hook starts it and the rest await the same promise.
     let load = loadInFlight.get(userId)
     if (!load) {
       load = pending.length ? favoritesApi.merge(pending) : favoritesApi.get()
@@ -96,12 +79,6 @@ export function useFavorites() {
       .catch(() => undefined)
   }, [applyServerFavorites, authenticated, dispatch, notify, session?.user?.id])
 
-  /**
-   * A guest's list is written where it changes rather than mirrored from state
-   * by an effect: every page holds its own copy of this hook, and an effect
-   * would let one copy's pre-hydration empty state overwrite storage before
-   * another copy had read it back.
-   */
   const setGuestFavorites = useCallback((products: Product[]) => {
     saveGuestFavorites(products)
     dispatch(setFavoriteItems(products))

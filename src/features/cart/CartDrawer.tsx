@@ -1,6 +1,7 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Drawer } from '../../components/ui/Drawer'
 import { formatPrice } from '../../lib/formatPrice'
+import { cartLineKey } from '../../lib/cartLine'
 import type { CartItem } from './types'
 import { Link } from 'react-router-dom'
 import { appPaths } from '../../router/paths'
@@ -8,8 +9,8 @@ import { appPaths } from '../../router/paths'
 interface CartDrawerProps {
   items: CartItem[]
   onClose: () => void
-  onQuantityChange: (productName: string, quantity: number) => void
-  onRemove: (productName: string) => void
+  onQuantityChange: (lineKey: string, quantity: number) => void
+  onRemove: (lineKey: string) => void
 }
 
 export function CartDrawer({ items, onClose, onQuantityChange, onRemove }: CartDrawerProps) {
@@ -39,42 +40,49 @@ export function CartDrawer({ items, onClose, onQuantityChange, onRemove }: CartD
       ) : (
         <>
           <div className="flex-1 space-y-4 overflow-y-auto p-5">
-            {items.map(({ product, quantity }) => (
-              <article className="flex gap-4" key={product.name}>
-                <img alt="" className="size-24 shrink-0 rounded-2xl bg-soft object-cover" src={product.image} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">{product.category}</p>
-                  <h3 className="mt-1 text-sm font-bold leading-5 text-ink">{product.name}</h3>
-                  <strong className="mt-1 block text-sm text-ink">{formatPrice(product.price)}</strong>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center rounded-full border border-line">
+            {items.map((item) => {
+              const { options, product, quantity } = item
+              const key = cartLineKey(item)
+              return (
+                <article className="flex gap-4" key={key}>
+                  <img alt="" className="size-24 shrink-0 rounded-2xl bg-soft object-cover" src={product.image} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">{product.category}</p>
+                    <h3 className="mt-1 text-sm font-bold leading-5 text-ink">{product.name}</h3>
+                    {options.length > 0 && (
+                      <p className="mt-0.5 truncate text-[11px] text-muted">{options.join(' · ')}</p>
+                    )}
+                    <strong className="mt-1 block text-sm text-ink">{formatPrice(product.price)}</strong>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center rounded-full border border-line">
+                        <button
+                          aria-label={`Decrease ${product.name} quantity`}
+                          className="grid size-8 place-items-center"
+                          onClick={() => onQuantityChange(key, quantity - 1)}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="min-w-7 text-center text-xs font-bold">{quantity}</span>
+                        <button
+                          aria-label={`Increase ${product.name} quantity`}
+                          className="grid size-8 place-items-center"
+                          onClick={() => onQuantityChange(key, quantity + 1)}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
                       <button
-                        aria-label={`Decrease ${product.name} quantity`}
-                        className="grid size-8 place-items-center"
-                        onClick={() => onQuantityChange(product.name, quantity - 1)}
+                        aria-label={`Remove ${product.name} from cart`}
+                        className="grid size-8 place-items-center rounded-full text-muted hover:bg-soft hover:text-red-600"
+                        onClick={() => onRemove(key)}
                       >
-                        <Minus size={14} />
-                      </button>
-                      <span className="min-w-7 text-center text-xs font-bold">{quantity}</span>
-                      <button
-                        aria-label={`Increase ${product.name} quantity`}
-                        className="grid size-8 place-items-center"
-                        onClick={() => onQuantityChange(product.name, quantity + 1)}
-                      >
-                        <Plus size={14} />
+                        <Trash2 size={15} />
                       </button>
                     </div>
-                    <button
-                      aria-label={`Remove ${product.name} from cart`}
-                      className="grid size-8 place-items-center rounded-full text-muted hover:bg-soft hover:text-red-600"
-                      onClick={() => onRemove(product.name)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              )
+            })}
           </div>
           <div className="border-t border-line p-5">
             <div className="mb-4 flex items-center justify-between">
