@@ -4,6 +4,7 @@ import { FavoritesDrawer } from '../../features/favorites/FavoritesDrawer'
 import { useCommerce } from '../../hooks/useCommerce'
 import { isSeller } from '../../lib/clientAuth'
 import { appPaths } from '../../router/paths'
+import { openAuthModal } from '../../store/uiSlice'
 import { setCartOpen, setFavoritesOpen } from '../../store/commerceSlice'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { Footer } from './Footer'
@@ -12,8 +13,8 @@ import { StoreHeader } from './StoreHeader'
 /** Shared storefront chrome. Every buyer route renders inside this. */
 export function StorefrontLayout() {
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const location = useLocation()
+  const navigate = useNavigate()
   const session = useAppSelector((state) => state.auth.session)
   const { cartOpen, favoritesOpen } = useAppSelector((state) => state.commerce)
   const toast = useAppSelector((state) => state.ui.toast)
@@ -32,13 +33,13 @@ export function StorefrontLayout() {
   return (
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
-        accountActive={location.pathname === appPaths.account}
         authenticated={Boolean(session)}
         cartCount={cartCount}
         favoriteCount={favoriteCount}
         onCartOpen={() => dispatch(setCartOpen(true))}
         onFavoritesOpen={() => dispatch(setFavoritesOpen(true))}
         onSearch={(query) => navigate(appPaths.searchFor(query))}
+        onSignIn={() => dispatch(openAuthModal(location.pathname))}
         seller={isSeller(session)}
       />
 

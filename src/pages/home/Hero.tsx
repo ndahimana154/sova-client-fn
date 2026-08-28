@@ -2,7 +2,7 @@ import { ArrowRight, Play } from 'lucide-react'
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useInfiniteVideos } from '../../hooks/useInfiniteVideos'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import type { MarketplaceVideo } from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
 import { appPaths } from '../../router/paths'
@@ -69,9 +69,9 @@ function VideoPin({ index, video }: { index: number; video: MarketplaceVideo }) 
                 {rest.length > 0 && <span className="text-white/60"> +{rest.length} more</span>}
               </p>
               <p className="mt-0.5 flex items-baseline gap-1.5 text-xs">
-                <strong className="font-black">{formatPrice(headline.price)}</strong>
+                <strong className="font-black">{formatMoney(headline.price)}</strong>
                 {headline.discountPercent > 0 && (
-                  <s className="text-[10px] text-white/60">{formatPrice(headline.listPrice)}</s>
+                  <s className="text-[10px] text-white/60">{formatMoney(headline.listPrice)}</s>
                 )}
               </p>
             </>

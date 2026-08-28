@@ -17,10 +17,15 @@ export function useAuthActions() {
     window.setTimeout(() => dispatch(setToast('')), 1800)
   }, [dispatch])
 
-  const authenticate = useCallback(async (email: string, otp: string) => {
-    const session = await loginClient(email, otp)
+  const authenticate = useCallback(async (
+    email: string,
+    otp: string,
+    acceptTerms: boolean,
+    redirectTo?: string,
+  ) => {
+    const session = await loginClient(email, otp, acceptTerms)
     dispatch(setSession(session))
-    navigate(appPaths.home)
+    if (redirectTo) navigate(redirectTo)
     notify('Welcome to SOVA')
   }, [dispatch, navigate, notify])
 

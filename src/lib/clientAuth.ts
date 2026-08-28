@@ -41,11 +41,15 @@ export async function requestLoginOtp(email: string): Promise<LoginChallenge> {
   return response.data
 }
 
-export async function loginClient(email: string, otp: string): Promise<ClientSession> {
-  const response = await api.post<ApiEnvelope<LoginResponse>, { email: string; otp: string }>(
-    '/clients/auth/login/verify',
-    { email, otp },
-  )
+export async function loginClient(
+  email: string,
+  otp: string,
+  acceptTerms: boolean,
+): Promise<ClientSession> {
+  const response = await api.post<
+    ApiEnvelope<LoginResponse>,
+    { acceptTerms: boolean; email: string; otp: string }
+  >('/clients/auth/login/verify', { acceptTerms, email, otp })
   const result = response.data
   const session: ClientSession = {
     accessToken: result.accessToken,

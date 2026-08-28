@@ -20,7 +20,7 @@ import { useInfiniteProducts } from '../../hooks/useInfiniteProducts'
 import { useLocalFeedback } from '../../hooks/useLocalFeedback'
 import { useProductNavigation } from '../../hooks/useProductNavigation'
 import { useMarketplaceProduct, useProductVideos } from '../../hooks/useMarketplaceProduct'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import type { MarketplaceMedia } from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
 import { recordProductView } from '../../lib/productViews'
@@ -179,9 +179,9 @@ export function ProductDetailPage() {
             )}
 
             <div className="mt-6 flex items-baseline gap-3">
-              <strong className="text-2xl text-ink">{formatPrice(price)}</strong>
+              <strong className="text-2xl text-ink">{formatMoney(price)}</strong>
               {discountPercent > 0 && (
-                <span className="text-sm text-muted line-through">{formatPrice(listPrice)}</span>
+                <span className="text-sm text-muted line-through">{formatMoney(listPrice)}</span>
               )}
             </div>
             <p className={`mt-2 text-xs font-bold ${inStock ? 'text-green-700' : 'text-red-600'}`}>

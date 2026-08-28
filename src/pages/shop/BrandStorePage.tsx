@@ -204,18 +204,6 @@ function ContactLink({ children, external, href, onCover }: {
   )
 }
 
-/** Street plus the administrative chain the API returns, narrowest part first. */
 function shopAddress(shop: MarketplaceShop) {
-  const village = shop.village
-  const cell = village?.cell
-  const sector = cell?.sector
-  const district = sector?.district
-  return [
-    shop.street,
-    village?.name,
-    cell?.name,
-    sector?.name,
-    district?.name,
-    district?.province?.name,
-  ].filter(Boolean).join(', ')
+  return shop.addressLabel ?? ''
 }

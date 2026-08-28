@@ -2,7 +2,7 @@ import { Heart, ShoppingBag, Star } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../data/catalog'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import { appPaths } from '../../router/paths'
 
 interface ProductCardProps {
@@ -42,8 +42,8 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
           </div>
         )}
         <div className="mt-2 flex items-baseline gap-2">
-          <strong className="text-base text-ink">{formatPrice(product.price)}</strong>
-          {product.oldPrice && <span className="text-xs text-muted line-through">{formatPrice(product.oldPrice)}</span>}
+          <strong className="text-base text-ink">{formatMoney(product.price)}</strong>
+          {product.oldPrice && <span className="text-xs text-muted line-through">{formatMoney(product.oldPrice)}</span>}
         </div>
         <AddControl className="quick-add quick-add-touch" onAdd={onAdd} product={product} />
       </div>

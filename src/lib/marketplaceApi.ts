@@ -160,21 +160,20 @@ export interface MarketplaceVillage {
 }
 
 export interface MarketplaceShop {
+  addressLabel: string | null
+  addressLatitude: string | null
+  addressLongitude: string | null
+  addressPlaceId: string | null
   coverImage: string | null
   description: string | null
   email: string | null
-  googleMapsLocationLink: string | null
   id: string
-  latitude: string | null
   logo: string | null
-  longitude: string | null
+  mapsUrl: string | null
   name: string
   phone: string | null
   productCount: number
   slug: string
-  street: string | null
-  village: MarketplaceVillage | null
-  zip: string | null
 }
 
 export interface MarketplaceShopDetails extends MarketplaceShop {
@@ -185,7 +184,6 @@ export interface MarketplaceShopQuery {
   limit?: number
   page?: number
   search?: string
-  villageId?: string
 }
 
 export interface PaginatedMarketplaceShops {

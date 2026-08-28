@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import { AttributeTags } from '../../components/ui/AttributeTags'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import type { MarketplaceVariant } from '../../lib/marketplaceApi'
 import { sellableVariants, variantLabel, variantOptions } from '../../lib/variants'
 
@@ -43,9 +43,9 @@ export function VariantList({ onSelect, selectedId, variants }: VariantListProps
                   </span>
                 )}
                 <span className="mt-2 flex flex-wrap items-baseline gap-2">
-                  <strong className="text-sm text-ink">{formatPrice(variant.salePrice)}</strong>
+                  <strong className="text-sm text-ink">{formatMoney(variant.salePrice)}</strong>
                   {discount > 0 && (
-                    <s className="text-[11px] text-muted">{formatPrice(variant.price)}</s>
+                    <s className="text-[11px] text-muted">{formatMoney(variant.price)}</s>
                   )}
                   <span className={`text-[11px] font-bold ${out ? 'text-red-600' : 'text-green-700'}`}>
                     {out ? 'Out of stock' : `${variant.stockQuantity} in stock`}

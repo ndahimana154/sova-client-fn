@@ -2,7 +2,7 @@ import { Heart, ShoppingBag, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Drawer } from '../../components/ui/Drawer'
 import type { Product } from '../../data/catalog'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import { appPaths } from '../../router/paths'
 
 interface FavoritesDrawerProps {
@@ -43,7 +43,7 @@ export function FavoritesDrawer({ items, onAddToCart, onClear, onClose, onRemove
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">{product.category}</p>
                   <h3 className="mt-1 text-sm font-bold leading-5 text-ink">{product.name}</h3>
-                  <strong className="mt-1 block text-sm text-ink">{formatPrice(product.price)}</strong>
+                  <strong className="mt-1 block text-sm text-ink">{formatMoney(product.price)}</strong>
                   <div className="mt-3 flex items-center gap-2">
                     {product.slug && (product.variantCount ?? 1) > 1 ? (
                       <Link

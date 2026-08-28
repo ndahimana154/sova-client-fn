@@ -1,6 +1,6 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Drawer } from '../../components/ui/Drawer'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import { cartLineKey } from '../../lib/cartLine'
 import type { CartItem } from './types'
 import { Link } from 'react-router-dom'
@@ -52,7 +52,7 @@ export function CartDrawer({ items, onClose, onQuantityChange, onRemove }: CartD
                     {options.length > 0 && (
                       <p className="mt-0.5 truncate text-[11px] text-muted">{options.join(' · ')}</p>
                     )}
-                    <strong className="mt-1 block text-sm text-ink">{formatPrice(product.price)}</strong>
+                    <strong className="mt-1 block text-sm text-ink">{formatMoney(product.price)}</strong>
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center rounded-full border border-line">
                         <button
@@ -87,9 +87,11 @@ export function CartDrawer({ items, onClose, onQuantityChange, onRemove }: CartD
           <div className="border-t border-line p-5">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-sm text-muted">Subtotal</span>
-              <strong className="text-lg text-ink">{formatPrice(subtotal)}</strong>
+              <strong className="text-lg text-ink">{formatMoney(subtotal)}</strong>
             </div>
-            <button className="primary-button w-full">Proceed to checkout</button>
+            <Link className="primary-button w-full" onClick={onClose} to={appPaths.checkout}>
+              Proceed to checkout
+            </Link>
             <p className="mt-3 text-center text-[11px] text-muted">Delivery fees are calculated at checkout.</p>
           </div>
         </>

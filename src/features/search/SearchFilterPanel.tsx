@@ -1,6 +1,6 @@
 import { ChevronDown, RotateCcw } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import type { MarketplaceProductFacets } from '../../lib/marketplaceApi'
 import type { MultiFilter, SearchFilterState } from './useSearchFilters'
 
@@ -253,7 +253,7 @@ function PriceFilter({
   return (
     <div className="space-y-3">
       <p className="text-[11px] text-muted">
-        Results run from {formatPrice(min)} to {formatPrice(max)}
+        Results run from {formatMoney(min)} to {formatMoney(max)}
       </p>
       <form
         className="flex items-center gap-2"

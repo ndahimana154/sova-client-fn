@@ -1,21 +1,22 @@
 import { ArrowDown, ArrowUp, Heart, MessageCircle, Play, Send, ShoppingBag, Volume2, VolumeX, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { SignInPrompt } from '../../components/ui/SignInPrompt'
 import { VideoComments } from '../../features/videos/VideoComments'
 import { VideoControls } from '../../features/videos/VideoControls'
 import { SKIP_SECONDS, seekBy } from '../../lib/videoSeek'
 import { useInfiniteVideos } from '../../hooks/useInfiniteVideos'
 import { marketplaceApi } from '../../lib/marketplaceApi'
-import { useAppSelector } from '../../store/hooks'
-import { formatPrice } from '../../lib/formatPrice'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { openAuthModal } from '../../store/uiSlice'
+import { formatMoney } from '../../lib/money'
 import type { MarketplaceVideoProduct } from '../../lib/marketplaceApi'
 import { mediaUrl } from '../../lib/mediaUrl'
 import { appPaths } from '../../router/paths'
 
 export function VideoDiscoveryPage() {
   const [params] = useSearchParams()
-  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const { hasNextPage, loadNext, loading, videos } = useInfiniteVideos(8)
   const requestedId = params.get('video')
   const [active, setActive] = useState(0)
@@ -196,7 +197,7 @@ export function VideoDiscoveryPage() {
         <SignInPrompt
           action={signInFor}
           onClose={() => setSignInFor('')}
-          onSignIn={() => navigate(appPaths.login)}
+          onSignIn={() => dispatch(openAuthModal(appPaths.videos))}
         />
       )}
     </main>
@@ -236,8 +237,8 @@ function ProductCard({ product }: { product: MarketplaceVideoProduct }) {
         <strong className="block truncate text-xs leading-tight">{product.name}</strong>
         <small className="mt-0.5 block truncate text-[10px] font-bold text-muted">{product.shop.name}</small>
         <span className="mt-1 flex flex-wrap items-baseline gap-1.5">
-          <strong className="text-xs font-black text-primary-dark">{formatPrice(product.price)}</strong>
-          {product.discountPercent > 0 && <s className="text-[10px] text-muted">{formatPrice(product.listPrice)}</s>}
+          <strong className="text-xs font-black text-primary-dark">{formatMoney(product.price)}</strong>
+          {product.discountPercent > 0 && <s className="text-[10px] text-muted">{formatMoney(product.listPrice)}</s>}
           {product.discountPercent > 0 && <span className="rounded-full bg-primary-dark/10 px-1.5 py-px text-[9px] font-black text-primary-dark">-{product.discountPercent}%</span>}
           {!inStock && <span className="text-[9px] font-black uppercase tracking-wide text-red-600">Out of stock</span>}
         </span>

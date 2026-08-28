@@ -3,29 +3,30 @@ import { useEffect, useId, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { flattenCategories, marketplaceApi, type MarketplaceCategory } from '../../lib/marketplaceApi'
 import { appPaths } from '../../router/paths'
+import { AccountMenu } from './AccountMenu'
 import { Brand } from '../ui/Brand'
 import { Select } from '../ui/Select'
 import { CategoryNav } from './CategoryNav'
 
 interface StoreHeaderProps {
-  accountActive: boolean
   authenticated: boolean
   cartCount: number
   favoriteCount: number
   onCartOpen: () => void
   onFavoritesOpen: () => void
   onSearch: (query: string) => void
+  onSignIn: () => void
   seller: boolean
 }
 
 export function StoreHeader({
-  accountActive,
   authenticated,
   cartCount,
   favoriteCount,
   onCartOpen,
   onFavoritesOpen,
   onSearch,
+  onSignIn,
   seller,
 }: StoreHeaderProps) {
   const [params] = useSearchParams()
@@ -42,8 +43,6 @@ export function StoreHeader({
     marketplaceApi.categories().then(setCategories).catch(() => setCategories([]))
   }, [])
 
-  // Landing on a result page — from a link, a suggestion or the back button —
-  // should leave the term the results are for sitting in the field.
   useEffect(() => { setSearchQuery(activeQuery) }, [activeQuery])
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
@@ -70,46 +69,24 @@ export function StoreHeader({
           <button className="header-location">
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
-          {authenticated && !seller && (
-            <Link
-              className="hidden items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-dark lg:inline-flex"
-              to={appPaths.account}
-            >
-              <UserRound size={16} /> Account
-            </Link>
-          )}
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
           <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
-          {authenticated ? (
-            <>
-              {seller && (
-                <Link className="header-login-link hidden sm:block" to={appPaths.sellerPortal()} target="_blank">
-                  Seller dashboard
-                </Link>
-              )}
-              {seller ? (
-                <Link
-                  aria-current={accountActive ? 'page' : undefined}
-                  aria-label="Account settings"
-                  className={`icon-control ${accountActive ? 'bg-primary-light text-primary-dark' : ''}`}
-                  to={appPaths.account}
-                >
-                  <UserRound size={19} />
-                </Link>
-              ) : (
+
+          <div className="ml-1 flex items-center gap-1 sm:gap-2">
+
+            {authenticated ? (
+              <AccountMenu />
+            ) : (
+              <>
+
                 <Link className="header-login-link" to={appPaths.sellerPortal()}
                   target="_blank">Sell on SOVA
                 </Link>
-              )}
-            </>
-          ) : (
-            <div className="ml-1 flex items-center gap-1 sm:gap-2">
-              <Link className="header-login-link" to={appPaths.sellerPortal()}
-                target="_blank">Sell on SOVA
-              </Link>
-              <Link className="header-signup-link" to={appPaths.login}><UserRound size={14} /> Account</Link>
-            </div>
-          )}
+                <button className="header-signup-link" onClick={onSignIn} type="button"><UserRound size={14} /> Account</button>
+              </>
+            )}
+          </div>
+
         </div>
       </div>
       <div className="page-container flex items-center gap-2 pb-3 md:hidden">
@@ -163,14 +140,22 @@ export function StoreHeader({
             </button>
           </>
         )}
-        {!seller && (
+        {!seller && (authenticated ? (
           <Link
             className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inline-flex"
-            to={authenticated ? appPaths.account : appPaths.login}
+            to={appPaths.account}
           >
             <UserRound size={14} /> Account
           </Link>
-        )}
+        ) : (
+          <button
+            className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white shadow-sm transition hover:bg-primary-dark lg:inline-flex"
+            onClick={onSignIn}
+            type="button"
+          >
+            <UserRound size={14} /> Account
+          </button>
+        ))}
       </div>
       <nav className="hidden border-t border-line lg:block">
         <div className="page-container flex h-11 items-center gap-7 text-xs font-semibold text-ink/75">

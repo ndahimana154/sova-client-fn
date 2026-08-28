@@ -63,6 +63,11 @@
   .auth-tabs button[aria-selected="true"] { @apply bg-white text-ink shadow-sm; }
   .auth-input { @apply flex min-h-10 items-center gap-3 rounded-xl border border-line bg-white px-3.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10; }
   .auth-input input { @apply min-w-0 flex-1 bg-transparent py-2.5 text-xs text-ink outline-none placeholder:text-muted/65; }
+  .form-input { @apply flex min-h-10 w-full items-center gap-3 rounded-xl border border-line bg-white px-3.5 transition focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10; }
+  .form-input input, .form-input select, .form-input textarea { @apply min-w-0 flex-1 resize-none bg-transparent py-2.5 text-xs text-ink outline-none placeholder:text-muted/65; }
+  .form-label { @apply mb-1.5 block text-[11px] font-bold text-ink; }
+  .surface-card { @apply rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-6; }
+  .status-pill { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider; }
   .auth-password-toggle { @apply -mr-2 grid size-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-soft hover:text-ink; }
   .auth-checkbox { @apply size-4 rounded border-line accent-primary; }
   .auth-submit { @apply flex min-h-10 w-full items-center justify-center rounded-xl bg-primary px-5 text-xs font-black text-white shadow-[0_10px_24px_rgba(241,143,1,0.22)] transition hover:-translate-y-0.5 hover:bg-primary-dark disabled:pointer-events-none disabled:opacity-65; }
@@ -293,4 +298,30 @@
   .overlay-panel,
   .drawer-panel,
   .global-table-filter-panel { animation: none; }
+}
+
+@layer components {
+  .rich-text-body { @apply text-xs leading-6 text-muted; }
+  .rich-text-body h1 { @apply mb-2 mt-4 text-base font-black text-ink first:mt-0; }
+  .rich-text-body h2 { @apply mb-2 mt-4 text-sm font-black text-ink first:mt-0; }
+  .rich-text-body h3 { @apply mb-1.5 mt-3 text-xs font-black uppercase tracking-[0.1em] text-primary-dark first:mt-0; }
+  .rich-text-body p { @apply my-2; }
+  .rich-text-body ul { @apply my-2 list-disc space-y-1 pl-5; }
+  .rich-text-body ol { @apply my-2 list-decimal space-y-1 pl-5; }
+  .rich-text-body a { @apply font-bold text-primary-dark underline-offset-2 hover:underline; }
+  .rich-text-body strong { @apply font-bold text-ink; }
+  .rich-text-body blockquote { @apply my-3 border-l-2 border-line pl-3 italic; }
+  .rich-text-body pre { @apply my-3 overflow-x-auto rounded-lg bg-soft p-3 font-mono text-[11px] text-ink; }
+  .rich-text-body code { @apply rounded bg-soft px-1 py-0.5 font-mono text-[11px] text-ink; }
+  .rich-text-body img { @apply my-3 max-w-full rounded-xl border border-line; }
+  .rich-text-body hr { @apply my-4 border-line; }
+  .rich-text-body table { @apply my-3 w-full border-collapse text-[11px]; }
+  .rich-text-body th, .rich-text-body td { @apply border border-line px-2 py-1.5 text-left; }
+  .rich-text-body mark { @apply rounded px-0.5; }
+}
+
+@layer components {
+  /* The browser paints black behind a full-screen element by default. */
+  .leaflet-container:fullscreen,
+  *:fullscreen { background: #fff; }
 }

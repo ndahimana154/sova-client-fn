@@ -1,5 +1,5 @@
 import { Select } from '../../components/ui/Select'
-import { formatPrice } from '../../lib/formatPrice'
+import { formatMoney } from '../../lib/money'
 import type { MarketplaceVariant } from '../../lib/marketplaceApi'
 import { sellableVariants, variantLabel } from '../../lib/variants'
 
@@ -26,7 +26,7 @@ export function VariantSelect({ labelId, onSelect, selectedId, variants }: Varia
           disabled: variant.stockQuantity < 1,
           hint: variant.stockQuantity < 1
             ? 'Out of stock'
-            : formatPrice(variant.salePrice),
+            : formatMoney(variant.salePrice),
           label: variantLabel(variant),
           value: variant.id,
         }))}
@@ -55,7 +55,7 @@ export function VariantSelect({ labelId, onSelect, selectedId, variants }: Varia
           >
             <span className="block text-xs font-bold">{variantLabel(variant)}</span>
             <span className="mt-0.5 block text-[10px] font-semibold text-muted">
-              {out ? 'Out of stock' : formatPrice(variant.salePrice)}
+              {out ? 'Out of stock' : formatMoney(variant.salePrice)}
             </span>
           </button>
         )
