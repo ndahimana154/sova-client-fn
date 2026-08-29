@@ -6,13 +6,13 @@ import { useProductNavigation } from '../../hooks/useProductNavigation'
 import { Hero } from './Hero'
 
 export function HomePage() {
-  const { addToCart, isFavorite, toggleFavorite } = useCommerce()
+  const { buyNow, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   return (
     <main>
       <BestDealsSection
         isFavorite={isFavorite}
-        onAdd={addToCart}
+        onAdd={buyNow}
         onFavorite={toggleFavorite}
         onOpen={openProduct}
       />
@@ -20,7 +20,7 @@ export function HomePage() {
       <BrandStrip />
       <NewlyStockedSection
         isFavorite={isFavorite}
-        onAdd={addToCart}
+        onAdd={buyNow}
         onFavorite={toggleFavorite}
         onOpen={openProduct}
       />

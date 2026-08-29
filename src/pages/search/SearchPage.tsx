@@ -13,7 +13,7 @@ import { appPaths } from '../../router/paths'
 export function SearchPage() {
   const [, setParams] = useSearchParams()
   const { activeCount, clearAll, filters, productQuery, setValue, setValues, toggle } = useSearchFilters()
-  const { addToCart, isFavorite, toggleFavorite } = useCommerce()
+  const { buyNow, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   const feed = useInfiniteProducts(productQuery)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -107,7 +107,7 @@ export function SearchPage() {
                 emptyMessage="Nothing matched this search yet."
                 isFavorite={isFavorite}
                 feed={feed}
-                onAdd={addToCart}
+                onAdd={buyNow}
                 onFavorite={toggleFavorite}
                 onOpen={openProduct}
               />

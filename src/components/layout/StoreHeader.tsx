@@ -1,4 +1,4 @@
-import { Clapperboard, Heart, MapPin, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { Clapperboard, Heart, MapPin, Search, UserRound, X } from 'lucide-react'
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { flattenCategories, marketplaceApi, type MarketplaceCategory } from '../../lib/marketplaceApi'
@@ -10,9 +10,7 @@ import { CategoryNav } from './CategoryNav'
 
 interface StoreHeaderProps {
   authenticated: boolean
-  cartCount: number
   favoriteCount: number
-  onCartOpen: () => void
   onFavoritesOpen: () => void
   onSearch: (query: string) => void
   onSignIn: () => void
@@ -21,9 +19,7 @@ interface StoreHeaderProps {
 
 export function StoreHeader({
   authenticated,
-  cartCount,
   favoriteCount,
-  onCartOpen,
   onFavoritesOpen,
   onSearch,
   onSignIn,
@@ -70,7 +66,6 @@ export function StoreHeader({
             <MapPin size={17} /><span><small>Deliver to</small><strong>Kigali</strong></span>
           </button>
           <CountButton count={favoriteCount} icon={<Heart size={19} />} label="Favorites" onClick={onFavoritesOpen} />
-          <CountButton count={cartCount} icon={<ShoppingBag size={19} />} label="Cart" onClick={onCartOpen} />
 
           <div className="ml-1 flex items-center gap-1 sm:gap-2">
 

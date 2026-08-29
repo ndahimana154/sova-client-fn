@@ -48,12 +48,12 @@ export function OrderDetailPage() {
                 <OrderStatusPill status={order.status} />
               </div>
               <p className="mt-1 text-[11px] text-muted">
-                Placed {formatDateTime(order.createdAt)} · Checkout {order.checkoutNumber}
+                Placed {formatDateTime(order.createdAt)}
               </p>
             </div>
 
             {awaitingPayment && (
-              <Link className="primary-button shrink-0" to={appPaths.checkoutPayment(order.checkoutNumber)}>
+              <Link className="primary-button shrink-0" to={appPaths.checkoutPayment(order.orderNumber)}>
                 Complete payment
               </Link>
             )}
@@ -61,7 +61,6 @@ export function OrderDetailPage() {
 
           <div className="mt-5 border-t border-line pt-5">
             <OrderProgress
-              deliveryStatus={order.delivery?.status}
               paymentSubmitted={underReview}
               status={order.status}
             />
@@ -123,25 +122,24 @@ export function OrderDetailPage() {
           <aside className="h-fit space-y-4">
             <section className="rounded-2xl border border-line bg-white p-5">
               <h2 className="text-xs font-black uppercase tracking-[0.12em] text-muted">Delivery</h2>
-              {order.delivery ? (
-                <div className="mt-3.5 space-y-2 text-[11px]">
-                  <div className="flex items-center gap-2">
-                    <Truck className="text-primary-dark" size={14} />
-                    <OrderStatusPill status={order.delivery.status} />
-                  </div>
-                  {order.delivery.courierName && (
-                    <p className="text-muted">Courier <strong className="text-ink">{order.delivery.courierName}</strong></p>
-                  )}
-                  <p className="text-muted">Attempt {order.delivery.attemptNumber}</p>
-                  {order.delivery.deliveredAt && (
-                    <p className="text-muted">Delivered {formatDateTime(order.delivery.deliveredAt)}</p>
-                  )}
+              <div className="mt-3.5 space-y-2 text-[11px]">
+                <div className="flex items-center gap-2">
+                  <Truck className="text-primary-dark" size={14} />
+                  <OrderStatusPill status={order.status} />
                 </div>
-              ) : (
-                <p className="mt-3.5 text-[11px] leading-5 text-muted">
-                  A courier is assigned once your payment is confirmed.
-                </p>
-              )}
+                {order.courierName ? (
+                  <p className="text-muted">
+                    Courier <strong className="text-ink">{order.courierName}</strong>
+                  </p>
+                ) : (
+                  <p className="text-muted">A courier picks this up once it is packed.</p>
+                )}
+                {order.amountDue > 0 && order.amountPaid > 0 && (
+                  <p className="rounded-lg bg-primary-light px-2.5 py-2 font-bold text-primary-dark">
+                    {formatMoney(order.amountDue)} due on delivery
+                  </p>
+                )}
+              </div>
             </section>
 
             <section className="rounded-2xl border border-line bg-white p-5">

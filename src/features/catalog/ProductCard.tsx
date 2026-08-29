@@ -1,4 +1,4 @@
-import { Heart, ShoppingBag, Star } from 'lucide-react'
+import { Heart, ShoppingBag, Star, Zap } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../data/catalog'
@@ -15,7 +15,7 @@ interface ProductCardProps {
 
 export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: ProductCardProps) {
   return (
-    <article className="product-card group">
+    <article className="product-card group flex h-full flex-col">
       <div className="relative aspect-[1/1.02] overflow-hidden rounded-2xl bg-soft">
         <ProductLink className="block size-full cursor-pointer" label={`View ${product.name}`} onOpen={onOpen} product={product}>
           <img alt={product.name} className="size-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" src={product.image} />
@@ -29,11 +29,10 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
         >
           <Heart className={isFavorite ? 'fill-current' : ''} size={17} />
         </button>
-        <AddControl className="quick-add quick-add-desktop" onAdd={onAdd} product={product} />
       </div>
-      <div className="pt-3">
+      <div className="flex flex-1 flex-col pt-3">
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{product.category}</p>
-        <h3 className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-ink">
+        <h3 className="mt-1 text-sm font-bold leading-5 text-ink">
           <ProductLink className="text-left transition hover:text-primary-dark" onOpen={onOpen} product={product}>{product.name}</ProductLink>
         </h3>
         {product.reviews > 0 && (
@@ -41,7 +40,7 @@ export function ProductCard({ isFavorite, onAdd, onFavorite, onOpen, product }: 
             <Star className="fill-primary text-primary" size={13} /><strong className="text-ink">{product.rating}</strong><span>({product.reviews})</span>
           </div>
         )}
-        <div className="mt-2 flex items-baseline gap-2">
+        <div className="mt-auto flex items-baseline gap-2 pt-2">
           <strong className="text-base text-ink">{formatMoney(product.price)}</strong>
           {product.oldPrice && <span className="text-xs text-muted line-through">{formatMoney(product.oldPrice)}</span>}
         </div>
@@ -56,16 +55,17 @@ function AddControl({ className, onAdd, product }: {
   onAdd: (product: Product) => void
   product: Product
 }) {
-  if (product.slug && (product.variantCount ?? 1) > 1) {
+  // Only a product with no sellable SKU needs the detour to pick one.
+  if (product.slug && !product.variantId) {
     return (
       <Link className={className} to={appPaths.productDetails(product.slug)}>
-        <ShoppingBag size={15} /> Choose options
+        <ShoppingBag size={15} /> View product
       </Link>
     )
   }
   return (
     <button className={className} onClick={() => onAdd(product)} type="button">
-      <ShoppingBag size={15} /> Add to cart
+      <Zap size={15} /> Buy now
     </button>
   )
 }

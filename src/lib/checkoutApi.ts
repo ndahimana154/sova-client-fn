@@ -1,6 +1,10 @@
 import { api } from '../api/request'
 
-export interface CheckoutOrder {
+export interface PlacedOrder {
+  amountPaid: number
+  deliveryFee: number
+  discountAmount: number
+  expiresAt: string | null
   id: string
   orderNumber: string
   productName: string
@@ -13,16 +17,23 @@ export interface CheckoutOrder {
   variantName: string | null
 }
 
-export interface Checkout {
-  checkoutNumber: string
+/** What the payment screen needs: the balance and how little may be paid now. */
+export interface PayableOrder {
+  amountDue: number
+  amountPaid: number
   deliveryFee: number
   discountAmount: number
   expiresAt: string | null
-  id: string
-  orders: CheckoutOrder[]
+  imageUrl: string | null
+  orderNumber: string
+  productName: string
+  quantity: number
+  requiredNow: number
+  shopName: string
   status: string
-  subtotal: number
   totalAmount: number
+  unitPrice: number
+  variantName: string | null
 }
 
 export interface CheckoutPaymentMethod {
@@ -32,12 +43,7 @@ export interface CheckoutPaymentMethod {
   name: string
 }
 
-export interface CheckoutItemInput {
-  quantity: number
-  variantId: string
-}
-
-export interface CreateCheckoutInput {
+export interface PlaceOrderInput {
   acceptDeliveryTerms?: boolean
   acceptTerms?: boolean
   deliveryAddress: string
@@ -46,27 +52,29 @@ export interface CreateCheckoutInput {
   deliveryNote?: string | null
   deliveryPlaceId?: string | null
   idempotencyKey?: string
-  items: CheckoutItemInput[]
+  quantity: number
   recipientEmail: string
   recipientName: string
   recipientPhone: string
+  variantId: string
   verificationToken?: string
 }
 
 export interface SubmitPaymentInput {
+  amount: number
   idempotencyKey?: string
   note?: string | null
+  payerAccount?: string | null
   payerEmail?: string | null
-  payerPhone?: string | null
   paymentMethodId: string
   proof?: File | null
   transactionReference?: string | null
 }
 
-export interface CheckoutPayment {
+export interface OrderPaymentReceipt {
   amount: number
-  checkoutNumber: string
   id: string
+  orderNumber: string
   paymentProof: string | null
   status: string
   submittedAt: string | null
@@ -82,9 +90,10 @@ interface ApiEnvelope<T> {
 function paymentForm(input: SubmitPaymentInput): FormData {
   const form = new FormData()
   form.append('paymentMethodId', input.paymentMethodId)
+  form.append('amount', String(input.amount))
   if (input.idempotencyKey) form.append('idempotencyKey', input.idempotencyKey)
   if (input.transactionReference) form.append('transactionReference', input.transactionReference)
-  if (input.payerPhone) form.append('payerPhone', input.payerPhone)
+  if (input.payerAccount) form.append('payerAccount', input.payerAccount)
   if (input.payerEmail) form.append('payerEmail', input.payerEmail)
   if (input.note) form.append('note', input.note)
   if (input.proof) form.append('proof', input.proof)
@@ -109,27 +118,27 @@ export const checkoutApi = {
       { email, otp },
     )).data.verificationToken,
 
-  create: async (input: CreateCheckoutInput, authenticated: boolean) =>
-    (await api.post<ApiEnvelope<Checkout>, CreateCheckoutInput>(
-      authenticated ? '/buyer/checkout' : '/checkout',
+  place: async (input: PlaceOrderInput, authenticated: boolean) =>
+    (await api.post<ApiEnvelope<PlacedOrder>, PlaceOrderInput>(
+      authenticated ? '/buyer/orders' : '/checkout',
       input,
     )).data,
 
-  find: async (checkoutNumber: string, contact?: string) =>
-    (await api.get<ApiEnvelope<Checkout>>(
+  payable: async (orderNumber: string, contact?: string) =>
+    (await api.get<ApiEnvelope<PayableOrder>>(
       contact
-        ? `/checkout/${encodeURIComponent(checkoutNumber)}?contact=${encodeURIComponent(contact)}`
-        : `/buyer/checkout/${encodeURIComponent(checkoutNumber)}`,
+        ? `/checkout/${encodeURIComponent(orderNumber)}?contact=${encodeURIComponent(contact)}`
+        : `/buyer/orders/${encodeURIComponent(orderNumber)}/payable`,
     )).data,
 
   submitPayment: async (
-    checkoutNumber: string,
+    orderNumber: string,
     input: SubmitPaymentInput,
     authenticated: boolean,
   ) => {
-    const base = authenticated ? '/buyer/checkout' : '/checkout'
-    const response = await api.post<ApiEnvelope<CheckoutPayment>, FormData>(
-      `${base}/${encodeURIComponent(checkoutNumber)}/payment`,
+    const base = authenticated ? '/buyer/orders' : '/checkout'
+    const response = await api.post<ApiEnvelope<OrderPaymentReceipt>, FormData>(
+      `${base}/${encodeURIComponent(orderNumber)}/payment`,
       paymentForm(input),
     )
     return response.data

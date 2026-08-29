@@ -2,9 +2,9 @@ import { useCallback, useMemo, useState } from 'react'
 import { normalizeApiError } from '../api/errors'
 import {
   checkoutApi,
-  type Checkout,
-  type CheckoutItemInput,
-  type CheckoutPayment,
+  type PayableOrder,
+  
+  type OrderPaymentReceipt,
   type CheckoutPaymentMethod,
   type SubmitPaymentInput,
 } from '../lib/checkoutApi'
@@ -14,10 +14,9 @@ import {
   newIdempotencyKey,
   saveActiveCheckout,
 } from '../lib/checkoutSession'
-import { clearGuestCart } from '../lib/guestCart'
+import { clearPendingPurchase, loadPendingPurchase } from '../lib/pendingPurchase'
 import { normalizePhone } from '../lib/phone'
 import { useAppSelector } from '../store/hooks'
-import type { CartItem } from '../features/cart/types'
 
 export interface CheckoutContact {
   acceptDeliveryTerms?: boolean
@@ -33,26 +32,21 @@ export interface CheckoutContact {
   recipientPhone: string
 }
 
-function toItems(cartItems: CartItem[]): CheckoutItemInput[] {
-  return cartItems
-    .filter((item) => Boolean(item.product.variantId))
-    .map((item) => ({ quantity: item.quantity, variantId: item.product.variantId as string }))
-}
 
 export function useCheckout() {
   const session = useAppSelector((state) => state.auth.session)
-  const cartItems = useAppSelector((state) => state.commerce.cartItems)
   const authenticated = Boolean(session)
 
-  const [checkout, setCheckout] = useState<Checkout | null>(null)
-  const [payment, setPayment] = useState<CheckoutPayment | null>(null)
+  const [checkout, setCheckout] = useState<PayableOrder | null>(null)
+  const [payment, setPayment] = useState<OrderPaymentReceipt | null>(null)
   const [methods, setMethods] = useState<CheckoutPaymentMethod[]>([])
   const [verificationToken, setVerificationToken] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  const items = useMemo(() => toItems(cartItems), [cartItems])
-  const unavailable = cartItems.length - items.length
+  const purchase = useMemo(() => loadPendingPurchase(), [])
+  const lines = useMemo(() => (purchase ? [purchase] : []), [purchase])
+  const unavailable = lines.filter((line) => !line.product.variantId).length
 
   const run = useCallback(async <T,>(action: () => Promise<T>): Promise<T | null> => {
     setBusy(true)
@@ -92,29 +86,30 @@ export function useCheckout() {
 
   const placeOrder = useCallback(
     (contact: CheckoutContact) => run(async () => {
-      if (!items.length) throw new Error('Your cart is empty')
+      if (!lines.length) throw new Error('Nothing selected to buy')
       const payload = { ...contact }
       delete payload.deliveryGateConfirmed
-      const created = await checkoutApi.create(
+      const line = lines[0]
+      const created = await checkoutApi.place(
         {
           ...payload,
           deliveryNote: contact.deliveryNote?.trim() || null,
           recipientPhone: normalizePhone(contact.recipientPhone),
           idempotencyKey: newIdempotencyKey(),
-          items,
+          quantity: line.quantity,
+          variantId: line.product.variantId as string,
           verificationToken: authenticated ? undefined : verificationToken,
         },
         authenticated,
       )
-      setCheckout(created)
       saveActiveCheckout({
-        checkoutNumber: created.checkoutNumber,
+        checkoutNumber: created.orderNumber,
         contact: contact.recipientEmail,
       })
-      if (!authenticated) clearGuestCart()
+      clearPendingPurchase()
       return created
     }),
-    [authenticated, items, run, verificationToken],
+    [authenticated, lines, run, verificationToken],
   )
 
   const reopen = useCallback(
@@ -123,7 +118,10 @@ export function useCheckout() {
       if (!authenticated && !email) {
         throw new Error('Enter the email address you ordered with')
       }
-      const found = await checkoutApi.find(checkoutNumber, authenticated ? undefined : email)
+      const found = await checkoutApi.payable(
+        checkoutNumber,
+        authenticated ? undefined : email,
+      )
       setCheckout(found)
       if (!authenticated) saveActiveCheckout({ checkoutNumber, contact: email })
       return found
@@ -135,7 +133,7 @@ export function useCheckout() {
     (input: SubmitPaymentInput) => run(async () => {
       if (!checkout) throw new Error('Place your order before paying')
       const submitted = await checkoutApi.submitPayment(
-        checkout.checkoutNumber,
+        checkout.orderNumber,
         {
           ...input,
           idempotencyKey: input.idempotencyKey ?? newIdempotencyKey(),
@@ -154,8 +152,8 @@ export function useCheckout() {
     authenticated,
     busy,
     checkout,
+    lines,
     error,
-    items,
     loadMethods,
     methods,
     payment,

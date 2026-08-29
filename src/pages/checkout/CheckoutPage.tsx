@@ -35,8 +35,7 @@ type Step = 1 | 2 | 3
 export function CheckoutPage() {
   const navigate = useNavigate()
   const session = useAppSelector((state) => state.auth.session)
-  const cartItems = useAppSelector((state) => state.commerce.cartItems)
-  const { authenticated, busy, error, placeOrder, requestGuestOtp, unavailable, verificationToken, verifyGuestOtp } =
+  const { authenticated, busy, error, lines, placeOrder, requestGuestOtp, unavailable, verificationToken, verifyGuestOtp } =
     useCheckout()
 
   const [contact, setContact] = useState<CheckoutContact>(emptyContact)
@@ -92,7 +91,7 @@ export function CheckoutPage() {
     if (savedReady) setStep(3)
   }, [profile])
 
-  const subtotal = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0)
+  const subtotal = lines.reduce((total: number, item) => total + item.product.price * item.quantity, 0)
   const verified = authenticated || Boolean(verificationToken)
   const deliveryFee = pricing.freeThreshold > 0 && subtotal >= pricing.freeThreshold ? 0 : pricing.fee
   const total = subtotal + deliveryFee
@@ -139,14 +138,14 @@ export function CheckoutPage() {
     }
 
     const created = await placeOrder({ ...contact, acceptTerms, acceptDeliveryTerms })
-    if (created) navigate(appPaths.checkoutPayment(created.checkoutNumber))
+    if (created) navigate(appPaths.checkoutPayment(created.orderNumber))
   }
 
-  if (!cartItems.length) {
+  if (!lines.length) {
     return (
       <main className="page-container py-16 text-center">
-        <h1 className="text-2xl font-black tracking-[-0.04em] text-ink">Your cart is empty</h1>
-        <p className="mt-2 text-sm text-muted">Add something you love before checking out.</p>
+        <h1 className="text-2xl font-black tracking-[-0.04em] text-ink">Nothing to check out</h1>
+        <p className="mt-2 text-sm text-muted">Pick a product and hit Buy now to start an order.</p>
         <button className="primary-button mt-6" onClick={() => navigate(appPaths.home)}>Continue shopping</button>
       </main>
     )
@@ -267,7 +266,7 @@ export function CheckoutPage() {
               <OrderSummary
                 deliveryFee={deliveryFee}
                 freeThreshold={pricing.freeThreshold}
-                items={cartItems}
+                items={lines}
                 loaded={pricing.loaded}
                 subtotal={subtotal}
                 total={total}

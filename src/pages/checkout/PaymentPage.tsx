@@ -10,6 +10,7 @@ import { formatMoney } from '../../lib/money'
 import { appPaths } from '../../router/paths'
 
 interface PaymentErrors {
+  amount?: string
   methodId?: string
   payerPhone?: string
 }
@@ -22,6 +23,7 @@ export function PaymentPage() {
   const [reference, setReference] = useState('')
   const [payerPhone, setPayerPhone] = useState('')
   const [note, setNote] = useState('')
+  const [amount, setAmount] = useState('')
   const [errors, setErrors] = useState<PaymentErrors>({})
 
   // Preselect whatever they picked while reviewing the order.
@@ -51,19 +53,33 @@ export function PaymentPage() {
     if (!methodId && methods.length) setMethodId(methods[0].id)
   }, [methodId, methods])
 
+  // Default to settling the balance; the buyer can lower it to a deposit.
+  useEffect(() => {
+    if (checkout && !amount) setAmount(String(checkout.amountDue))
+  }, [amount, checkout])
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const found: PaymentErrors = {}
     if (!methodId) found.methodId = 'Choose the payment method you used.'
     if (!payerPhone.trim()) found.payerPhone = 'Enter the account you paid from.'
+
+    const paying = Number(amount)
+    if (!amount.trim()) found.amount = 'Enter how much you sent.'
+    else if (!Number.isFinite(paying) || paying <= 0) found.amount = 'Enter a valid amount.'
+    else if (checkout && paying > checkout.amountDue) {
+      found.amount = `Only ${formatMoney(checkout.amountDue)} is outstanding.`
+    }
+
     setErrors(found)
     if (Object.keys(found).length) return
 
     await submitPayment({
+      amount: paying,
       note: note.trim() || null,
       payerEmail: authenticated ? null : contact,
-      payerPhone: payerPhone.trim() || null,
+      payerAccount: payerPhone.trim() || null,
       paymentMethodId: methodId,
       proof,
       transactionReference: reference.trim() || null,
@@ -78,7 +94,7 @@ export function PaymentPage() {
         </span>
         <h1 className="mt-5 text-2xl font-black tracking-[-0.04em] text-ink">Payment submitted</h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-          We are verifying {formatMoney(payment.amount)} for checkout {payment.checkoutNumber}. You will get an email
+          We are verifying {formatMoney(payment.amount)} for checkout {payment.orderNumber}. You will get an email
           the moment it is confirmed.
         </p>
         <Link className="primary-button mt-6" to={appPaths.orders}>View your orders</Link>
@@ -150,6 +166,31 @@ export function PaymentPage() {
 
             <label className="block">
               <span className="form-label">
+                Amount you sent<span aria-hidden className="ml-0.5 text-red-600">*</span>
+              </span>
+              <span className={`form-input ${errors.amount ? 'border-red-400' : ''}`}>
+                <input
+                  inputMode="decimal"
+                  onChange={(event) => { setAmount(event.target.value); setErrors((c) => ({ ...c, amount: '' })) }}
+                  placeholder="0"
+                  value={amount}
+                />
+              </span>
+              {errors.amount ? (
+                <span className="mt-1.5 block text-[11px] font-bold text-red-600" role="alert">{errors.amount}</span>
+              ) : (
+                checkout && (
+                  <span className="mt-1.5 block text-[11px] text-muted">
+                    {checkout.amountDue === checkout.totalAmount
+                      ? `Pay at least ${formatMoney(checkout.requiredNow)} to get this order confirmed.`
+                      : `${formatMoney(checkout.amountDue)} outstanding.`}
+                  </span>
+                )
+              )}
+            </label>
+
+            <label className="block">
+              <span className="form-label">
                 Payment account<span aria-hidden className="ml-0.5 text-red-600">*</span>
               </span>
               <span className={`form-input ${errors.payerPhone ? 'border-red-400' : ''}`}>
@@ -211,27 +252,29 @@ export function PaymentPage() {
             <h2 className="text-sm font-black text-ink">What you are paying for</h2>
             {checkout ? (
               <>
-                <ul className="mt-4 space-y-3 border-b border-line pb-4">
-                  {checkout.orders.map((order) => (
-                    <li className="flex items-start justify-between gap-3" key={order.id}>
-                      <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-ink">{order.productName}</p>
-                        <p className="truncate text-[11px] text-muted">
-                          {order.variantName ? `${order.variantName} · ` : ''}{order.shopName} · × {order.quantity}
-                        </p>
-                        <p className="mt-1 text-[10px] text-muted">{order.orderNumber}</p>
-                      </div>
-                      <strong className="shrink-0 text-xs text-ink">{formatMoney(order.totalAmount)}</strong>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-4 flex items-start justify-between gap-3 border-b border-line pb-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-ink">{checkout.productName}</p>
+                    <p className="truncate text-[11px] text-muted">
+                      {checkout.variantName ? `${checkout.variantName} · ` : ''}{checkout.shopName} · × {checkout.quantity}
+                    </p>
+                    <p className="mt-1 text-[10px] text-muted">{checkout.orderNumber}</p>
+                  </div>
+                  <strong className="shrink-0 text-xs text-ink">{formatMoney(checkout.totalAmount)}</strong>
+                </div>
                 <dl className="mt-4 space-y-2 text-xs">
-                  <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd>{formatMoney(checkout.subtotal)}</dd></div>
+                  <div className="flex justify-between"><dt className="text-muted">Items</dt><dd>{formatMoney(checkout.unitPrice * checkout.quantity)}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Discount</dt><dd>-{formatMoney(checkout.discountAmount)}</dd></div>
                   <div className="flex justify-between"><dt className="text-muted">Delivery</dt><dd>{formatMoney(checkout.deliveryFee)}</dd></div>
                   <div className="flex justify-between border-t border-line pt-2 text-sm font-black text-ink">
                     <dt>Total</dt><dd>{formatMoney(checkout.totalAmount)}</dd>
                   </div>
+                  {checkout.amountPaid > 0 && (
+                    <>
+                      <div className="flex justify-between"><dt className="text-muted">Already paid</dt><dd>{formatMoney(checkout.amountPaid)}</dd></div>
+                      <div className="flex justify-between font-bold text-ink"><dt>Still due</dt><dd>{formatMoney(checkout.amountDue)}</dd></div>
+                    </>
+                  )}
                 </dl>
                 <div className="mt-4 flex items-center justify-between">
                   <OrderStatusPill status={checkout.status} />

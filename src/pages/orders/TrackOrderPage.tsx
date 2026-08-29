@@ -81,13 +81,11 @@ export function TrackOrderPage() {
                   </p>
                 </div>
               </div>
-              {order.delivery && (
-                <div className="mt-4 flex items-center gap-2 border-t border-line pt-4 text-xs">
-                  <Truck className="text-primary-dark" size={15} />
-                  <OrderStatusPill status={order.delivery.status} />
-                  {order.delivery.courierName && <span className="text-muted">via {order.delivery.courierName}</span>}
-                </div>
-              )}
+              <div className="mt-4 flex items-center gap-2 border-t border-line pt-4 text-xs">
+                <Truck className="text-primary-dark" size={15} />
+                <OrderStatusPill status={order.status} />
+                {order.courierName && <span className="text-muted">via {order.courierName}</span>}
+              </div>
             </section>
 
             <section className="surface-card">

@@ -6,7 +6,7 @@ import {
   Minus,
   Plus,
   ShieldCheck,
-  ShoppingBag,
+  Zap,
   Truck,
 } from 'lucide-react'
 import { useEffect, useId, useMemo, useState } from 'react'
@@ -36,7 +36,7 @@ import { appPaths } from '../../router/paths'
 
 export function ProductDetailPage() {
   const { slug = '' } = useParams()
-  const { addToCart, isFavorite, toggleFavorite } = useCommerce()
+  const { buyNow, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   const { error, loading, product } = useMarketplaceProduct(slug)
   const videos = useProductVideos(slug)
@@ -223,10 +223,10 @@ export function ProductDetailPage() {
               <button
                 className="auth-submit flex-1"
                 disabled={!inStock}
-                onClick={() => addToCart(card, quantity)}
+                onClick={() => buyNow(card, quantity)}
                 type="button"
               >
-                <ShoppingBag size={17} /> {inStock ? 'Add to cart' : 'Out of stock'}
+                <Zap size={17} /> {inStock ? 'Buy now' : 'Out of stock'}
 
               </button>
               <button
@@ -313,7 +313,7 @@ export function ProductDetailPage() {
                 <ProductCard
                   isFavorite={isFavorite(relatedCard)}
                   key={item.slug}
-                  onAdd={addToCart}
+                  onAdd={buyNow}
                   onFavorite={toggleFavorite}
                   onOpen={openProduct}
                   product={relatedCard}

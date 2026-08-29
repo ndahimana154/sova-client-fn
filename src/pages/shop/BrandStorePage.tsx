@@ -28,7 +28,7 @@ const sovaContact = {
 
 export function BrandStorePage() {
   const { slug = '' } = useParams()
-  const { addToCart, isFavorite, toggleFavorite } = useCommerce()
+  const { buyNow, isFavorite, toggleFavorite } = useCommerce()
   const openProduct = useProductNavigation()
   const [shop, setShop] = useState<MarketplaceShopDetails | null>(null)
   const [loading, setLoading] = useState(true)
@@ -123,7 +123,7 @@ export function BrandStorePage() {
               emptyMessage={`${shop.name} has no products on sale right now.`}
               isFavorite={isFavorite}
               initial={shop.products}
-              onAdd={addToCart}
+              onAdd={buyNow}
               onFavorite={toggleFavorite}
               onOpen={openProduct}
               shopSlug={shop.slug}

@@ -77,7 +77,7 @@ export function OrdersPage() {
                       {formatDateTime(order.createdAt)}
                     </span>
                   </span>
-                  <OrderStatusPill status={order.deliveryStatus ?? order.status} />
+                  <OrderStatusPill status={order.status} />
                 </div>
 
                 <div className="mt-3 flex items-center gap-3">

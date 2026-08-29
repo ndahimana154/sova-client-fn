@@ -15,10 +15,10 @@ export interface OrderDelivery {
 }
 
 export interface OrderSummary {
-  checkoutNumber: string
   createdAt: string
+  amountDue: number
+  amountPaid: number
   awaitingPayment: boolean
-  deliveryStatus: string | null
   id: string
   imageUrl: string | null
   paymentStatus: string | null
@@ -32,8 +32,7 @@ export interface OrderSummary {
 }
 
 export interface OrderDetail extends OrderSummary {
-  checkoutStatus: string
-  delivery: OrderDelivery | null
+  courierName: string | null
   deliveryAddress: string
   mapsUrl: string | null
   deliveryNote: string | null
@@ -47,7 +46,7 @@ export interface OrderDetail extends OrderSummary {
 }
 
 export interface OrderTracking {
-  delivery: OrderDelivery | null
+  courierName: string | null
   imageUrl: string | null
   orderNumber: string
   placedAt: string

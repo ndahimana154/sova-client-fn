@@ -50,7 +50,6 @@
   .product-card { @apply min-w-0; }
   .quick-add { @apply items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-xs font-bold text-white transition duration-300 hover:bg-primary-dark; }
   .quick-add-touch { @apply mt-3 flex w-full; }
-  .quick-add-desktop { @apply hidden; }
   .auth-page { @apply relative grid h-dvh place-items-center overflow-hidden bg-[#fbf3e8] px-4 py-3 sm:px-8 sm:py-5; }
   .auth-page::before { content: ""; @apply pointer-events-none absolute -left-32 -top-32 size-96 rounded-full bg-primary/10 blur-3xl; }
   .auth-page::after { content: ""; @apply pointer-events-none absolute -bottom-40 -right-24 size-[30rem] rounded-full bg-white/70 blur-3xl; }
@@ -96,28 +95,6 @@
 
 @media (max-width: 640px) {
   .hero-panel img { object-position: 65% center; opacity: .5; }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .quick-add-touch {
-    display: none;
-  }
-
-  .quick-add-desktop {
-    display: flex;
-    position: absolute;
-    right: .75rem;
-    bottom: .75rem;
-    left: .75rem;
-    transform: translateY(3.5rem);
-    opacity: 0;
-  }
-
-  .product-card:hover .quick-add-desktop,
-  .product-card:focus-within .quick-add-desktop {
-    transform: translateY(0);
-    opacity: 1;
-  }
 }
 
 @layer components {

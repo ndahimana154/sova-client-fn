@@ -1,11 +1,10 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { CartDrawer } from '../../features/cart/CartDrawer'
 import { FavoritesDrawer } from '../../features/favorites/FavoritesDrawer'
 import { useCommerce } from '../../hooks/useCommerce'
 import { isSeller } from '../../lib/clientAuth'
 import { appPaths } from '../../router/paths'
 import { openAuthModal } from '../../store/uiSlice'
-import { setCartOpen, setFavoritesOpen } from '../../store/commerceSlice'
+import { setFavoritesOpen } from '../../store/commerceSlice'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { Footer } from './Footer'
 import { StoreHeader } from './StoreHeader'
@@ -16,17 +15,13 @@ export function StorefrontLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const session = useAppSelector((state) => state.auth.session)
-  const { cartOpen, favoritesOpen } = useAppSelector((state) => state.commerce)
+  const { favoritesOpen } = useAppSelector((state) => state.commerce)
   const toast = useAppSelector((state) => state.ui.toast)
   const {
-    addToCart,
-    cartCount,
-    cartItems,
-    changeQuantity,
+    buyNow,
     clearFavorites,
     favoriteCount,
     favoriteItems,
-    removeFromCart,
     toggleFavorite,
   } = useCommerce()
 
@@ -34,9 +29,7 @@ export function StorefrontLayout() {
     <div className="min-h-screen bg-white text-ink">
       <StoreHeader
         authenticated={Boolean(session)}
-        cartCount={cartCount}
         favoriteCount={favoriteCount}
-        onCartOpen={() => dispatch(setCartOpen(true))}
         onFavoritesOpen={() => dispatch(setFavoritesOpen(true))}
         onSearch={(query) => navigate(appPaths.searchFor(query))}
         onSignIn={() => dispatch(openAuthModal(location.pathname))}
@@ -47,18 +40,10 @@ export function StorefrontLayout() {
 
       <Footer />
 
-      {cartOpen && (
-        <CartDrawer
-          items={cartItems}
-          onClose={() => dispatch(setCartOpen(false))}
-          onQuantityChange={changeQuantity}
-          onRemove={removeFromCart}
-        />
-      )}
       {favoritesOpen && (
         <FavoritesDrawer
           items={favoriteItems}
-          onAddToCart={addToCart}
+          onBuyNow={buyNow}
           onClear={clearFavorites}
           onClose={() => dispatch(setFavoritesOpen(false))}
           onRemove={toggleFavorite}

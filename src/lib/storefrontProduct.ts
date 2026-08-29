@@ -2,6 +2,7 @@ import type { Product } from '../data/catalog'
 import type { MarketplaceProduct } from './marketplaceApi'
 import { PRODUCT_PLACEHOLDER } from './constants'
 import { mediaUrl } from './mediaUrl'
+import { defaultVariant } from './variants'
 
 export function toStorefrontProduct(item: MarketplaceProduct): Product {
   const images = item.media.filter((media) => media.mediaType === 'IMAGE')
@@ -19,5 +20,8 @@ export function toStorefrontProduct(item: MarketplaceProduct): Product {
     reviews: 0,
     slug: item.slug,
     variantCount: item.variantCount,
+    // Buy Now needs a concrete SKU. Single-version products resolve it here so
+    // the buyer never reaches checkout with nothing selected.
+    variantId: defaultVariant(item.variants ?? [])?.id,
   }
 }

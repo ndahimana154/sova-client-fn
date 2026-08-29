@@ -1,10 +1,10 @@
 import { formatMoney } from '../../lib/money'
-import type { CartItem } from '../cart/types'
+import type { PurchaseItem } from '../purchase/types'
 
 interface OrderSummaryProps {
   deliveryFee: number
   freeThreshold: number
-  items: CartItem[]
+  items: PurchaseItem[]
   loaded: boolean
   subtotal: number
   total: number

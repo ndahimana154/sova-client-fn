@@ -1,4 +1,4 @@
-import { Heart, ShoppingBag, Trash2 } from 'lucide-react'
+import { Heart, ShoppingBag, Trash2, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Drawer } from '../../components/ui/Drawer'
 import type { Product } from '../../data/catalog'
@@ -7,13 +7,13 @@ import { appPaths } from '../../router/paths'
 
 interface FavoritesDrawerProps {
   items: Product[]
-  onAddToCart: (product: Product) => void
+  onBuyNow: (product: Product) => void
   onClear: () => void
   onClose: () => void
   onRemove: (product: Product) => void
 }
 
-export function FavoritesDrawer({ items, onAddToCart, onClear, onClose, onRemove }: FavoritesDrawerProps) {
+export function FavoritesDrawer({ items, onBuyNow, onClear, onClose, onRemove }: FavoritesDrawerProps) {
   return (
     <Drawer
       ariaLabel="Favorite products"
@@ -54,8 +54,8 @@ export function FavoritesDrawer({ items, onAddToCart, onClear, onClose, onRemove
                         <ShoppingBag size={14} /> Choose options
                       </Link>
                     ) : (
-                      <button className="primary-button !px-4 !py-2" onClick={() => onAddToCart(product)}>
-                        <ShoppingBag size={14} /> Add to cart
+                      <button className="primary-button !px-4 !py-2" onClick={() => onBuyNow(product)}>
+                        <Zap size={14} /> Buy now
                       </button>
                     )}
                     <button
