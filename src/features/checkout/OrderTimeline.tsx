@@ -1,4 +1,5 @@
 import type { OrderTimelineEntry } from '../../lib/ordersApi'
+import { mediaUrl } from '../../lib/mediaUrl'
 import { formatDateTime } from '../../lib/formatDate'
 
 export function OrderTimeline({ entries }: { entries: OrderTimelineEntry[] }) {
@@ -19,6 +20,20 @@ export function OrderTimeline({ entries }: { entries: OrderTimelineEntry[] }) {
               {formatDateTime(entry.at)}
               {entry.status ? ` · ${entry.status.replace(/_/g, ' ')}` : ''}
             </p>
+            {entry.note && (
+              <p className="mt-1.5 rounded-lg bg-soft px-2.5 py-1.5 text-[11px] leading-4 text-muted">
+                {entry.note}
+              </p>
+            )}
+            {entry.proofImage && (
+              <a href={mediaUrl(entry.proofImage)} rel="noreferrer" target="_blank">
+                <img
+                  alt="Photo recorded at this step"
+                  className="mt-2 max-h-40 rounded-xl border border-line object-cover"
+                  src={mediaUrl(entry.proofImage)}
+                />
+              </a>
+            )}
           </div>
         </li>
       ))}

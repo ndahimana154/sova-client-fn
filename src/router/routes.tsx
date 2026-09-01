@@ -17,7 +17,6 @@ const SearchPage = lazy(() => import('../pages/search/SearchPage').then((m) => (
 const BrandStorePage = lazy(() => import('../pages/shop/BrandStorePage').then((m) => ({ default: m.BrandStorePage })))
 const VideoDiscoveryPage = lazy(() => import('../pages/videos/VideoDiscoveryPage').then((m) => ({ default: m.VideoDiscoveryPage })))
 const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage').then((m) => ({ default: m.CheckoutPage })))
-const PaymentPage = lazy(() => import('../pages/checkout/PaymentPage').then((m) => ({ default: m.PaymentPage })))
 const TermsPage = lazy(() => import('../pages/legal/TermsPage').then((m) => ({ default: m.TermsPage })))
 const DeliveryTermsPage = lazy(() => import('../pages/legal/DeliveryTermsPage').then((m) => ({ default: m.DeliveryTermsPage })))
 const OrdersPage = lazy(() => import('../pages/orders/OrdersPage').then((m) => ({ default: m.OrdersPage })))
@@ -46,7 +45,6 @@ export function AppRoutes({ requireSession }: AppRoutesProps) {
             <Route element={<AccountDeliveryTermsPage />} path="account/delivery-terms" />
           </Route>
           <Route element={<CheckoutPage />} path="checkout" />
-          <Route element={<PaymentPage />} path="checkout/:checkoutNumber/payment" />
           <Route element={requireSession(<OrdersPage />)} path="orders" />
           <Route element={requireSession(<OrderDetailPage />)} path="orders/:orderNumber" />
           <Route element={<TrackOrderPage />} path="track" />

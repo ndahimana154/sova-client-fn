@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import {
   KIGALI_CENTRE,
+  coordinateLabel,
   reverseGeocode,
   suggestPlaces,
   type PlaceSuggestion,
@@ -67,7 +68,7 @@ export function LocationPicker({ label, latitude, longitude, onConfirm }: Locati
 
   const describe = useCallback(async (lat: number, lng: number) => {
     const result = await reverseGeocode(lat, lng)
-    if (result) setPlace(result.description)
+    setPlace(result?.description || coordinateLabel(lat, lng))
   }, [])
 
   function drop(lat: number, lng: number) {
@@ -96,13 +97,15 @@ export function LocationPicker({ label, latitude, longitude, onConfirm }: Locati
 
   function confirm() {
     if (fullscreen) void toggle()
-    onConfirm({ label: place, latitude: String(pin.lat), longitude: String(pin.lng) })
+    onConfirm({
+      label: place.trim() || coordinateLabel(pin.lat, pin.lng),
+      latitude: String(pin.lat),
+      longitude: String(pin.lng),
+    })
   }
 
   return (
     <div
-      // `isolate` keeps the high z-indexes below (needed to clear Leaflet's own
-      // controls at 1000) scoped to this card, so they cannot cover the header.
       className={`isolate flex flex-col rounded-xl border border-line bg-white p-3 ${fullscreen ? 'h-screen w-screen rounded-none' : ''}`}
       ref={shell}
     >

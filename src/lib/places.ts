@@ -168,3 +168,7 @@ export function mapsLink(value: {
   }
   return null
 }
+
+export function coordinateLabel(latitude: number | string, longitude: number | string) {
+  return `Pinned location (${Number(latitude).toFixed(5)}, ${Number(longitude).toFixed(5)})`
+}

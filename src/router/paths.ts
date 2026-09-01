@@ -15,7 +15,6 @@ export const appPaths = {
   search: '/search',
   searchFor: (query: string) => `/search?q=${encodeURIComponent(query)}`,
   checkout: '/checkout',
-  checkoutPayment: (checkoutNumber: string) => `/checkout/${encodeURIComponent(checkoutNumber)}/payment`,
   orders: '/orders',
   orderDetails: (orderNumber: string) => `/orders/${encodeURIComponent(orderNumber)}`,
   track: '/track',

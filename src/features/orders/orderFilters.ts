@@ -15,7 +15,7 @@ export type OrderFilterId =
   | 'all'
   | 'to_pay'
   | 'awaiting_packing'
-  | 'packing'
+  | 'awaiting_pickup'
   | 'in_transit'
   | 'delivered'
   | 'cancelled'
@@ -32,7 +32,7 @@ export function bucketOf(order: OrderSummary): Exclude<OrderFilterId, 'all'> {
   if (order.status === 'pending_payment') return 'to_pay'
   if (order.status === 'delivered') return 'delivered'
   if (order.status === 'in_transit') return 'in_transit'
-  if (order.status === 'packing') return 'packing'
+  if (order.status === 'awaiting_pickup') return 'awaiting_pickup'
   return 'awaiting_packing'
 }
 
@@ -57,7 +57,7 @@ export const ORDER_FILTERS: OrderFilter[] = [
     id: 'awaiting_packing',
     label: 'Await packing',
   },
-  { hint: 'Being packed by the shop.', icon: Package, id: 'packing', label: 'Packing' },
+  { hint: 'Packed and waiting for a courier.', icon: Package, id: 'awaiting_pickup', label: 'Awaiting pickup' },
   { hint: 'On the way to you right now.', icon: Truck, id: 'in_transit', label: 'In transit' },
   {
     hint: 'Delivered and complete.',
@@ -76,7 +76,7 @@ export function countByBucket(orders: OrderSummary[]): Record<OrderFilterId, num
     cancelled: 0,
     delivered: 0,
     in_transit: 0,
-    packing: 0,
+    awaiting_pickup: 0,
     refunded: 0,
     to_pay: 0,
   }
@@ -90,7 +90,7 @@ export const EMPTY_COPY: Record<OrderFilterId, string> = {
   cancelled: 'You have no cancelled orders.',
   delivered: 'Nothing has been delivered yet.',
   in_transit: 'Nothing is on the way right now.',
-  packing: 'No orders are being packed right now.',
+  awaiting_pickup: 'No orders are waiting for a courier right now.',
   refunded: 'You have no refunded orders.',
   to_pay: 'Nothing is waiting on payment.',
 }

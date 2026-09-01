@@ -4,6 +4,9 @@ export interface OrderTimelineEntry {
   at: string
   description: string | null
   eventType: string
+  note: string | null
+  proofImage: string | null
+  recordedBy: string | null
   status: string | null
 }
 

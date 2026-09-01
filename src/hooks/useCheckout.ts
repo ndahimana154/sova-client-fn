@@ -3,7 +3,7 @@ import { normalizeApiError } from '../api/errors'
 import {
   checkoutApi,
   type PayableOrder,
-  
+
   type OrderPaymentReceipt,
   type CheckoutPaymentMethod,
   type SubmitPaymentInput,
@@ -19,6 +19,8 @@ import { normalizePhone } from '../lib/phone'
 import { useAppSelector } from '../store/hooks'
 
 export interface CheckoutContact {
+  paymentMethodId?: string
+  shippingMethodId?: string
   acceptDeliveryTerms?: boolean
   acceptTerms?: boolean
   deliveryAddress: string
@@ -31,7 +33,6 @@ export interface CheckoutContact {
   recipientName: string
   recipientPhone: string
 }
-
 
 export function useCheckout() {
   const session = useAppSelector((state) => state.auth.session)
@@ -98,6 +99,8 @@ export function useCheckout() {
           idempotencyKey: newIdempotencyKey(),
           quantity: line.quantity,
           variantId: line.product.variantId as string,
+          paymentMethodId: contact.paymentMethodId as string,
+          shippingMethodId: contact.shippingMethodId as string,
           verificationToken: authenticated ? undefined : verificationToken,
         },
         authenticated,

@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft, Clock, ExternalLink, MapPin, Truck } from 'lucide-react'
+import { ChevronLeft, ExternalLink, MapPin, Truck } from 'lucide-react'
 import { OrderStatusPill } from '../../features/checkout/OrderStatusPill'
 import { OrderTimeline } from '../../features/checkout/OrderTimeline'
 import { OrderProgress } from '../../features/orders/OrderProgress'
@@ -52,11 +52,6 @@ export function OrderDetailPage() {
               </p>
             </div>
 
-            {awaitingPayment && (
-              <Link className="primary-button shrink-0" to={appPaths.checkoutPayment(order.orderNumber)}>
-                Complete payment
-              </Link>
-            )}
           </div>
 
           <div className="mt-5 border-t border-line pt-5">
@@ -66,20 +61,6 @@ export function OrderDetailPage() {
             />
           </div>
 
-          {awaitingPayment && (
-            <p className="mt-4 rounded-xl bg-primary-light px-3.5 py-2.5 text-[11px] leading-5 text-primary-dark">
-              {paymentRejected
-                ? 'We could not verify your last payment. Please submit it again.'
-                : 'We are holding your items. Send the payment and upload your proof so our team can confirm it.'}
-            </p>
-          )}
-
-          {underReview && (
-            <p className="mt-4 flex items-start gap-2 rounded-xl bg-soft px-3.5 py-2.5 text-[11px] leading-5 text-muted">
-              <Clock className="mt-px shrink-0 text-primary-dark" size={13} />
-              Payment received — our team is verifying it. We email you as soon as it is confirmed.
-            </p>
-          )}
         </section>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">

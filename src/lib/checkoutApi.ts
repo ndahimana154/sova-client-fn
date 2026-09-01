@@ -17,7 +17,6 @@ export interface PlacedOrder {
   variantName: string | null
 }
 
-/** What the payment screen needs: the balance and how little may be paid now. */
 export interface PayableOrder {
   amountDue: number
   amountPaid: number
@@ -40,6 +39,7 @@ export interface CheckoutPaymentMethod {
   code: string
   description: string | null
   id: string
+  logo: string | null
   name: string
 }
 
@@ -52,10 +52,12 @@ export interface PlaceOrderInput {
   deliveryNote?: string | null
   deliveryPlaceId?: string | null
   idempotencyKey?: string
+  paymentMethodId: string
   quantity: number
   recipientEmail: string
   recipientName: string
   recipientPhone: string
+  shippingMethodId: string
   variantId: string
   verificationToken?: string
 }
