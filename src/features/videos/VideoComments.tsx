@@ -1,6 +1,7 @@
 import { Loader2, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { CommentComposer } from '../../components/ui/CommentComposer'
+import { normalizeApiError } from '../../api/errors'
 import { marketplaceApi, type VideoComment } from '../../lib/marketplaceApi'
 
 interface VideoCommentsProps {
@@ -47,7 +48,8 @@ export function VideoComments({ authenticated, mediaId, onClose, onCountChange, 
       setReplyTo(null)
       await load()
     } catch (cause) {
-      setError('Your comment could not be posted.')
+      // Show what the server actually objected to instead of a blanket message.
+      setError(normalizeApiError(cause).message)
       // Rethrow so the composer keeps the draft instead of clearing it.
       throw cause
     } finally {

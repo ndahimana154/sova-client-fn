@@ -1,5 +1,5 @@
 import 'leaflet/dist/leaflet.css'
-import { Check, Crosshair, Loader2, MapPin, Maximize2, Minimize2, Search } from 'lucide-react'
+import { Check, Crosshair, Loader2, MapPin, Maximize2, Minimize2, Search, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import {
@@ -20,13 +20,22 @@ export interface PickedLocation {
 }
 
 interface LocationPickerProps {
+  confirmLabel?: string
   label: string | null
   latitude: string | null
   longitude: string | null
   onConfirm: (location: PickedLocation) => void
+  searchPlaceholder?: string
 }
 
-export function LocationPicker({ label, latitude, longitude, onConfirm }: LocationPickerProps) {
+export function LocationPicker({
+  confirmLabel = 'Confirm this location',
+  label,
+  latitude,
+  longitude,
+  onConfirm,
+  searchPlaceholder = 'Search a place, building or road',
+}: LocationPickerProps) {
   const start = useMemo(
     () => ({
       lat: latitude ? Number(latitude) : KIGALI_CENTRE.latitude,
@@ -71,6 +80,11 @@ export function LocationPicker({ label, latitude, longitude, onConfirm }: Locati
     setPlace(result?.description || coordinateLabel(lat, lng))
   }, [])
 
+  useEffect(() => {
+    if (label?.trim()) return
+    void describe(start.lat, start.lng)
+  }, [describe, label, start.lat, start.lng])
+
   function drop(lat: number, lng: number) {
     setPin({ lat, lng })
     void describe(lat, lng)
@@ -109,17 +123,27 @@ export function LocationPicker({ label, latitude, longitude, onConfirm }: Locati
       className={`isolate flex flex-col rounded-xl border border-line bg-white p-3 ${fullscreen ? 'h-screen w-screen rounded-none' : ''}`}
       ref={shell}
     >
-      {/* Above Leaflet's own controls, which sit at z-index 1000. */}
       <div className="relative z-[1200]" ref={box}>
-        <span className="form-input">
+        <span className="flex min-h-10 items-center gap-2 rounded-xl border border-line bg-white px-3 transition focus-within:border-ink focus-within:ring-4 focus-within:ring-ink/10">
           <Search className="shrink-0 text-muted" size={15} />
           <input
             autoComplete="off"
+            className="min-w-0 flex-1 bg-transparent py-2 text-xs text-ink outline-none placeholder:text-faint"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search a street, area or landmark"
+            placeholder={searchPlaceholder}
             value={query}
           />
           {searching && <Loader2 className="shrink-0 animate-spin text-muted" size={14} />}
+          {!searching && query && (
+            <button
+              aria-label="Clear search"
+              className="grid size-5 shrink-0 place-items-center rounded-full text-muted transition hover:bg-soft hover:text-ink"
+              onClick={() => { setQuery(''); setSuggestions([]) }}
+              type="button"
+            >
+              <X size={12} />
+            </button>
+          )}
         </span>
 
         {suggestions.length > 0 && (
@@ -140,21 +164,26 @@ export function LocationPicker({ label, latitude, longitude, onConfirm }: Locati
         )}
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[10px] leading-4 text-muted">Tap the map or drag the pin to your exact spot.</p>
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[10px] leading-4 text-muted">Tap the map or drag the pin to the exact spot.</p>
         <div className="flex items-center gap-1.5">
           <button
-            className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1.5 text-[10px] font-bold text-muted transition hover:border-primary/40 hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-2.5 py-1.5 text-[10px] font-bold text-ink transition hover:border-ink/30 hover:bg-soft disabled:pointer-events-none disabled:opacity-60"
             disabled={locating}
             onClick={useMyLocation}
             type="button"
           >
-            <Crosshair size={12} /> {locating ? 'Locating…' : 'Use my location'}
+            {locating ? (
+              <Loader2 className="animate-spin" size={12} />
+            ) : (
+              <Crosshair size={12} />
+            )}
+            {locating ? 'Locating…' : 'Use my location'}
           </button>
           {supported && (
             <button
               aria-label={fullscreen ? 'Exit full screen' : 'Full screen'}
-              className="grid size-7 place-items-center rounded-full border border-line text-muted transition hover:border-primary/40 hover:text-ink"
+              className="grid size-8 place-items-center rounded-lg border border-line bg-white text-muted transition hover:border-ink/30 hover:bg-soft hover:text-ink"
               onClick={() => void toggle()}
               title={fullscreen ? 'Exit full screen' : 'Full screen'}
               type="button"
@@ -180,14 +209,28 @@ export function LocationPicker({ label, latitude, longitude, onConfirm }: Locati
         </MapContainer>
       </div>
 
-      <p className="mt-2 flex items-start gap-1.5 text-[10px] leading-4 text-muted">
-        <MapPin className="mt-px shrink-0" size={11} />
-        <span>{place || 'Move the pin to your delivery spot'}</span>
-      </p>
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-soft/50 px-3.5 py-3">
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <MapPin className="mt-0.5 shrink-0 text-ink" size={14} />
+          <div className="min-w-0">
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-faint">
+              Selected location
+            </p>
+            <p className="mt-0.5 break-words text-xs font-bold leading-4 text-ink">
+              {place || 'Move the pin to choose a spot'}
+            </p>
+          </div>
+        </div>
 
-      <button className="primary-button mt-2.5 w-full" onClick={confirm} type="button">
-        <Check size={14} /> Use this location
-      </button>
+        <button
+          className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-ink px-4 text-xs font-bold text-white transition hover:bg-ink/90 disabled:pointer-events-none disabled:opacity-50"
+          disabled={!place}
+          onClick={confirm}
+          type="button"
+        >
+          <Check size={14} /> {confirmLabel}
+        </button>
+      </div>
     </div>
   )
 }

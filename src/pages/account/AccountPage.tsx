@@ -1,10 +1,11 @@
 import { CalendarDays, ExternalLink, Mail, Phone, UserRound } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { AddressField, type AddressValue } from '../../components/form/AddressField'
+import { LocationField, type LocationValue } from '../../components/form/LocationField'
+import { PhoneField } from '../../components/form/PhoneField'
 import type { BuyerProfileContext } from '../../components/layout/AccountLayout'
 import { useAuthActions } from '../../hooks/useAuthActions'
-import { PHONE_HINT, PHONE_PLACEHOLDER, formatPhone, normalizePhone, validatePhone } from '../../lib/phone'
+import { PHONE_HINT, normalizePhone, validatePhone } from '../../lib/phone'
 import type { UpdateBuyerProfileInput } from '../../lib/profileApi'
 
 export function AccountPage() {
@@ -14,8 +15,7 @@ export function AccountPage() {
   const [phone, setPhone] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [phoneError, setPhoneError] = useState('')
-  const [address, setAddress] = useState<AddressValue>({
-    addressHouseNumber: '',
+  const [address, setAddress] = useState<LocationValue>({
     addressLabel: '',
     addressLatitude: null,
     addressLongitude: null,
@@ -28,7 +28,6 @@ export function AccountPage() {
     setPhone(profile.phone ?? '')
     setDateOfBirth(profile.dateOfBirth ?? '')
     setAddress({
-      addressHouseNumber: profile.addressHouseNumber ?? '',
       addressLabel: profile.addressLabel ?? '',
       addressLatitude: profile.addressLatitude,
       addressLongitude: profile.addressLongitude,
@@ -41,10 +40,11 @@ export function AccountPage() {
     if (name.trim() !== (profile?.name ?? '')) next.name = name.trim()
     if (normalizePhone(phone) !== (profile?.phone ?? '')) next.phone = normalizePhone(phone)
     if (dateOfBirth !== (profile?.dateOfBirth ?? '')) next.dateOfBirth = dateOfBirth
-    if (address.addressHouseNumber.trim() !== (profile?.addressHouseNumber ?? '')) {
-      next.addressHouseNumber = address.addressHouseNumber.trim()
-    }
-    if (address.addressLabel.trim() !== (profile?.addressLabel ?? '')) {
+    const movedPin =
+      address.addressLabel.trim() !== (profile?.addressLabel ?? '') ||
+      (address.addressLatitude ?? '') !== (profile?.addressLatitude ?? '') ||
+      (address.addressLongitude ?? '') !== (profile?.addressLongitude ?? '')
+    if (movedPin) {
       next.addressLabel = address.addressLabel.trim()
       next.addressPlaceId = address.addressPlaceId ?? ''
       next.addressLatitude = address.addressLatitude ?? ''
@@ -97,11 +97,8 @@ export function AccountPage() {
               <span className="form-label">Phone</span>
               <span className={`form-input ${phoneError ? 'border-red-400' : ''}`}>
                 <Phone className="shrink-0 text-muted" size={15} />
-                <input
-                  autoComplete="tel"
-                  inputMode="tel"
-                  onChange={(e) => { setPhone(formatPhone(e.target.value)); setPhoneError('') }}
-                  placeholder={PHONE_PLACEHOLDER}
+                <PhoneField
+                  onChange={(next) => { setPhone(next); setPhoneError('') }}
                   value={phone}
                 />
               </span>
@@ -126,7 +123,16 @@ export function AccountPage() {
             </label>
 
             <div className="sm:col-span-2">
-              <AddressField label="Street or area" onChange={setAddress} value={address} />
+              <span className="form-label">Delivery location</span>
+              <div className="mt-1.5">
+                <LocationField
+                  confirmLabel="Save this location"
+                  searchPlaceholder="Search your street, building or landmark"
+                  hint="Checkout uses this by default. Place the pin where a courier should meet you."
+                  onChange={setAddress}
+                  value={address}
+                />
+              </div>
             </div>
           </div>
         )}

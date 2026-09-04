@@ -17,7 +17,7 @@ export function HomePage() {
         onOpen={openProduct}
       />
       <Hero />
-      <BrandStrip />
+      {/* <BrandStrip /> */}
       <NewlyStockedSection
         isFavorite={isFavorite}
         onAdd={buyNow}

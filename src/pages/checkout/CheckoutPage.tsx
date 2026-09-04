@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CreditCard, Mail, MapPinned, Phone, Truck, UserRound } from 'lucide-react'
 import { LocationPicker } from '../../components/form/LocationPicker'
+import { PhoneField } from '../../components/form/PhoneField'
 import { CheckoutField } from '../../features/checkout/CheckoutField'
 import { MethodChoice } from '../../features/checkout/MethodChoice'
 import { OrderSummary } from '../../features/checkout/OrderSummary'
@@ -208,10 +209,8 @@ export function CheckoutPage() {
                   label="Phone number"
                   required
                 >
-                  <input
-                    autoComplete="tel"
-                    onChange={(event) => update('recipientPhone', event.target.value)}
-                    placeholder="07xx xxx xxx"
+                  <PhoneField
+                    onChange={(phone) => update('recipientPhone', phone)}
                     value={contact.recipientPhone}
                   />
                 </CheckoutField>
@@ -258,6 +257,8 @@ export function CheckoutPage() {
                 </div>
               ) : (
                 <LocationPicker
+                  confirmLabel="Confirm delivery location"
+                  searchPlaceholder="Search your street, building or landmark"
                   label={contact.deliveryAddress || null}
                   latitude={contact.deliveryLatitude ?? null}
                   longitude={contact.deliveryLongitude ?? null}

@@ -7,6 +7,7 @@ export interface BuyerProfile {
   addressLatitude: string | null
   addressLongitude: string | null
   addressPlaceId: string | null
+  autoPlayNext: boolean
   dateOfBirth: string | null
   email: string
   id: string
@@ -21,6 +22,7 @@ export interface UpdateBuyerProfileInput {
   addressLatitude?: string
   addressLongitude?: string
   addressPlaceId?: string
+  autoPlayNext?: boolean
   dateOfBirth?: string
   name?: string
   phone?: string

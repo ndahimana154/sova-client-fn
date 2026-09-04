@@ -8,6 +8,12 @@ import { SKIP_SECONDS, seekBy } from '../../lib/videoSeek'
 import { useInfiniteVideos } from '../../hooks/useInfiniteVideos'
 import { marketplaceApi } from '../../lib/marketplaceApi'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { profileApi } from '../../lib/profileApi'
+import {
+  readLocalAutoPlayNext,
+  saveAutoPlayNext,
+  writeLocalAutoPlayNext,
+} from '../../lib/autoPlayNext'
 import { openAuthModal } from '../../store/uiSlice'
 import { formatMoney } from '../../lib/money'
 import type { MarketplaceVideoProduct } from '../../lib/marketplaceApi'
@@ -30,6 +36,29 @@ export function VideoDiscoveryPage() {
   const [player, setPlayer] = useState<HTMLVideoElement | null>(null)
   const session = useAppSelector((state) => state.auth.session)
   const authenticated = Boolean(session)
+  const [autoNext, setAutoNext] = useState(readLocalAutoPlayNext)
+
+  // A signed-in viewer's saved choice wins over whatever this browser holds.
+  useEffect(() => {
+    if (!authenticated) return
+    let live = true
+    profileApi
+      .get()
+      .then((profile) => {
+        if (!live) return
+        setAutoNext(profile.autoPlayNext)
+        writeLocalAutoPlayNext(profile.autoPlayNext)
+      })
+      .catch(() => undefined)
+    return () => {
+      live = false
+    }
+  }, [authenticated])
+
+  function changeAutoNext(value: boolean) {
+    setAutoNext(value)
+    void saveAutoPlayNext(value, authenticated)
+  }
 
   async function toggleLike() {
     if (!video) return
@@ -156,7 +185,18 @@ export function VideoDiscoveryPage() {
         {videos.map((item, index) => (
           <section className={`relative grid h-[100dvh] snap-start place-items-center px-3 py-16 transition-[padding] sm:px-16 ${commentsOpen ? 'sm:pr-[26rem]' : ''}`} data-index={index} key={item.id} ref={(node) => { slides.current[index] = node }}>
             <div className="relative h-full max-h-[820px] w-full max-w-[470px] overflow-hidden rounded-2xl bg-black shadow-2xl">
-              <video className="size-full object-cover" loop muted={muted} playsInline preload={Math.abs(active - index) <= 1 ? 'metadata' : 'none'} ref={(node) => { players.current[index] = node }} src={mediaUrl(item.url)} />
+              <video
+                className="size-full object-cover"
+                loop={!autoNext}
+                muted={muted}
+                onEnded={() => {
+                  if (autoNext && index === active) move(1)
+                }}
+                playsInline
+                preload={Math.abs(active - index) <= 1 ? 'metadata' : 'none'}
+                ref={(node) => { players.current[index] = node }}
+                src={mediaUrl(item.url)}
+              />
               <button aria-label="Play or pause" className="absolute inset-0 grid place-items-center" onClick={() => { const player = players.current[index]; if (player?.paused) void player.play(); else player?.pause() }} type="button">
                 {index !== active && <span className="grid size-14 place-items-center rounded-full bg-black/35 backdrop-blur"><Play fill="white" size={22} /></span>}
               </button>
@@ -180,6 +220,19 @@ export function VideoDiscoveryPage() {
       <nav className={`fixed top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-2 transition-[right] sm:flex ${commentsOpen ? 'right-[29rem]' : 'right-4'}`}>
         <ArrowButton disabled={active === 0} label="Previous video" onClick={() => move(-1)}><ArrowUp size={18} /></ArrowButton>
         <ArrowButton disabled={active === videos.length - 1 && !hasNextPage} label="Next video" onClick={() => move(1)}><ArrowDown size={18} /></ArrowButton>
+        <button
+          aria-pressed={autoNext}
+          className={`grid size-10 place-items-center rounded-full border text-[9px] font-black leading-none transition ${
+            autoNext
+              ? 'border-transparent bg-white text-ink'
+              : 'border-white/30 text-white/80 hover:text-white'
+          }`}
+          onClick={() => changeAutoNext(!autoNext)}
+          title={autoNext ? 'Auto-play next is on' : 'Auto-play next is off'}
+          type="button"
+        >
+          AUTO
+        </button>
       </nav>
 
       {commentsOpen && video && (
@@ -197,7 +250,12 @@ export function VideoDiscoveryPage() {
         <SignInPrompt
           action={signInFor}
           onClose={() => setSignInFor('')}
-          onSignIn={() => dispatch(openAuthModal(appPaths.videos))}
+          onSignIn={() => {
+            // Close this one first, otherwise the two modals stack and the
+            // sign-in form opens behind the prompt that asked for it.
+            setSignInFor('')
+            dispatch(openAuthModal(appPaths.videos))
+          }}
         />
       )}
     </main>

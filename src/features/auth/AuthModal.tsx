@@ -114,7 +114,7 @@ export function AuthModal() {
   if (!open) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-ink/45 p-4 backdrop-blur-sm" onMouseDown={close}>
+    <div className="fixed inset-0 z-[130] grid place-items-center bg-ink/45 p-4 backdrop-blur-sm" onMouseDown={close}>
       <div
         aria-labelledby="auth-modal-title"
         aria-modal="true"
